@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
     "impeccable": {
       "source": "pbakaus/impeccable",
@@ -30,6 +30,175 @@
       "sourceType": "github",
       "skillPath": "skills/web-design-reviewer/SKILL.md",
       "computedHash": "10c6fad8b4f01dbeae969009d81d6c306c8a96d56077cad9bfe2a73a38f5dcbe"
+    },
+    "spec-driven-development": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/spec-driven-development/SKILL.md",
+      "computedHash": "dc06c5b12c4f33a529015a7fa2b73dc0737c1b998c60538a70d7e367909e9048"
+    },
+    "planning-and-task-breakdown": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/planning-and-task-breakdown/SKILL.md",
+      "computedHash": "fe2c45ff40da4e53c5f5597da1572e38609778fef31ac080a79d4fa3f9333037"
+    },
+    "incremental-implementation": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/incremental-implementation/SKILL.md",
+      "computedHash": "f1e4e7566f48d7c272e4a04be910839f89867b7f358a14dd99416bc023b84cbc"
+    },
+    "source-driven-development": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/source-driven-development/SKILL.md",
+      "computedHash": "0d65693d18d2de4c9d2eefad7d5a3b2fdfe506cfadb5c1e893d560d6f042eadf"
+    },
+    "doubt-driven-development": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/doubt-driven-development/SKILL.md",
+      "computedHash": "4790c3c30c7e3a0baf94847a9c44b29d3118e326b8c40b42cea5ca07dc935f6c"
+    },
+    "frontend-ui-engineering": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/frontend-ui-engineering/SKILL.md",
+      "computedHash": "f822eb1f4763f6664dc5964504739c583fc3154546038dc45b1de874da553069"
+    },
+    "test-driven-development": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/test-driven-development/SKILL.md",
+      "computedHash": "ac07d59ed2e73800c46430b3736321cb1f070d6f102a16fd17f2ea617fc0f8d5"
+    },
+    "api-and-interface-design": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/api-and-interface-design/SKILL.md",
+      "computedHash": "7b25fe55e6d831db21d176a4b56ffa6bb91aa4d62d0da0dad94e421c930a4c95"
+    },
+    "browser-testing-with-devtools": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/browser-testing-with-devtools/SKILL.md",
+      "computedHash": "709acded61b82233db83238b827c3665c69631383c7accb536f5ecd2c2013a70"
+    },
+    "debugging-and-error-recovery": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/debugging-and-error-recovery/SKILL.md",
+      "computedHash": "353e9ecec644688ecfc1b204a8ede6d69ed9f9bdc04f7069c0f52a8c353e276e"
+    },
+    "code-review-and-quality": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/code-review-and-quality/SKILL.md",
+      "computedHash": "d576865fdc6fc20ddec036f76f95fe896206613539bcd9bbe840b1e373e9542a"
+    },
+    "code-simplification": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/code-simplification/SKILL.md",
+      "computedHash": "5ed5cf0cf04b4160ec943e0b931ed7b87b66b583394951b054548268cd4649e4"
+    },
+    "security-and-hardening": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/security-and-hardening/SKILL.md",
+      "computedHash": "78098108e909978888771fa8251e980070106e2d72794e4ddb23109cc5ce96db"
+    },
+    "performance-optimization": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/performance-optimization/SKILL.md",
+      "computedHash": "67f6ffd2c99909e21fc077523a99db8948aae574bc4fb2539404e611ec52d41e"
+    },
+    "ci-cd-and-automation": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/ci-cd-and-automation/SKILL.md",
+      "computedHash": "e877e3041cbc677b5b0833c73963e1050cad4a5489d611875722f12408b9b0ed"
+    },
+    "documentation-and-adrs": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/documentation-and-adrs/SKILL.md",
+      "computedHash": "56d2e7300aa1697e92e072048351e369e7cf4161f88d615703124cdce0021a5a"
+    },
+    "observability-and-instrumentation": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/observability-and-instrumentation/SKILL.md",
+      "computedHash": "100e5ac7cfd3091a0bb12368adf673e15393c5d652b292fd10267cdbe67df926"
+    },
+    "shipping-and-launch": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "commit": "2fbfa004a0192529bc997d103fc12f19a3804aab",
+      "license": "MIT",
+      "skillPath": "skills/shipping-and-launch/SKILL.md",
+      "computedHash": "8b089c57fadcfa4b93e750b0aa5a17be361b0223e405589fb8b4628400ea1609"
+    },
+    "playwright-best-practices": {
+      "source": "currents-dev/playwright-best-practices-skill",
+      "sourceType": "github",
+      "commit": "ef329e7e65149918e1ff0eed2cf7d2e6e6f9eb5b",
+      "license": "MIT",
+      "skillPath": "SKILL.md",
+      "computedHash": "edaa445c82161659e92c764114b7c2e0318d497735820d8ba7bc8ed309998411"
+    },
+    "security-audit": {
+      "source": "netresearch/security-audit-skill",
+      "sourceType": "github",
+      "commit": "62895f093bc835dcbccfbccb421816c0f44192ce",
+      "license": "MIT AND CC-BY-SA-4.0",
+      "skillPath": "skills/security-audit/SKILL.md",
+      "computedHash": "718fe10f697d6942219828831e3f97c868eb972baf26bc035347ab801bfca838",
+      "executionPolicy": "instructions-only; scripts not executed; package prepare hook avoided"
+    },
+    "architecture-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "commit": "c4b82b0ad771190355eb8e204b1329732a18449a",
+      "license": "MIT",
+      "skillPath": "plugins/backend-development/skills/architecture-patterns/SKILL.md",
+      "computedHash": "891637f5dce0bc5afa43095229299a24257f98ea513c37eed2f4514c1d5d4280"
     }
   }
 }
