@@ -1,0 +1,24 @@
+id,category,feature,initial_classification,evidence,known_gap
+CORE-001,Core,Home responsiva,partial,"Rota e smoke E2E desktop/mobile Chromium",Sem auditoria visual completa; sem tablet/TV/WebKit/Firefox/a11y
+CORE-002,Core,Categorias de mídia,partial,"Rotas para filmes séries doramas anime livros manga quadrinhos jogos",Novels sem domínio/rota própria; categoria excluída removida na primeira fatia
+LIB-001,Biblioteca,Biblioteca local,partial,"Dexie + Zustand + testes unitários",Sem E2E CRUD/export/restore em dados reais
+LIB-002,Biblioteca,Progresso por tipo,partial,"Tipos e componentes existentes",Sem cobertura real de todos os tipos e conflitos
+SYNC-001,Sincronização,Supabase opcional,partial,"Cliente e migrations existentes",Sem prova remota de RLS/realtime/conflict resolution
+AUTH-001,Identidade,Login e cadastro,partial,"Rotas e integração Supabase",Sem E2E real com projeto Supabase de teste
+DISC-001,Descoberta,Busca e descoberta,partial,"Serviços para múltiplas APIs e telas",Muitos providers sem teste real; falhas e rate limits não cobertos
+PROV-001,Provedores,Diretório de provedores,link,"Catálogo estático com mais de 90 entradas",Listagem não prova integração; diversos itens abrem página externa
+PROV-002,Provedores,Manifesto Hubora/Stremio,partial,"Parser e testes mockados",Validação de schema incompleta; sem runner isolado; SSRF/egress a revisar
+MEDIA-001,Player,Player interno,partial,"Player e HLS presentes",Sem E2E de formatos DRM legendas PiP casting e erros
+MEDIA-002,Leitor,Leitor interno,partial,"Reader e fontes abertas presentes",Sem E2E PDF/EPUB/CBZ/CBR/OPDS/anotações
+PERS-001,Mídia pessoal,Jellyfin,partial,"Cliente e teste mockado",Sem servidor real de teste e matriz de erro/CORS
+PERS-002,Mídia pessoal,Komga,partial,"Cliente existente",Sem integração real reproduzível
+PERS-003,Mídia pessoal,Kavita,partial,"Cliente existente",Sem integração real reproduzível
+PERS-004,Mídia pessoal,OPDS,partial,"Parser JSON/XML e teste OPDS JSON",Sem fixtures abrangentes e segurança de conteúdo
+GAME-001,Jogos,Descoberta de jogos,partial,"IGDB/Steam/CheapShark no código",Credenciais e APIs reais não validadas nesta execução
+GAME-002,Jogos,Scan e launcher local,partial,"Heurística no Companion",Sem Steam libraryfolders.vdf Playnite Epic/GOG robustos; execução insegura
+COMP-001,Companion,Companion Windows,broken,"Servidor Node e teste intermitente",Não Tauri; requer Node; riscos críticos de shell SSRF e segredos
+PWA-001,PWA,Instalação e offline,partial,"Build gera manifest e service worker",Sem teste install/offline/update; estratégia de cache incorreta para APIs
+NOTIF-001,Notificações,Lançamentos e notificações,partial,"Tipos/tabelas/telas existentes",Sem prova push/background/deduplicação/realtime
+TV-001,TV,Modo TV e controle remoto,absent,"Nenhuma rota/shell encontrada",Ausente
+OPS-001,Operação,Observabilidade e diagnóstico,partial,"Health endpoints e logs pontuais",Sem tracing métricas SLO redaction e diagnóstico exportável
+SEC-001,Segurança,Hardening de runtime,broken,"Helmet/rate-limit/CSP parciais",Companion crítico e quatro advisories high
