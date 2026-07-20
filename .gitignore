@@ -8,6 +8,8 @@ coverage/
 !.env.example
 .scripts/
 .antigravity/
+__pycache__/
+*.py[cod]
 
 test-results/
 playwright-report/
