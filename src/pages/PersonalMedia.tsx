@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpenCheck, ExternalLink, Film, Headphones, LibraryBig, LoaderCircle, Plus, RefreshCw, Server, Trash2 } from 'lucide-react';
+import { BookOpenCheck, ExternalLink, Film, LibraryBig, LoaderCircle, Plus, RefreshCw, Server, Trash2 } from 'lucide-react';
 import { featureRepository } from '@/services/featureRepository';
 import { browsePersonalMedia, testIntegration, type PersonalMediaItem } from '@/services/personalMedia';
 import type { IntegrationConfig } from '@/types';
@@ -12,7 +12,6 @@ const KINDS: Array<{ id: IntegrationConfig['kind']; label: string; description: 
   { id: 'jellyfin', label: 'Jellyfin', description: 'Filmes e séries do seu próprio servidor.', icon: Film, tokenHint: 'Token de acesso Jellyfin' },
   { id: 'komga', label: 'Komga', description: 'Mangás e quadrinhos da sua coleção.', icon: BookOpenCheck, tokenHint: 'API key Komga' },
   { id: 'kavita', label: 'Kavita', description: 'Livros, mangás e quadrinhos pessoais.', icon: BookOpenCheck, tokenHint: 'Auth key Kavita' },
-  { id: 'audiobookshelf', label: 'Audiobookshelf', description: 'Audiolivros e ebooks pessoais.', icon: Headphones, tokenHint: 'Token/JWT do usuário' },
   { id: 'opds', label: 'Catálogo OPDS', description: 'Catálogos legais, públicos ou do seu servidor.', icon: BookOpenCheck, tokenHint: 'Token opcional' },
 ];
 
@@ -80,7 +79,7 @@ export function PersonalMedia() {
 
   return <div className="hub-page">
     <SEO title="Minha mídia" description="Conecte legalmente seus servidores pessoais e catálogos livres."/>
-    <header className="hub-page-header items-start"><div><div className="hub-section-eyebrow"><Server size={14}/> Seus arquivos, seu controle</div><h1 className="hub-page-title">Minha mídia</h1><p className="hub-page-subtitle">Navegue na coleção do Jellyfin, Komga, Kavita, Audiobookshelf ou OPDS e adicione itens à biblioteca do Hubora sem duplicar os arquivos.</p></div></header>
+    <header className="hub-page-header items-start"><div><div className="hub-section-eyebrow"><Server size={14}/> Seus arquivos, seu controle</div><h1 className="hub-page-title">Minha mídia</h1><p className="hub-page-subtitle">Navegue na coleção do Jellyfin, Komga, Kavita ou OPDS e adicione itens à biblioteca do Hubora sem duplicar os arquivos.</p></div></header>
 
     <section className="hub-panel p-5 sm:p-6">
       <div className="grid gap-3 lg:grid-cols-[12rem_1fr_1fr_auto]">

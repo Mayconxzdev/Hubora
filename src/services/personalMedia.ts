@@ -1,5 +1,11 @@
 import type { IntegrationConfig, MediaItem, MediaType } from '@/types';
 
+const SUPPORTED_INTEGRATION_KINDS = new Set<IntegrationConfig['kind']>(['jellyfin', 'komga', 'kavita', 'opds']);
+
+export function isSupportedIntegrationKind(value: unknown): value is IntegrationConfig['kind'] {
+  return typeof value === 'string' && SUPPORTED_INTEGRATION_KINDS.has(value as IntegrationConfig['kind']);
+}
+
 export interface PersonalMediaItem {
   id: string;
   title: string;
@@ -161,41 +167,6 @@ async function browseKavita(config: IntegrationConfig): Promise<PersonalMediaIte
   });
 }
 
-function audiobookshelfCover(config: IntegrationConfig, id: string): string | undefined {
-  if (!config.token) return undefined;
-  return `${normalizeBaseUrl(config.baseUrl)}/api/items/${encodeURIComponent(id)}/cover?token=${encodeURIComponent(config.token)}`;
-}
-
-async function browseAudiobookshelf(config: IntegrationConfig): Promise<PersonalMediaItem[]> {
-  const libraryResponse = await request(config, '/api/libraries');
-  const libraryData = await libraryResponse.json() as { libraries?: Array<{ id: string; mediaType?: string }> } | Array<{ id: string; mediaType?: string }>;
-  const libraries = Array.isArray(libraryData) ? libraryData : libraryData.libraries || [];
-  const output: PersonalMediaItem[] = [];
-  for (const library of libraries.slice(0, 10)) {
-    const response = await request(config, `/api/libraries/${encodeURIComponent(library.id)}/items?limit=50&page=0&minified=1&sort=media.metadata.title`);
-    const data = await response.json() as { results?: Array<Record<string, any>> };
-    for (const item of data.results || []) {
-      const metadata = item.media?.metadata || {};
-      const mediaType: MediaType = 'book';
-      const progress = Number(item.userMediaProgress?.progress || item.progress || 0) * (Number(item.userMediaProgress?.progress || item.progress || 0) <= 1 ? 100 : 1);
-      const media: MediaItem = {
-        id: `audiobookshelf:${item.id}`, source: 'audiobookshelf', sourceId: item.id,
-        title: metadata.title || item.title || 'Sem título', overview: metadata.description,
-        mediaType, authors: (metadata.authors || []).map((author: any) => author.name || author).filter(Boolean),
-        genres: metadata.genres || [], releaseDate: metadata.publishedYear ? `${metadata.publishedYear}-01-01` : undefined,
-      };
-      const imageUrl = audiobookshelfCover(config, item.id);
-      output.push({
-        id: String(item.id), title: media.title, subtitle: [metadata.authorName, progress ? `${Math.round(progress)}%` : ''].filter(Boolean).join(' • '),
-        description: media.overview, mediaType, progress, imageUrl,
-        openUrl: `${normalizeBaseUrl(config.baseUrl)}/item/${encodeURIComponent(item.id)}`,
-        source: 'audiobookshelf', media,
-      });
-    }
-  }
-  return output;
-}
-
 function textContent(element: Element | null, selectors: string[]): string | undefined {
   for (const selector of selectors) {
     const value = element?.querySelector(selector)?.textContent?.trim();
@@ -236,12 +207,6 @@ export async function testIntegration(config: IntegrationConfig): Promise<{ ok: 
       const user = await jellyfinUser(config);
       return { ok: true, detail: `Jellyfin conectado como ${user.Name || 'usuário'}` };
     }
-    if (config.kind === 'audiobookshelf') {
-      const response = await request(config, '/api/libraries');
-      const data = await response.json();
-      const count = Array.isArray(data) ? data.length : data.libraries?.length || 0;
-      return { ok: true, detail: `Audiobookshelf conectado • ${count} biblioteca(s)` };
-    }
     if (config.kind === 'komga') {
       const response = await request(config, '/api/v1/libraries');
       const data = await response.json();
@@ -262,7 +227,6 @@ export async function browsePersonalMedia(config: IntegrationConfig): Promise<Pe
   if (config.kind === 'jellyfin') return browseJellyfin(config);
   if (config.kind === 'komga') return browseKomga(config);
   if (config.kind === 'kavita') return browseKavita(config);
-  if (config.kind === 'audiobookshelf') return browseAudiobookshelf(config);
   return browseOpds(config);
 }
 

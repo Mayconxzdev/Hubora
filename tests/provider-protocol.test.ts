@@ -61,7 +61,7 @@ describe('Hubora Provider Protocol', () => {
     const manifest = {
       protocol: 'hubora-provider/v1', id: 'minha-fonte', name: 'Minha fonte', version: '1.0.0',
       capabilities: ['search', 'stream', 'reader', 'chapters'],
-      mediaTypes: ['movies', 'doramas', 'novels', 'audiobooks', 'games'],
+      mediaTypes: ['movies', 'doramas', 'novels', 'games'],
       endpoints: { search: '/v1/search?q={query}', access: '/v1/access/{type}/{id}' },
     };
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
@@ -74,5 +74,15 @@ describe('Hubora Provider Protocol', () => {
     expect(inspected.config.mediaTypes).toEqual(expect.arrayContaining(['movie', 'tv', 'book', 'game']));
     const items = await searchStremioCatalog(inspected.config, 'obra');
     expect(items[0]).toMatchObject({ title: 'Uma obra', mediaType: 'book', externalIds: { isbn: '9780000000000' } });
+  });
+
+  it('ignora categorias que não pertencem ao escopo do produto', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      protocol: 'hubora-provider/v1', id: 'fora-do-escopo', name: 'Fora do escopo', version: '1.0.0',
+      capabilities: ['search'], mediaTypes: ['audiobooks'], endpoints: { search: '/search?q={query}' },
+    }), { status: 200 }));
+
+    const inspected = await inspectStremioProvider('https://provider.example/manifest.json');
+    expect(inspected.config.mediaTypes).toEqual([]);
   });
 });

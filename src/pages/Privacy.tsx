@@ -5,7 +5,7 @@ const sections = [
   { icon: HardDrive, title: 'Dados locais', body: 'A biblioteca, preferências, cache e fila de sincronização são mantidos no IndexedDB do aparelho para que o núcleo continue funcionando sem internet. Backups JSON podem ser gerados nas Configurações.' },
   { icon: Database, title: 'Sincronização opcional', body: 'Quando o Supabase está configurado e você entra com Google ou e-mail, biblioteca, progresso, listas, eventos e preferências são sincronizados com sua conta. As políticas RLS limitam cada registro ao respectivo usuário.' },
   { icon: EyeOff, title: 'Modo Maduro e Cofre', body: 'O Cofre Adulto é ativado separadamente em cada aparelho. Itens são privados por padrão, screenshots adultos não são enviados à nuvem e conteúdo do Cofre não entra em cartões compartilháveis.' },
-  { icon: LockKeyhole, title: 'Servidores pessoais', body: 'Credenciais de Jellyfin, Komga, Kavita, Audiobookshelf e OPDS são cifradas antes de serem persistidas localmente. Os arquivos permanecem no servidor de origem; o Netlify não recebe sua coleção.' },
+  { icon: LockKeyhole, title: 'Servidores pessoais', body: 'Credenciais de Jellyfin, Komga, Kavita e OPDS são cifradas antes de serem persistidas localmente. Os arquivos permanecem no servidor de origem; o Netlify não recebe sua coleção.' },
   { icon: FileDown, title: 'Controle e portabilidade', body: 'Você pode exportar o banco pessoal, restaurar um backup, limpar dados locais e excluir dados sincronizados. O Hubora não vende informações pessoais e não contém perfil público ou comunidade.' },
 ];
 

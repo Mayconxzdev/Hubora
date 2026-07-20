@@ -76,7 +76,7 @@ test('home começa pelas categorias e quatro situações', async ({ page }) => {
   for (const label of ['Quero continuar', 'Tenho pouco tempo', 'Quero descobrir', 'Me surpreenda']) {
     await expect(page.getByRole('button', { name: new RegExp(`^${label}\\b`, 'i') })).toBeVisible();
   }
-  for (const label of ['Filmes', 'Séries', 'Animes', 'Mangás', 'Doramas', 'Livros', 'Quadrinhos', 'Jogos', 'Novels', 'Audiolivros']) {
+  for (const label of ['Filmes', 'Séries', 'Animes', 'Mangás', 'Doramas', 'Livros', 'Quadrinhos', 'Jogos', 'Novels']) {
     await expect(page.getByRole('button', { name: label, exact: true })).toBeVisible();
   }
 });

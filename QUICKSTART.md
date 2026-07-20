@@ -24,7 +24,7 @@ Abra `http://localhost:5173`. Sem Supabase, a biblioteca continua local e você 
 - Anime/mangá: dados AniList/Jikan; Radar especializado em prints de anime; leitura de fontes abertas e servidores pessoais.
 - Livros: Google Books, Open Library, Gutenberg e Internet Archive; o leitor mostra somente visualizações/arquivos autorizados.
 - Jogos: IGDB, Steam e CheapShark para descobrir jogos, novidades, preços e popularidade quando a fonte disponibilizar.
-- Mídia pessoal: Jellyfin, Kavita, Komga, Audiobookshelf e OPDS, com HTTPS e CORS.
+- Mídia pessoal: Jellyfin, Kavita, Komga e OPDS, com HTTPS e CORS.
 
 Para conteúdo comercial completo, conecte uma origem à qual você tenha direito de acesso. O Hubora não configura fontes ilegais.
 

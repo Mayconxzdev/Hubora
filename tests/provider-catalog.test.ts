@@ -14,4 +14,10 @@ describe('diretório universal de fontes', () => {
     const modes = new Set(PROVIDER_CATALOG.map((item) => item.mode));
     expect([...modes]).toEqual(expect.arrayContaining(['metadata', 'downloadable-file', 'embedded-player', 'personal-server', 'external-page', 'manifest', 'game-launcher']));
   });
+
+  it('não expõe audiobooks como categoria ou provedor dedicado', () => {
+    expect(PROVIDER_CATEGORIES.map((category) => category.id)).not.toContain('audiobooks');
+    expect(PROVIDER_CATALOG.some((provider) => provider.categories.some((category) => String(category) === 'audiobooks'))).toBe(false);
+    expect(PROVIDER_CATALOG.map((provider) => provider.id)).not.toEqual(expect.arrayContaining(['audiobookshelf', 'audible', 'librivox']));
+  });
 });

@@ -52,7 +52,7 @@ interface HuboraSearchItem {
 }
 
 const MEDIA_MAP: Record<string, MediaType> = {
-  movie: 'movie', movies: 'movie', series: 'tv', tv: 'tv', dorama: 'tv', doramas: 'tv', anime: 'anime', manga: 'manga', comic: 'comic', comics: 'comic', book: 'book', books: 'book', novel: 'book', novels: 'book', audiobook: 'book', audiobooks: 'book', game: 'game', games: 'game',
+  movie: 'movie', movies: 'movie', series: 'tv', tv: 'tv', dorama: 'tv', doramas: 'tv', anime: 'anime', manga: 'manga', comic: 'comic', comics: 'comic', book: 'book', books: 'book', novel: 'book', novels: 'book', game: 'game', games: 'game',
 };
 
 export const BUILTIN_PROVIDERS: ProviderManifest[] = [
@@ -104,8 +104,8 @@ function toCapabilities(manifest: StremioManifest): ProviderCapability[] {
   return Array.from(new Set(output));
 }
 
-function toMediaType(type: string): MediaType {
-  return MEDIA_MAP[type.toLowerCase()] || 'movie';
+function toMediaType(type: string): MediaType | undefined {
+  return MEDIA_MAP[type.toLowerCase()];
 }
 
 export async function inspectStremioProvider(manifestUrl: string): Promise<{ config: ProviderConfig; manifest: StremioManifest }> {
@@ -128,7 +128,7 @@ export async function inspectStremioProvider(manifestUrl: string): Promise<{ con
       enabled: true,
       officialOnly: true,
       capabilities: Array.from(new Set(allowedCapabilities)),
-      mediaTypes: Array.from(new Set((rawManifest.mediaTypes || []).map(toMediaType))),
+      mediaTypes: Array.from(new Set((rawManifest.mediaTypes || []).map(toMediaType).filter((item): item is MediaType => Boolean(item)))),
       createdAt: now,
       updatedAt: now,
     };
@@ -145,7 +145,7 @@ export async function inspectStremioProvider(manifestUrl: string): Promise<{ con
     enabled: true,
     officialOnly: true,
     capabilities: toCapabilities(manifest),
-    mediaTypes: Array.from(new Set((manifest.types || []).map(toMediaType))),
+    mediaTypes: Array.from(new Set((manifest.types || []).map(toMediaType).filter((item): item is MediaType => Boolean(item)))),
     createdAt: now,
     updatedAt: now,
   };
@@ -188,21 +188,25 @@ export async function searchStremioCatalog(config: ProviderConfig, query: string
     const response = await fetch(endpointUrl(config.manifestUrl, manifest.endpoints.search, { query }));
     if (!response.ok) return [];
     const data = await response.json() as { items?: HuboraSearchItem[] };
-    return (data.items || []).slice(0, 60).map((item): MediaItem => ({
-      id: `hubora:${manifest.id}:${item.id}`,
-      source: `hubora:${manifest.id}`,
-      sourceId: item.id,
-      title: item.title,
-      originalTitle: item.originalTitle,
-      mediaType: toMediaType(item.mediaType || 'movie'),
-      posterPath: item.poster,
-      backdropPath: item.backdrop,
-      overview: item.description,
-      releaseDate: item.year,
-      genres: item.genres || [],
-      externalIds: item.externalIds,
-      providerUrl: normalizeBase(config.manifestUrl),
-    }));
+    return (data.items || []).slice(0, 60).flatMap((item): MediaItem[] => {
+      const mediaType = toMediaType(item.mediaType || 'movie');
+      if (!mediaType) return [];
+      return [{
+        id: `hubora:${manifest.id}:${item.id}`,
+        source: `hubora:${manifest.id}`,
+        sourceId: item.id,
+        title: item.title,
+        originalTitle: item.originalTitle,
+        mediaType,
+        posterPath: item.poster,
+        backdropPath: item.backdrop,
+        overview: item.description,
+        releaseDate: item.year,
+        genres: item.genres || [],
+        externalIds: item.externalIds,
+        providerUrl: normalizeBase(config.manifestUrl),
+      }];
+    });
   }
   const manifestResponse = await fetch(config.manifestUrl);
   if (!manifestResponse.ok) throw new Error('Não foi possível carregar o manifesto.');
@@ -217,6 +221,8 @@ export async function searchStremioCatalog(config: ProviderConfig, query: string
       if (!response.ok) continue;
       const data = await response.json() as { metas?: StremioMetaPreview[] };
       for (const item of data.metas || []) {
+        const mediaType = toMediaType(item.type);
+        if (!mediaType) continue;
         results.push({
           id: `stremio:${manifest.id}:${item.id}`,
           source: `stremio:${manifest.id}`,
@@ -225,7 +231,7 @@ export async function searchStremioCatalog(config: ProviderConfig, query: string
           posterPath: item.poster,
           backdropPath: item.background,
           overview: item.description,
-          mediaType: toMediaType(item.type),
+          mediaType,
           releaseDate: item.releaseInfo,
           genres: item.genres || [],
           providerUrl: base,

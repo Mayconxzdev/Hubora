@@ -1,10 +1,12 @@
 import { huboraDb } from '@/lib/db';
 import type { CaptureInboxItem, Goal, IntegrationConfig, ScreenshotDiaryEntry } from '@/types';
 import { decryptLocalSecret, encryptLocalSecret } from '@/services/secretStorage';
+import { isSupportedIntegrationKind } from '@/services/personalMedia';
 
 async function listIntegrations(): Promise<IntegrationConfig[]> {
   const records = await huboraDb.integrations.orderBy('kind').toArray();
-  return Promise.all(records.map(async (record) => {
+  const supportedRecords = records.filter((record) => isSupportedIntegrationKind(record.kind));
+  return Promise.all(supportedRecords.map(async (record) => {
     try {
       return { ...record, token: await decryptLocalSecret(record.encryptedToken) };
     } catch {

@@ -31,7 +31,6 @@ Os conectores agora consultam endpoints reais:
 - Jellyfin: usuário autenticado e itens do usuário.
 - Komga: séries recentes, contagem e progresso.
 - Kavita: séries recentemente adicionadas.
-- Audiobookshelf: bibliotecas e itens.
 - OPDS 1/2: XML/Atom e JSON.
 
 O catálogo aparece dentro do Hubora, pode ser filtrado e cada obra pode ser adicionada à biblioteca canônica. A abertura do arquivo continua sendo feita pelo servidor de origem para preservar permissões e compatibilidade.

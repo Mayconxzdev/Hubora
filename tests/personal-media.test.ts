@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { browsePersonalMedia, testIntegration } from '@/services/personalMedia';
+import { browsePersonalMedia, isSupportedIntegrationKind, testIntegration } from '@/services/personalMedia';
+import { featureRepository } from '@/services/featureRepository';
+import { huboraDb } from '@/lib/db';
 import type { IntegrationConfig } from '@/types';
 
 const config = (kind: IntegrationConfig['kind']): IntegrationConfig => ({
@@ -7,9 +9,26 @@ const config = (kind: IntegrationConfig['kind']): IntegrationConfig => ({
   createdAt: 1, updatedAt: 1,
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(async () => {
+  vi.restoreAllMocks();
+  await huboraDb.integrations.clear();
+});
 
 describe('integrações de mídia pessoal', () => {
+  it('mantém registros legados fora da fronteira ativa', async () => {
+    expect(isSupportedIntegrationKind('jellyfin')).toBe(true);
+    expect(isSupportedIntegrationKind('audiobookshelf')).toBe(false);
+    expect(isSupportedIntegrationKind(undefined)).toBe(false);
+
+    await huboraDb.integrations.bulkPut([
+      { ...config('jellyfin'), token: undefined },
+      { ...config('opds'), id: 'audiobookshelf:legacy', kind: 'audiobookshelf' } as unknown as IntegrationConfig,
+    ]);
+
+    const activeIntegrations = await featureRepository.integrations.list();
+    expect(activeIntegrations.map((integration) => integration.kind)).toEqual(['jellyfin']);
+  });
+
   it('valida Jellyfin e normaliza o catálogo do usuário', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify({ Id: 'user-1', Name: 'Maycon' }), { status: 200, headers: { 'content-type': 'application/json' } }))

@@ -10,7 +10,6 @@ import {
   Dice5,
   Drama,
   Gamepad2,
-  Headphones,
   Layers3,
   Library,
   PanelsTopLeft,
@@ -41,7 +40,6 @@ const CATEGORIES = [
   { label: 'Quadrinhos', path: '/comics', icon: PanelsTopLeft, tone: 'cyan' },
   { label: 'Jogos', path: '/games', icon: Gamepad2, tone: 'indigo' },
   { label: 'Novels', path: '/providers?category=novels', icon: ScrollText, tone: 'pink' },
-  { label: 'Audiolivros', path: '/providers?category=audiobooks', icon: Headphones, tone: 'yellow' },
 ] as const;
 
 type DecisionMode = 'continue' | 'short' | 'discover' | 'surprise';

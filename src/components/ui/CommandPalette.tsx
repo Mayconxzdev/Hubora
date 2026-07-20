@@ -18,7 +18,7 @@ const ACTIONS = [
   { label: 'Jogos', path: '/games', icon: Gamepad2, keywords: 'game jogar backlog' },
   { label: 'Fontes e Companion', path: '/providers', icon: Server, keywords: 'provedores autorizações cache companion stremio jellyfin livros jogos' },
   { label: 'Conteúdo gratuito', path: '/sources', icon: Server, keywords: 'google books gutenberg open library arquivos gratuitos' },
-  { label: 'Minha mídia e servidores', path: '/personal-media', icon: Server, keywords: 'jellyfin komga kavita audiobookshelf opds' },
+  { label: 'Minha mídia e servidores', path: '/personal-media', icon: Server, keywords: 'jellyfin komga kavita opds' },
   { label: 'Insights pessoais', path: '/insights', icon: BarChart3, keywords: 'wrapped metas estatísticas conexões' },
   { label: 'Cofre Adulto', path: '/vault', icon: Shield, keywords: 'adulto 18 privado cofre' },
   { label: 'Configurações', path: '/settings', icon: Settings, keywords: 'tema privacidade conta backup' },

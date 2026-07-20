@@ -66,7 +66,7 @@ O fluxo diário passou a ser:
 - Jogos usam IGDB pelo backend e fontes públicas/fallbacks existentes.
 - “Onde assistir” mostra a atribuição JustWatch exigida pelos dados de provedores do TMDB.
 - Google Books Embedded Viewer, arquivos autorizados e fontes abertas podem abrir no leitor interno.
-- Jellyfin, Kavita, Komga, Audiobookshelf, OPDS e URLs HTTPS autorizadas continuam disponíveis como fontes pessoais.
+- Jellyfin, Kavita, Komga, OPDS e URLs HTTPS autorizadas continuam disponíveis como fontes pessoais.
 
 ## Por que não foram adicionados torrents ou scraping de streaming
 
@@ -122,4 +122,3 @@ O aviso de tamanho do `hls.js` é não bloqueante: o player HLS está separado e
 4. Inclua somente seu e-mail em `private.allowed_emails`.
 5. Cadastre a URL final nos redirects do Supabase/Google OAuth.
 6. Faça o primeiro login e valide a sincronização PC ↔ Android.
-

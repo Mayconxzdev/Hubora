@@ -6,7 +6,7 @@ export type ProviderCapability = 'catalog' | 'search' | 'details' | 'stream' | '
 export type AccessKind = 'official-link' | 'embed' | 'video' | 'hls' | 'dash' | 'audio' | 'book-preview' | 'epub' | 'pdf' | 'html' | 'companion';
 export type ProviderMode = 'metadata' | 'downloadable-file' | 'embedded-player' | 'personal-server' | 'external-resolver' | 'external-page' | 'manifest' | 'game-launcher';
 export type ProviderAuthKind = 'none' | 'api-key' | 'account' | 'server-token' | 'manifest-url' | 'manual-authorization';
-export type ProviderCategory = 'movies' | 'series' | 'anime' | 'doramas' | 'books' | 'novels' | 'manga' | 'comics' | 'audiobooks' | 'games';
+export type ProviderCategory = 'movies' | 'series' | 'anime' | 'doramas' | 'books' | 'novels' | 'manga' | 'comics' | 'games';
 
 export interface AuthUser {
   uid: string;
@@ -335,7 +335,7 @@ export interface ScreenshotDiaryEntry {
 
 export interface IntegrationConfig {
   id: string;
-  kind: 'jellyfin' | 'komga' | 'kavita' | 'audiobookshelf' | 'opds';
+  kind: 'jellyfin' | 'komga' | 'kavita' | 'opds';
   name: string;
   baseUrl: string;
   token?: string; // runtime only; never persisted in plaintext

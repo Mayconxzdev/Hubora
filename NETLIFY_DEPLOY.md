@@ -62,7 +62,7 @@ Não configure os dois formatos de chave secreta do Supabase ao mesmo tempo. A c
 6. Instale o Companion, informe a URL do Netlify e pareie no PC.
 7. No Android, teste `http://IP-DO-PC:49821` e aceite a permissão de rede local do Chrome quando ela aparecer. Use apenas uma rede privada.
 8. Se a política de conteúdo misto do navegador bloquear HTTP local, publique o Companion por HTTPS privado (por exemplo, Tailscale Serve ou reverse proxy com certificado confiável) e salve essa URL na Central de Fontes.
-9. Para Jellyfin/Kavita/Komga/Audiobookshelf fora do Companion, prefira HTTPS e CORS restrito ao seu domínio.
+9. Para Jellyfin/Kavita/Komga fora do Companion, prefira HTTPS e CORS restrito ao seu domínio.
 
 ## Bloqueio de segurança antes da publicação
 

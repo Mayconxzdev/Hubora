@@ -5,7 +5,7 @@ Hubora é um hub pessoal brasileiro de cultura pop. A versão 9 combina o visual
 ## O que está pronto
 
 - Home C+D em preto real (`#000`) ou branco real (`#fff`), responsiva e sem painel administrativo.
-- Dez entradas imediatas: filmes, séries, animes, mangás, doramas, livros, quadrinhos, jogos, novels e audiolivros.
+- Nove entradas imediatas: filmes, séries, animes, mangás, doramas, livros, quadrinhos, jogos e novels.
 - Quatro escolhas: **Quero continuar**, **Tenho pouco tempo**, **Quero descobrir** e **Me surpreenda**.
 - Uma recomendação principal com motivo e uma alternativa; trilhos infinitos deixaram de comandar a experiência.
 - Central com 96 fontes mapeadas, filtros por categoria, modo, custo, autorização e capacidade real.
@@ -15,7 +15,7 @@ Hubora é um hub pessoal brasileiro de cultura pop. A versão 9 combina o visual
 - Player de vídeo direto/HLS, YouTube e incorporações permitidas; leitores de Google Books, EPUB, PDF e HTML.
 - Hubora Companion Windows: cache progressivo de 25 GB, progresso e descarte automático dez minutos depois de parar.
 - Acesso ao Companion pelo Android na mesma rede usando `http://IP-DO-PC:49821`, pareamento e permissão de rede local.
-- Servidores pessoais: Jellyfin, Emby, Plex, Kavita, Komga, Audiobookshelf, Calibre-Web, Suwayomi e OPDS.
+- Servidores pessoais: Jellyfin, Emby, Plex, Kavita, Komga, Calibre-Web, Suwayomi e OPDS.
 - Fontes abertas e oficiais para livros, vídeo, mangás, quadrinhos, doramas e jogos; páginas externas são identificadas como externas.
 - Catálogo PT-BR/região BR, biblioteca local-first, PWA, backup, sincronização privada e launchers de jogos pelo Companion.
 
@@ -58,7 +58,7 @@ Uma fonte própria pode expor `manifest.json`:
   "name": "Minha fonte",
   "version": "1.0.0",
   "capabilities": ["search", "stream", "reader", "chapters", "health"],
-  "mediaTypes": ["movies", "series", "anime", "doramas", "books", "novels", "manga", "comics", "audiobooks", "games"],
+  "mediaTypes": ["movies", "series", "anime", "doramas", "books", "novels", "manga", "comics", "games"],
   "endpoints": {
     "search": "/v1/search?q={query}",
     "access": "/v1/access/{type}/{id}",
