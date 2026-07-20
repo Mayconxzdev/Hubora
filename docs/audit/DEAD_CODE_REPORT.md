@@ -1,6 +1,6 @@
 # Relatório inicial de código morto e superfícies a remover
 
-Status: inventário `VERIFIED`; remoção `NOT_STARTED` nesta fase documental.
+Status: inventário `VERIFIED`; primeira remoção executada e validada em 2026-07-20. A tabela preserva o plano que orientou a fatia; a evidência final está em `docs/evidence/COMPANION_REMOVAL.md`.
 
 ## Remoção aprovada: Companion
 
@@ -22,13 +22,13 @@ Status: inventário `VERIFIED`; remoção `NOT_STARTED` nesta fase documental.
 
 ## Mídia pessoal local/servidores
 
-`src/pages/PersonalMedia.tsx`, `src/services/personalMedia.ts`, rota `/personal-media`, chamadas em Sources e testes associados contradizem o uso pessoal hospedado descrito pelo proprietário. A matriz de providers pode manter Jellyfin/Kavita/Komga/OPDS como opções futuras não obrigatórias, mas a página “Minha mídia” e qualquer promessa de biblioteca local não devem permanecer como fluxo principal.
+`src/pages/PersonalMedia.tsx` e a navegação de “Minha mídia” foram removidas; `/personal-media` agora redireciona para `/sources`. `src/services/personalMedia.ts` foi mantido apenas como adapter opcional de servidores pessoais já catalogados — não como fluxo principal nem requisito do Hubora. Jellyfin/Kavita/Komga/OPDS permanecem candidatos opcionais na matriz, sem alegação de verificação.
 
 Antes de excluir dados persistidos, é necessário localizar as chaves IndexedDB/localStorage e decidir entre exportar, migrar ou abandonar explicitamente. Código pode ser removido sem apagar silenciosamente dados do usuário.
 
 ## Jogos locais
 
-`src/server/gameController.ts` e os trechos de launcher/scan no Companion não pertencem ao modelo manual aprovado. A página de jogos deve manter somente catálogo, metadados e estados informados pelo usuário.
+`src/server/gameController.ts` e os trechos de launcher/scan do Companion foram removidos. A página de jogos mantém catálogo, metadados e estados informados pelo usuário.
 
 ## Rotas/redirecionamentos legados
 

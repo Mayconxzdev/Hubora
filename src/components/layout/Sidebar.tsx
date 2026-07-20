@@ -65,7 +65,7 @@ const PAGE_LABELS: Array<[RegExp, string]> = [
   [/^\/games/, 'Jogos'],
   [/^\/radar/, 'Radar'],
   [/^\/sources/, 'Conteúdo gratuito'],
-  [/^\/providers/, 'Fontes e Companion'],
+  [/^\/providers/, 'Fontes e provedores'],
   [/^\/releases/, 'Lançamentos'],
   [/^\/diary/, 'Histórico'],
   [/^\/settings/, 'Configurações'],
@@ -229,7 +229,7 @@ export function TopHeader() {
                 <div className="hub-category-grid">
                   {CATEGORIES.map((item) => <Link key={item.path} to={item.path}><item.icon size={18} /><span>{item.label}</span></Link>)}
                 </div>
-                <Link className="hub-menu-wide-link" to="/providers"><Cable size={17} /> Fontes e Companion</Link>
+                <Link className="hub-menu-wide-link" to="/providers"><Cable size={17} /> Fontes e provedores</Link>
                 <Link className="hub-menu-wide-link" to="/sources"><BookOpen size={17} /> Ler e assistir grátis</Link>
               </div>
             )}
@@ -249,7 +249,7 @@ export function TopHeader() {
                 </div>
                 <div className="hub-menu-divider" />
                 <Link to="/profile"><User size={17} /> Perfil</Link>
-                <Link to="/providers"><Cable size={17} /> Fontes e Companion</Link>
+                <Link to="/providers"><Cable size={17} /> Fontes e provedores</Link>
                 <Link to="/settings"><Settings size={17} /> Configurações</Link>
                 <small className="hub-sync-label">{syncPending > 0 ? `${syncPending} alterações aguardando` : syncState === 'syncing' ? 'Sincronizando...' : 'Tudo salvo'}</small>
                 <div className="hub-menu-divider" />

@@ -16,7 +16,6 @@ import { hasVaultPin, removeVaultPin, setVaultPin } from '@/services/vault';
 import { featureRepository } from '@/services/featureRepository';
 import { createAutomaticBackup, listAutomaticBackups, readAutomaticBackup } from '@/services/automaticBackup';
 import type { LocalBackupSnapshot } from '@/lib/db';
-import { getCompanionConfig, saveDebridKeys } from '@/services/companion';
 import type { HuboraBackup } from '@/services/backup';
 
 export function Settings() {
@@ -37,18 +36,6 @@ export function Settings() {
   const csvInputRef = useRef<HTMLInputElement>(null);
   const [isImportingCSV, setIsImportingCSV] = useState(false);
   
-  const compConfig = getCompanionConfig();
-  const [realDebridKey, setRealDebridKey] = useState(compConfig.realDebridApiKey || '');
-  const [torBoxKey, setTorBoxKey] = useState(compConfig.torBoxApiKey || '');
-
-  const handleSaveDebridKeys = async () => {
-    try {
-      await saveDebridKeys(realDebridKey, torBoxKey);
-      toast.success('Chaves de Debrid salvas e sincronizadas!');
-    } catch (err) {
-      toast.error('Erro ao sincronizar chaves com o Companion.');
-    }
-  };
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0, currentTitle: '' });
   const { addToLibrary: addStoreMedia } = useStore();
 
@@ -560,43 +547,6 @@ export function Settings() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h3 className="font-bold text-[var(--hub-text-strong)]">Backups automáticos locais</h3><p className="mt-1 text-sm text-[var(--hub-muted)]">O Hubora mantém até sete snapshots diários neste aparelho. Eles não ocupam a nuvem e podem restaurar biblioteca, listas, Diário e metas.</p></div><Button variant="outline" onClick={() => void createAutomaticBackup(user).then(() => { refreshAutomaticBackups(); toast.success('Snapshot local criado.'); })}><Download size={16}/> Criar agora</Button></div>
               <div className="mt-4 space-y-2">{automaticBackups.slice(0, 7).map((snapshot) => <div key={snapshot.id} className="flex flex-col gap-2 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] p-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-bold text-[var(--hub-text-strong)]">{new Date(snapshot.createdAt).toLocaleString('pt-BR')}</p><p className="text-xs text-[var(--hub-subtle)]">Snapshot criptografado pelo isolamento do navegador e disponível somente neste aparelho.</p></div><Button size="sm" variant="outline" onClick={() => void readAutomaticBackup(snapshot.id).then(async (backup) => { if (!backup) throw new Error('Snapshot não encontrado'); if (!window.confirm('Restaurar este snapshot e substituir o estado atual?')) return; await restoreBackup(backup); toast.success('Snapshot restaurado.'); }).catch(() => toast.error('Não foi possível restaurar o snapshot.'))}>Restaurar</Button></div>)}{!automaticBackups.length && <p className="text-sm text-[var(--hub-subtle)]">O primeiro snapshot será criado automaticamente depois da inicialização ou quando você usar “Criar agora”.</p>}</div>
             </div>
-          </div>
-        </div>
-
-        <h2 className="text-xl font-bold text-white border-b border-white/10 pb-2 mt-12">Debrids e Serviços Locais</h2>
-        <p className="text-sm text-slate-400 mb-6">Configure suas contas de Debrid para download e streaming instantâneo de torrents via Companion. Se deixado em branco, o Companion usará WebTorrent (P2P gratuito) como fallback.</p>
-
-        <div className="hub-panel space-y-6 p-5 sm:p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[var(--hub-subtle)]">Chave de API do Real-Debrid</label>
-              <input 
-                type="password" 
-                value={realDebridKey}
-                onChange={(e) => setRealDebridKey(e.target.value)}
-                placeholder="Insira sua API Key do Real-Debrid"
-                className="hub-field"
-              />
-              <p className="mt-1 text-xs text-slate-500">Obtenha em: <a href="https://real-debrid.com/apitoken" target="_blank" rel="noreferrer" className="text-[var(--hub-brand)] hover:underline">real-debrid.com/apitoken</a></p>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[var(--hub-subtle)]">Chave de API do TorBox</label>
-              <input 
-                type="password" 
-                value={torBoxKey}
-                onChange={(e) => setTorBoxKey(e.target.value)}
-                placeholder="Insira sua API Key do TorBox"
-                className="hub-field"
-              />
-              <p className="mt-1 text-xs text-slate-500">Obtenha em: <a href="https://torbox.app/settings" target="_blank" rel="noreferrer" className="text-[var(--hub-brand)] hover:underline">torbox.app/settings</a></p>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 border-t border-white/5 pt-4">
-            <Button onClick={handleSaveDebridKeys} className="bg-[var(--hub-brand)] hover:bg-[var(--hub-brand-strong)]">
-              Salvar Contas Debrid
-            </Button>
           </div>
         </div>
 

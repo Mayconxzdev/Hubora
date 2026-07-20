@@ -9,18 +9,19 @@
 - [x] Criar PRODUCT, DESIGN, DESIGN_SYSTEM e ACCESSIBILITY.
 - [x] Criar matriz inicial de 283 providers sem `VERIFIED` artificial.
 - [x] Criar dead code, contradições, arquitetura, feature matrix e riscos.
-- [ ] Revisar diff, validar links/CSV e fazer commit documental atômico.
+- [x] Revisar diff, validar links/CSV e fazer commit documental atômico (`2d56504`).
 
 ## Próxima fatia — remoção do Companion
 
-- [ ] Escrever ADR e critérios de aceite.
-- [ ] Inventariar chaves/dados legados sem ler segredos nem apagar dados.
-- [ ] Criar testes negativos para rota, UI, pacote, dependência e protocolo.
-- [ ] Remover Companion, WebTorrent/debrid, mídia local principal e launchers.
-- [ ] Implementar comportamento web/Stremio explícito sem promessa falsa.
-- [ ] Reinstalar do lock e executar audit/signatures.
-- [ ] Executar full suite estável, build, E2E e inspeção visual.
-- [ ] Atualizar SBOM, matrizes e evidências; commit local.
+- [x] Escrever ADR e critérios de aceite.
+- [x] Preservar chaves/dados legados sem ler segredos nem apagar dados.
+- [x] Criar testes negativos para rota, UI, pacote, dependência e protocolo.
+- [x] Remover o subsistema, WebTorrent/debrid, página principal de mídia pessoal e launchers.
+- [x] Fazer HTTPS/YouTube permanecerem web-ready e magnet/infoHash/.torrent falharem fechados.
+- [x] Reinstalar do lock corrigido e executar audit/signatures.
+- [x] Executar full suite estável, build, E2E e inspeção visual.
+- [x] Atualizar SBOM, matrizes e evidências.
+- [x] Revisar e fazer commit local atômico da fatia.
 
 ## Depois
 

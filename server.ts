@@ -5,7 +5,6 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
-import { gameRouter } from './src/server/gameController.js';
 
 dotenv.config();
 
@@ -122,7 +121,6 @@ async function startServer() {
     }
   });
 
-  app.use('/api/games', gameRouter);
 
   app.get('/api/health', (_req, res) => {
     const supabaseConfigured = Boolean(

@@ -11,14 +11,15 @@ Estados permitidos: `NOT_STARTED`, `IMPLEMENTING`, `PARTIAL`, `BLOCKED`, `VERIFI
 | LIB-001 | Biblioteca local | PARTIAL | Unitários predominantemente isolados | Não executado E2E nesta auditoria | CRUD/import/export/restore/upgrade real |
 | SYNC-001 | Sync Supabase | BLOCKED | Código e migrations | Não executado contra projeto remoto | Credenciais/projeto de teste, RLS, realtime e conflitos |
 | AUTH-001 | Autenticação | BLOCKED | Rotas existentes | Não executado | Projeto Supabase de teste e políticas aprovadas |
-| PROV-001 | Provider protocol/registry | PARTIAL | Parser, catálogo estático e testes mockados | Não | ADR, schema, egress seguro, timeout/retry/rate limit/contract/evidence tests |
-| MEDIA-001 | Player | PARTIAL | Componentes e HLS buildam | Não executado com mídia real | Matriz de formatos/legenda/erro/PiP/casting |
+| PROV-001 | Provider protocol/registry | PARTIAL | Parser, catálogo estático e testes; magnet/infoHash/.torrent falham fechados | Não em origem externa real | ADR do protocolo, schema, egress seguro, timeout/retry/rate limit/contract/evidence tests |
+| MEDIA-001 | Player web | PARTIAL | Componentes/HLS buildam; sessão local removida | Não executado com mídia real nesta fatia | Matriz de formatos/legenda/erro/PiP/casting |
 | MEDIA-002 | Reader | PARTIAL | Componentes e APIs existentes | Não executado com corpus de teste | EPUB/PDF/CBZ/CBR/OPDS/anotações/segurança |
-| COMP-001 | Remoção do Companion | BLOCKED | Inventário em `DEAD_CODE_REPORT.md`; Companion ainda presente | Não aplicável | Testes negativos, remoção integral, migração de dados legados e reauditoria |
+| COMP-001 | Remoção do subsistema local | VERIFIED | `COMPANION_REMOVAL.md`; 45/45 Vitest; burn-in E2E 65 pass/5 skips esperados e execução final 13 pass/1 skip; audit 0; screenshots | Superfícies desktop/Pixel 7 e redirect exercitados; player/streams HTTP local e LAN rejeitados | Dados legados preservados sem exclusão; migração opcional futura não reabre o runtime |
 | PWA-001 | PWA install/offline/update | PARTIAL | Build Workbox | Não executado | Manifest único, cache correto e testes de instalação/offline/update |
 | NOVEL-001 | Novels como domínio completo | NOT_STARTED | Botão/tipo/filtro sem rota | Não | `/novels`, detalhes, capítulos, leitor e providers reais |
-| GAME-001 | Jogos manuais | PARTIAL | Página/tipos e catálogo | Não executado E2E | Remover scan/launcher; CRUD de estados manuais |
+| GAME-001 | Jogos manuais | PARTIAL | Scan/launcher removidos; lojas agora são páginas externas | Página abre no smoke | CRUD E2E dos estados desejado/possuído/instalado/jogando/concluído |
 | DESIGN-001 | Direção visual A+B+C | IMPLEMENTING | `PRODUCT.md`, `DESIGN.md`, `DESIGN_SYSTEM.md`, `ACCESSIBILITY.md` | Referências aprovadas; UI ainda não migrada | Implementação incremental e evidência em claro/escuro/viewports |
+| SEC-DEP-001 | Dependências sem advisory conhecido | VERIFIED | `npm audit`: 0; árvore válida; 701 assinaturas; SBOM regenerada | Instalação congelada local com scripts desativados | Revalidar a cada mudança de lock/release |
 
 ## Regra de atualização
 

@@ -273,8 +273,8 @@ export function Home() {
           <button onClick={() => navigate('/providers')} className="flex items-center gap-4 p-5 rounded-2xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/60 hover:border-white/10 text-left transition">
             <span className="p-3 bg-slate-900 rounded-xl"><Server size={22} className="text-blue-400" /></span>
             <div className="flex-1 min-w-0">
-              <strong className="block text-sm text-white font-bold">Fontes e Companion</strong>
-              <small className="block text-xs text-slate-400 mt-1 leading-normal">Conecte servidores, debrids, manifestos e veja a saúde do sistema.</small>
+              <strong className="block text-sm text-white font-bold">Fontes e provedores</strong>
+              <small className="block text-xs text-slate-400 mt-1 leading-normal">Consulte capacidades, requisitos e o estado de cada integração.</small>
             </div>
             <ArrowRight size={18} className="text-slate-500" />
           </button>

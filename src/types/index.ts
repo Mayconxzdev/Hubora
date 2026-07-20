@@ -2,9 +2,9 @@ export type MediaType = 'movie' | 'tv' | 'anime' | 'manga' | 'comic' | 'book' | 
 export type AdultContentMode = 'off' | 'mature' | 'vault';
 export type SpoilerShieldMode = 'off' | 'balanced' | 'strict' | 'custom';
 export type ItemVisibility = 'private' | 'friends' | 'public';
-export type ProviderCapability = 'catalog' | 'search' | 'details' | 'stream' | 'reader' | 'subtitles' | 'availability' | 'progress' | 'download' | 'chapters' | 'launch' | 'health';
-export type AccessKind = 'official-link' | 'embed' | 'video' | 'hls' | 'dash' | 'audio' | 'book-preview' | 'epub' | 'pdf' | 'html' | 'companion';
-export type ProviderMode = 'metadata' | 'downloadable-file' | 'embedded-player' | 'personal-server' | 'external-resolver' | 'external-page' | 'manifest' | 'game-launcher';
+export type ProviderCapability = 'catalog' | 'search' | 'details' | 'stream' | 'reader' | 'subtitles' | 'availability' | 'progress' | 'download' | 'chapters' | 'health';
+export type AccessKind = 'official-link' | 'embed' | 'video' | 'hls' | 'dash' | 'audio' | 'book-preview' | 'epub' | 'pdf' | 'html';
+export type ProviderMode = 'metadata' | 'downloadable-file' | 'embedded-player' | 'personal-server' | 'external-resolver' | 'external-page' | 'manifest';
 export type ProviderAuthKind = 'none' | 'api-key' | 'account' | 'server-token' | 'manifest-url' | 'manual-authorization';
 export type ProviderCategory = 'movies' | 'series' | 'anime' | 'doramas' | 'books' | 'novels' | 'manga' | 'comics' | 'games';
 
@@ -375,29 +375,6 @@ export interface ProviderCatalogEntry {
   official: boolean;
   featured?: boolean;
   note?: string;
-}
-
-export interface CompanionConfig {
-  endpoint: string;
-  token?: string;
-  pairedAt?: number;
-  cacheLimitBytes: number;
-  cleanupDelayMs: number;
-  realDebridApiKey?: string;
-  torBoxApiKey?: string;
-}
-
-export interface CompanionHealth {
-  ok: boolean;
-  version: string;
-  paired: boolean;
-  cache: {
-    usedBytes: number;
-    limitBytes: number;
-    sessions: number;
-    cleanupDelayMs: number;
-  };
-  capabilities: string[];
 }
 
 export interface ProviderManifest {

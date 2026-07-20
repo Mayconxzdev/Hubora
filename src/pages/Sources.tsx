@@ -153,7 +153,7 @@ export function Sources() {
 
   return <div className="hub-page mx-auto max-w-[100rem]">
     <SEO title="Grátis agora" description="Livros, filmes e prévias que podem ser abertos legalmente dentro do Hubora." />
-    <header className="hub-page-header items-start"><div><div className="hub-section-eyebrow"><Globe2 size={14}/> Fontes abertas</div><h1 className="hub-page-title">Grátis agora</h1><p className="hub-page-subtitle">Encontre livros, filmes de domínio público e prévias que podem ser lidos ou assistidos legalmente dentro do Hubora.</p></div><Button variant="outline" onClick={() => navigate('/personal-media')}><Server size={17}/> Minha mídia</Button></header>
+    <header className="hub-page-header items-start"><div><div className="hub-section-eyebrow"><Globe2 size={14}/> Fontes abertas</div><h1 className="hub-page-title">Grátis agora</h1><p className="hub-page-subtitle">Encontre livros, filmes de domínio público e prévias que podem ser lidos ou assistidos legalmente dentro do Hubora.</p></div><Button variant="outline" onClick={() => navigate('/providers')}><Server size={17}/> Ver provedores</Button></header>
 
     <section className="hub-panel p-5 sm:p-6">
       <div className="flex items-start gap-3"><div className="rounded-2xl bg-[var(--hub-brand-soft)] p-3 text-[var(--hub-brand)]"><BookOpen size={22}/></div><div><h2 className="text-xl font-black text-[var(--hub-text-strong)]">Ler ou assistir em fontes abertas</h2><p className="mt-1 text-sm text-[var(--hub-muted)]">A busca reúne Google Books, Open Library, Project Gutenberg e vídeos disponibilizados pelo Internet Archive. A origem controla disponibilidade, território e licença.</p></div></div>

@@ -118,7 +118,7 @@ export async function inspectStremioProvider(manifestUrl: string): Promise<{ con
   const rawManifest = await response.json() as StremioManifest | HuboraManifest;
   if ('protocol' in rawManifest && rawManifest.protocol === 'hubora-provider/v1') {
     if (!rawManifest.id || !rawManifest.name || !rawManifest.version || !rawManifest.endpoints) throw new Error('Manifesto Hubora incompatível.');
-    const allowedCapabilities = rawManifest.capabilities.filter((item): item is ProviderCapability => ['catalog', 'search', 'details', 'stream', 'reader', 'subtitles', 'availability', 'progress', 'download', 'chapters', 'launch', 'health'].includes(item));
+    const allowedCapabilities = rawManifest.capabilities.filter((item): item is ProviderCapability => ['catalog', 'search', 'details', 'stream', 'reader', 'subtitles', 'availability', 'progress', 'download', 'chapters', 'health'].includes(item));
     const now = Date.now();
     const config: ProviderConfig = {
       id: `hubora:${rawManifest.id}`,
@@ -257,18 +257,16 @@ export async function resolveSafeStremioStreams(config: ProviderConfig, type: st
     if (embedId && /^[\w-]{6,20}$/.test(embedId)) return [{ id: `${config.id}:yt:${index}`, label: String(access.label || 'YouTube'), kind: 'embed', embedId, provider: config.name, free: access.free === true, mode: 'embedded-player', health: 'available' }];
     if (!rawUrl) return [];
     
-    if (rawUrl.startsWith('magnet:')) {
-      return [{ id: `${config.id}:access:${index}`, label: String(access.label || 'Magnet Link'), kind: 'video', url: rawUrl, provider: config.name, quality: typeof access.quality === 'string' ? access.quality : undefined, language: typeof access.language === 'string' ? access.language : undefined, free: access.free === true, legalNote: 'Link magnet resolvido dinamicamente pelo Companion.', health: 'available' }];
-    }
+    if (rawUrl.startsWith('magnet:')) return [];
     
     try {
       const url = new URL(rawUrl);
-      const local = ['localhost', '127.0.0.1'].includes(url.hostname) || /^10\.|^192\.168\.|^172\.(1[6-9]|2\d|3[01])\./.test(url.hostname);
-      if (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) return [];
+      if (url.protocol !== 'https:') return [];
       const declared = String(access.kind || 'official-link');
       const safeKinds: MediaAccess['kind'][] = ['official-link', 'video', 'hls', 'dash', 'audio', 'book-preview', 'epub', 'pdf', 'html'];
       const kind = safeKinds.includes(declared as MediaAccess['kind']) ? declared as MediaAccess['kind'] : 'official-link';
-      return [{ id: `${config.id}:access:${index}`, label: String(access.label || 'Abrir'), kind, url: rawUrl, provider: config.name, quality: typeof access.quality === 'string' ? access.quality : undefined, language: typeof access.language === 'string' ? access.language : undefined, free: access.free === true, legalNote: 'Stream processada pelo Companion.', health: 'available' }];
+      if (/\.torrent(?:$|\?)/i.test(url.pathname + url.search)) return [];
+      return [{ id: `${config.id}:access:${index}`, label: String(access.label || 'Abrir'), kind, url: rawUrl, provider: config.name, quality: typeof access.quality === 'string' ? access.quality : undefined, language: typeof access.language === 'string' ? access.language : undefined, free: access.free === true, legalNote: 'Recurso fornecido pelo provedor configurado.', health: 'available' }];
     } catch { return []; }
   });
   }
@@ -282,41 +280,21 @@ export async function resolveSafeStremioStreams(config: ProviderConfig, type: st
     const ytId = typeof stream.ytId === 'string' ? stream.ytId : undefined;
     const infoHash = typeof stream.infoHash === 'string' ? stream.infoHash : undefined;
     
-    if (infoHash) {
-      const magnet = `magnet:?xt=urn:btih:${infoHash}`;
-      return [{
-        id: `${config.id}:stream:${index}`,
-        label: String(stream.title || stream.name || 'Torrentio Stream'),
-        kind: 'video',
-        url: magnet,
-        provider: config.name,
-        quality: typeof stream.title === 'string' ? stream.title.split('\n')[0] : undefined,
-        legalNote: 'Link torrent/magnet resolvido dinamicamente pelo Companion.'
-      }];
-    }
+    if (infoHash) return [];
     
     if (ytId) {
       return [{ id: `${config.id}:yt:${index}`, label: String(stream.title || stream.name || 'YouTube'), kind: 'embed', embedId: ytId, provider: config.name, free: true, legalNote: 'Origem fornecida pelo provedor configurado.' }];
     }
     if (!rawUrl) return [];
     
-    if (rawUrl.startsWith('magnet:')) {
-      return [{
-        id: `${config.id}:stream:${index}`,
-        label: String(stream.title || stream.name || 'Magnet Link'),
-        kind: 'video',
-        url: rawUrl,
-        provider: config.name,
-        quality: typeof stream.title === 'string' ? stream.title.split('\n')[0] : undefined,
-        legalNote: 'Link magnet resolvido dinamicamente pelo Companion.'
-      }];
-    }
+    if (rawUrl.startsWith('magnet:')) return [];
     
     try {
       const url = new URL(rawUrl);
-      if (url.protocol !== 'https:' && !(url.hostname === 'localhost' || url.hostname === '127.0.0.1')) return [];
+      if (url.protocol !== 'https:') return [];
+      if (/\.torrent(?:$|\?)/i.test(url.pathname + url.search)) return [];
       const kind: MediaAccess['kind'] = /\.m3u8(?:$|\?)/i.test(url.pathname + url.search) ? 'hls' : 'video';
-      return [{ id: `${config.id}:stream:${index}`, label: String(stream.title || stream.name || 'Reproduzir'), kind, url: rawUrl, provider: config.name, quality: typeof stream.description === 'string' ? stream.description : undefined, legalNote: 'Stream processada pelo Companion.' }];
+      return [{ id: `${config.id}:stream:${index}`, label: String(stream.title || stream.name || 'Reproduzir'), kind, url: rawUrl, provider: config.name, quality: typeof stream.description === 'string' ? stream.description : undefined, legalNote: 'Recurso fornecido pelo provedor configurado.' }];
     } catch {
       return [];
     }

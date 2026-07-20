@@ -40,7 +40,7 @@ describe('Hubora Provider Protocol', () => {
     expect(result.config.mediaTypes).toEqual(expect.arrayContaining(['movie', 'tv']));
   });
 
-  it('aceita streams seguros, HLS, mp4 e magnet/torrent para o Companion, rejeitando HTTP inseguro', async () => {
+  it('aceita HTTPS e YouTube mas falha fechado para HTTP, magnet, infoHash e torrent', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
       streams: [
         { title: 'HLS autorizado', url: 'https://media.example/video/master.m3u8' },
@@ -48,12 +48,19 @@ describe('Hubora Provider Protocol', () => {
         { title: 'YouTube oficial', ytId: 'abc123' },
         { title: 'Torrent', url: 'https://media.example/file.torrent' },
         { title: 'HTTP remoto', url: 'http://media.example/file.mp4' },
+        { title: 'HTTP localhost', url: 'http://127.0.0.1:49821/file.mp4' },
+        { title: 'HTTP LAN', url: 'http://192.168.1.20/file.mp4' },
         { title: 'Magnet', url: 'magnet:?xt=urn:btih:abc' },
+        { title: 'InfoHash', infoHash: '0123456789abcdef0123456789abcdef01234567' },
       ],
     }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
 
     const streams = await resolveSafeStremioStreams(config, 'movie', 'tt123');
-    expect(streams.some((item) => item.url?.includes('.torrent'))).toBe(true);
+    expect(streams.some((item) => item.url?.includes('.m3u8'))).toBe(true);
+    expect(streams.some((item) => item.url?.includes('.mp4'))).toBe(true);
+    expect(streams.some((item) => item.embedId === 'abc123')).toBe(true);
+    expect(streams.some((item) => item.url?.includes('.torrent'))).toBe(false);
+    expect(streams.some((item) => item.url?.startsWith('magnet:'))).toBe(false);
     expect(streams.some((item) => item.url?.startsWith('http:'))).toBe(false);
   });
 

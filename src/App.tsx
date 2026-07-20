@@ -52,7 +52,6 @@ const Terms = lazy(() => import('@/pages/Terms').then(m => ({ default: m.Terms }
 const Wrapped = lazy(() => import('@/pages/Wrapped').then(m => ({ default: m.Wrapped })));
 const Goals = lazy(() => import('@/pages/Goals').then(m => ({ default: m.Goals })));
 const Connections = lazy(() => import('@/pages/Connections').then(m => ({ default: m.Connections })));
-const PersonalMedia = lazy(() => import('@/pages/PersonalMedia').then(m => ({ default: m.PersonalMedia })));
 const AdultVault = lazy(() => import('@/pages/AdultVault').then(m => ({ default: m.AdultVault })));
 const Sources = lazy(() => import('@/pages/Sources').then(m => ({ default: m.Sources })));
 const Providers = lazy(() => import('@/pages/Providers').then(m => ({ default: m.Providers })));
@@ -140,7 +139,7 @@ function AnimatedRoutes() {
           <Route path="/wrapped" element={<PageTransition><Wrapped /></PageTransition>} />
           <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
           <Route path="/connections" element={<PageTransition><Connections /></PageTransition>} />
-          <Route path="/personal-media" element={<PageTransition><PersonalMedia /></PageTransition>} />
+          <Route path="/personal-media" element={<Navigate to="/sources" replace />} />
           <Route path="/vault" element={<PageTransition><AdultVault /></PageTransition>} />
           <Route path="/sources" element={<PageTransition><Sources /></PageTransition>} />
           <Route path="/providers" element={<PageTransition><Providers /></PageTransition>} />

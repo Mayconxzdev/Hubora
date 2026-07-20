@@ -44,7 +44,7 @@ test('mantém as áreas principais simples e navegáveis', async ({ page }) => {
     ['/games', /Jogos/i],
     ['/radar', /Radar/i],
     ['/sources', /Grátis agora/i],
-    ['/providers', /Fontes e Companion/i],
+    ['/providers', /Fontes e provedores/i],
     ['/settings', /Configurações/i],
   ];
 
@@ -53,6 +53,18 @@ test('mantém as áreas principais simples e navegáveis', async ({ page }) => {
     await expect(page.locator('body')).toContainText(text);
     await expect(page.locator('body')).not.toContainText(/erro fatal|algo deu errado/i);
   }
+});
+
+test('não expõe Companion, debrid ou mídia local como produto', async ({ page }) => {
+  await page.goto('/providers');
+  await expect(page.getByRole('heading', { name: /fontes e provedores/i })).toBeVisible();
+  await expect(page.locator('body')).not.toContainText(/Companion|Real-Debrid|TorBox|Baixar para Windows/i);
+
+  await page.goto('/settings');
+  await expect(page.locator('body')).not.toContainText(/Companion|Real-Debrid|TorBox|WebTorrent/i);
+
+  await page.goto('/personal-media');
+  await expect(page).toHaveURL(/\/sources$/);
 });
 
 test('tema escuro é preto e tema claro é branco', async ({ page }) => {
@@ -84,7 +96,9 @@ test('home começa pelas categorias e quatro situações', async ({ page }) => {
 test('celular usa quatro destinos e não cria rolagem lateral', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes('android'), 'Validação específica do perfil Android');
   await page.goto('/');
+  await expect(page.getByRole('heading', { name: /o que combina com você agora/i })).toBeVisible();
   const mobileNav = page.getByRole('navigation', { name: /navegação móvel/i });
+  await expect(mobileNav).toBeVisible();
   await expect(mobileNav.getByRole('link')).toHaveCount(4);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);

@@ -6,11 +6,6 @@ import { SectionPageLayout } from '@/components/section/SectionPageLayout';
 import { SectionToolbar } from '@/components/section/SectionToolbar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
-import { Button } from '@/components/ui/Button';
-import { RefreshCw } from 'lucide-react';
-import { getGamesFromCompanion } from '@/services/companion';
-import { useStore } from '@/store/useStore';
-import { toast } from 'sonner';
 
 const GAME_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: 'action', labelKey: 'genre.action' },
@@ -31,38 +26,7 @@ const SORT_OPTIONS: { value: string; labelKey: TranslationKey }[] = [
 
 export function Games() {
   const { t } = useTranslation();
-  const { addToLibrary: addStoreMedia } = useStore();
   const [sort, setSort] = useState('-rating');
-  const [syncing, setSyncing] = useState(false);
-
-  const handleSyncGames = async () => {
-    setSyncing(true);
-    try {
-      const res = await getGamesFromCompanion();
-      if (res.ok && res.games && res.games.length > 0) {
-        res.games.forEach((game) => {
-          addStoreMedia({
-            ...game,
-            access: [{
-              id: `companion:launch:${game.id}`,
-              label: 'Jogar Agora (PC)',
-              kind: 'official-link',
-              url: game.launchUrl,
-              provider: game.platform,
-              free: true
-            }]
-          }, 'completed');
-        });
-        toast.success(`${res.games.length} jogos locais sincronizados!`);
-      } else {
-        toast.info("Nenhum jogo local novo encontrado.");
-      }
-    } catch (err) {
-      toast.error("Companion offline ou erro ao sincronizar.");
-    } finally {
-      setSyncing(false);
-    }
-  };
   const [genre, setGenre] = useState('');
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -110,12 +74,6 @@ export function Games() {
       error={error as Error}
       items={games}
       emptyMessage="Nenhum jogo encontrado. Tente mudar os filtros ou verifique a conexão com IGDB."
-      extraHeaderActions={
-        <Button onClick={handleSyncGames} disabled={syncing} className="gap-2 bg-[var(--hub-brand)] hover:bg-[var(--hub-brand-strong)] text-xs font-bold px-3 py-2 rounded-xl">
-          <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-          {syncing ? "Sincronizando..." : "Sincronizar Jogos do PC"}
-        </Button>
-      }
       footer={
         hasNextPage && (
           <div ref={ref} className="flex justify-center mt-10 py-4">

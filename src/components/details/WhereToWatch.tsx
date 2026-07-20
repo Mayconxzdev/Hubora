@@ -122,13 +122,7 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
     }
     if (access.url) {
       if (/^(steam:|com\.epicgames\.launcher:|goggalaxy:|xbox:|shortcut:|file:|([a-zA-Z]:\\))/i.test(access.url)) {
-        import('@/services/companion').then(({ launchWithCompanion }) => {
-          launchWithCompanion(access.url!).then(() => {
-            toast.success('Iniciando o jogo local no PC...');
-          }).catch(() => {
-            toast.error('Não foi possível iniciar o jogo remotamente.');
-          });
-        });
+        toast.error('Este acesso exige um aplicativo local e não pode ser aberto pelo Hubora na web.');
       } else {
         window.open(access.url, '_blank', 'noopener,noreferrer');
       }

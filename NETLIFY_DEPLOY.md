@@ -59,10 +59,9 @@ Não configure os dois formatos de chave secreta do Supabase ao mesmo tempo. A c
 3. Adicione um título, atualize o progresso e confirme no Android.
 4. Instale a PWA no Android pelo Chrome.
 5. Teste trailer, fonte aberta, uma busca de jogo e uma sugestão de Hoje.
-6. Instale o Companion, informe a URL do Netlify e pareie no PC.
-7. No Android, teste `http://IP-DO-PC:49821` e aceite a permissão de rede local do Chrome quando ela aparecer. Use apenas uma rede privada.
-8. Se a política de conteúdo misto do navegador bloquear HTTP local, publique o Companion por HTTPS privado (por exemplo, Tailscale Serve ou reverse proxy com certificado confiável) e salve essa URL na Central de Fontes.
-9. Para Jellyfin/Kavita/Komga fora do Companion, prefira HTTPS e CORS restrito ao seu domínio.
+6. Confirme que Fontes não anuncia capacidade sem evidência e que links externos abrem a origem correta.
+7. Se configurar Jellyfin/Kavita/Komga opcionalmente, use HTTPS e CORS restrito ao domínio do Hubora.
+8. Teste logout, recuperação de sessão, isolamento do Cofre e revogação de dispositivo antes de considerar o acesso privado validado.
 
 ## Bloqueio de segurança antes da publicação
 

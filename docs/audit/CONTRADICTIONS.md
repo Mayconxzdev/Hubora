@@ -1,5 +1,7 @@
 # Contradições iniciais
 
+Esta tabela registra o estado encontrado antes da implementação. C-001, C-002, C-003, C-011 e C-012 foram tratados na primeira fatia; a prova atual está em `docs/evidence/COMPANION_REMOVAL.md`. As demais contradições continuam abertas até possuírem implementação e evidência próprias.
+
 | ID | Decisão aprovada | Estado encontrado | Consequência | Resolução |
 |---|---|---|---|---|
 | C-001 | Não usar nem recriar Companion | Servidor, instalador, ZIP, UI, player, settings, protocolo e docs ativos | Arquitetura, segurança e UX divergem | remoção completa em fatia TDD |
