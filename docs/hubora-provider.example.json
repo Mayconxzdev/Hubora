@@ -1,0 +1,33 @@
+{
+  "protocol": "hubora-provider/v1",
+  "id": "minha-fonte",
+  "name": "Minha fonte autorizada",
+  "description": "Exemplo de manifesto universal do Hubora.",
+  "version": "1.0.0",
+  "capabilities": [
+    "search",
+    "details",
+    "stream",
+    "reader",
+    "chapters",
+    "progress",
+    "health"
+  ],
+  "mediaTypes": [
+    "movies",
+    "series",
+    "anime",
+    "doramas",
+    "books",
+    "novels",
+    "manga",
+    "comics",
+    "audiobooks",
+    "games"
+  ],
+  "endpoints": {
+    "search": "/v1/search?q={query}",
+    "access": "/v1/access/{type}/{id}",
+    "health": "/v1/health"
+  }
+}

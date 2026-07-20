@@ -1,0 +1,17 @@
+import { describe, expect, it } from 'vitest';
+import { PROVIDER_CATALOG, PROVIDER_CATEGORIES } from '@/data/providerCatalog';
+
+describe('diretório universal de fontes', () => {
+  it('cobre todas as categorias sem identificadores duplicados', () => {
+    expect(PROVIDER_CATALOG.length).toBeGreaterThanOrEqual(90);
+    expect(new Set(PROVIDER_CATALOG.map((item) => item.id)).size).toBe(PROVIDER_CATALOG.length);
+    for (const category of PROVIDER_CATEGORIES.filter((item) => item.id !== 'all')) {
+      expect(PROVIDER_CATALOG.some((item) => item.categories.includes(category.id as Exclude<typeof category.id, 'all'>))).toBe(true);
+    }
+  });
+
+  it('distingue metadados, reprodução, arquivo, servidor e launcher', () => {
+    const modes = new Set(PROVIDER_CATALOG.map((item) => item.mode));
+    expect([...modes]).toEqual(expect.arrayContaining(['metadata', 'downloadable-file', 'embedded-player', 'personal-server', 'external-page', 'manifest', 'game-launcher']));
+  });
+});

@@ -1,0 +1,106 @@
+import { useState, useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInView } from 'react-intersection-observer';
+import { api } from '@/services/api';
+import { SectionPageLayout } from '@/components/section/SectionPageLayout';
+import { SectionToolbar } from '@/components/section/SectionToolbar';
+import { useTranslation } from '@/hooks/useTranslation';
+import { TranslationKey } from '@/lib/translations';
+
+const ANIME_GENRES: { value: string; labelKey: TranslationKey }[] = [
+  { value: '1', labelKey: 'genre.action' },
+  { value: '2', labelKey: 'genre.adventure' },
+  { value: '4', labelKey: 'genre.comedy' },
+  { value: '8', labelKey: 'genre.drama' },
+  { value: '10', labelKey: 'genre.fantasy' },
+  { value: '14', labelKey: 'genre.horror' },
+  { value: '7', labelKey: 'genre.mystery' },
+  { value: '22', labelKey: 'genre.romance' },
+  { value: '24', labelKey: 'genre.science_fiction' },
+  { value: '36', labelKey: 'genre.slice_of_life' },
+  { value: '30', labelKey: 'genre.sports' },
+  { value: '37', labelKey: 'genre.supernatural' }
+];
+
+const SORT_OPTIONS: { value: string; labelKey: TranslationKey }[] = [
+  { value: 'bypopularity', labelKey: 'sort.popularity.desc' },
+  { value: 'score', labelKey: 'sort.vote_average.desc' }
+];
+
+export function Anime() {
+  const { t } = useTranslation();
+  const [sort, setSort] = useState('bypopularity');
+  const [genre, setGenre] = useState('');
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const { 
+    data, 
+    isLoading,
+    isError,
+    error,
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage 
+  } = useInfiniteQuery({ 
+    queryKey: ['anime-discover', sort, genre, debouncedQuery], 
+    queryFn: ({ pageParam = 1 }) => api.discoverAnime(pageParam, sort, genre, debouncedQuery),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length > 0 ? allPages.length + 1 : undefined;
+    }
+  });
+
+  const { ref, inView } = useInView();
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const anime = data ? data.pages.flat() : [];
+
+  return (
+    <SectionPageLayout 
+      title={t('section.anime.title')}
+      subtitle={t('section.anime.subtitle')}
+      isLoading={isLoading}
+      isError={isError}
+      error={error as Error}
+      items={anime}
+      emptyMessage="Nenhum anime encontrado. A fonte Jikan (MyAnimeList) pode estar limitando as requisições (rate limit)."
+      footer={
+        hasNextPage && (
+          <div ref={ref} className="flex justify-center mt-10 py-4">
+            {isFetchingNextPage ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 px-4 w-full">
+                {Array(5).fill(0).map((_, i) => (
+                  <div key={`skeleton-footer-${i}`} className="w-full aspect-[2/3] bg-slate-800 rounded-2xl animate-pulse" />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        )
+      }
+    >
+      <SectionToolbar
+        searchQuery={query}
+        onSearchChange={setQuery}
+        sortValue={sort}
+        onSortChange={setSort}
+        sortOptions={SORT_OPTIONS}
+        genreValue={genre}
+        onGenreChange={setGenre}
+        genreOptions={ANIME_GENRES}
+      />
+    </SectionPageLayout>
+  );
+}

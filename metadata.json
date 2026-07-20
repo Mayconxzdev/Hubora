@@ -1,0 +1,12 @@
+{
+  "name": "Hubora 7.1 Personal",
+  "description": "Central multimídia pessoal, privada e local-first com descoberta, Radar, recomendações, leitura e reprodução autorizada.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "LOCAL_FIRST_MULTIMEDIA_TRACKING",
+    "EXPLAINABLE_DISCOVERY",
+    "OPTIONAL_CLOUD_SYNC",
+    "ADAPTIVE_CINEMATIC_UI",
+    "NETLIFY_SERVERLESS_DEPLOYMENT"
+  ]
+}
