@@ -19,6 +19,7 @@ import {
 } from './adapters';
 
 import { adaptGoogleBooksVolume, fetchBooksWithFallback, getOpenLibraryArchiveAccess } from './apiBookService';
+import { normalizeTmdbVideos } from './mediaVideos';
 import { getAdultMode } from './adultPolicy';
 import { isVaultUnlocked } from './vault';
 
@@ -1267,11 +1268,12 @@ export const api = {
       const tmdbKey = isTMDBAvailable();
       if (!tmdbKey) return null;
       
-      const [detailsRes, creditsRes, similarRes, videosRes, providersRes, externalIdsRes] = await Promise.all([
+      const [detailsRes, creditsRes, similarRes, videosPtRes, videosEnRes, providersRes, externalIdsRes] = await Promise.all([
         fetch(tmdbUrl(`/movie/${tmdbId}`, { language: 'pt-BR' })),
         fetch(tmdbUrl(`/movie/${tmdbId}/credits`, { language: 'pt-BR' })),
         fetch(tmdbUrl(`/movie/${tmdbId}/similar`, { language: 'pt-BR' })),
         fetch(tmdbUrl(`/movie/${tmdbId}/videos`, { language: 'pt-BR' })),
+        fetch(tmdbUrl(`/movie/${tmdbId}/videos`, { language: 'en-US' })),
         fetch(tmdbUrl(`/movie/${tmdbId}/watch/providers`)),
         fetch(tmdbUrl(`/movie/${tmdbId}/external_ids`))
       ]);
@@ -1279,7 +1281,8 @@ export const api = {
       const data = await detailsRes.json();
       const credits = await creditsRes.json();
       const similar = await similarRes.json();
-      const videos = await videosRes.json();
+      const videosPt = await videosPtRes.json();
+      const videosEn = await videosEnRes.json();
       const providers = await providersRes.json();
       const externalIds = await externalIdsRes.json();
 
@@ -1318,12 +1321,8 @@ export const api = {
         item.similar = similar.results.slice(0, 5).map(adaptTMDBMovie);
       }
 
-      if (videos.results && videos.results.length > 0) {
-        const trailer = videos.results.find((v: { type: string; site: string; key: string }) => v.type === 'Trailer' && v.site === 'YouTube') || videos.results[0];
-        if (trailer && trailer.site === 'YouTube') {
-          item.trailerUrl = `https://www.youtube.com/embed/${trailer.key}`;
-        }
-      }
+      item.videos = normalizeTmdbVideos([...(videosPt.results || []), ...(videosEn.results || [])]);
+      item.trailerUrl = item.videos[0]?.embedUrl;
 
       return item;
     }
@@ -1333,11 +1332,12 @@ export const api = {
       const tmdbKey = isTMDBAvailable();
       if (!tmdbKey) return null;
       
-      const [detailsRes, creditsRes, similarRes, videosRes, providersRes, externalIdsRes] = await Promise.all([
+      const [detailsRes, creditsRes, similarRes, videosPtRes, videosEnRes, providersRes, externalIdsRes] = await Promise.all([
         fetch(tmdbUrl(`/tv/${tmdbId}`, { language: 'pt-BR' })),
         fetch(tmdbUrl(`/tv/${tmdbId}/credits`, { language: 'pt-BR' })),
         fetch(tmdbUrl(`/tv/${tmdbId}/similar`, { language: 'pt-BR' })),
         fetch(tmdbUrl(`/tv/${tmdbId}/videos`, { language: 'pt-BR' })),
+        fetch(tmdbUrl(`/tv/${tmdbId}/videos`, { language: 'en-US' })),
         fetch(tmdbUrl(`/tv/${tmdbId}/watch/providers`)),
         fetch(tmdbUrl(`/tv/${tmdbId}/external_ids`))
       ]);
@@ -1345,7 +1345,8 @@ export const api = {
       const data = await detailsRes.json();
       const credits = await creditsRes.json();
       const similar = await similarRes.json();
-      const videos = await videosRes.json();
+      const videosPt = await videosPtRes.json();
+      const videosEn = await videosEnRes.json();
       const providers = await providersRes.json();
       const externalIds = await externalIdsRes.json();
 
@@ -1390,12 +1391,8 @@ export const api = {
         item.similar = similar.results.slice(0, 5).map(adaptTMDBTV);
       }
 
-      if (videos.results && videos.results.length > 0) {
-        const trailer = videos.results.find((v: { type: string; site: string; key: string }) => v.type === 'Trailer' && v.site === 'YouTube') || videos.results[0];
-        if (trailer && trailer.site === 'YouTube') {
-          item.trailerUrl = `https://www.youtube.com/embed/${trailer.key}`;
-        }
-      }
+      item.videos = normalizeTmdbVideos([...(videosPt.results || []), ...(videosEn.results || [])]);
+      item.trailerUrl = item.videos[0]?.embedUrl;
 
       return item;
     }

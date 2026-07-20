@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { LibraryStatusModal } from '@/components/library/LibraryStatusModal';
 import { findLibraryEntry } from '@/services/identity';
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { normalizeLegacyTrailer } from '@/services/mediaVideos';
 
 export function Details() {
   const { t } = useTranslation();
@@ -147,6 +148,9 @@ export function Details() {
     );
   }
 
+  const legacyVideo = normalizeLegacyTrailer(item.trailerUrl);
+  const detailVideos = item.videos?.length ? item.videos : legacyVideo ? [legacyVideo] : [];
+
   return (
     <div className="hub-page hub-details-page relative min-h-screen">
       <SEO 
@@ -195,7 +199,7 @@ export function Details() {
               alt={item.title}
               className="w-full h-full object-cover transition-transform duration-700 group-hover/poster:scale-105"
             />
-            {item.trailerUrl && (
+            {detailVideos.length > 0 && (
               <div 
                 className="absolute inset-0 bg-black/60 opacity-0 group-hover/poster:opacity-100 transition-all duration-500 flex items-center justify-center cursor-pointer backdrop-blur-sm"
                 onClick={() => setShowTrailerModal(true)}
@@ -377,7 +381,7 @@ export function Details() {
                   </Button>
                 </Link>
                 
-                {item.trailerUrl && (
+                {detailVideos.length > 0 && (
                   <Button 
                     variant="outline" 
                     size="lg" 
@@ -385,7 +389,7 @@ export function Details() {
                     className="gap-3 border-purple-500/50 hover:bg-purple-500/20 hover:border-purple-400 text-purple-300 h-14 px-8 rounded-2xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 font-bold hover:shadow-[0_0_20px_rgba(217,154,40,0.20)]"
                   >
                     <PlayCircle size={22} />
-                    Trailer
+                    {detailVideos.length === 1 ? 'Trailer' : `Vídeos (${detailVideos.length})`}
                   </Button>
                 )}
 
@@ -526,7 +530,7 @@ export function Details() {
         <TrailerModal 
           isOpen={showTrailerModal} 
           onClose={() => setShowTrailerModal(false)} 
-          trailerUrl={item.trailerUrl || null} 
+          videos={detailVideos}
         />
 
         {/* Trivia Modal */}

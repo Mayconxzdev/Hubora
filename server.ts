@@ -53,6 +53,7 @@ async function startServer() {
 
   app.disable('x-powered-by');
   app.use(helmet({
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     contentSecurityPolicy: isProduction ? {
       directives: {
         defaultSrc: ["'self'"],

@@ -11,6 +11,8 @@ Os estados canônicos são `NOT_STARTED`, `IMPLEMENTING`, `PARTIAL`, `BLOCKED` e
 - Novels possui rota própria, catálogo Open Library real, detalhes e prévia
   restrita do Internet Archive comprovada; Google Books aguarda chave gratuita
   no backend e a categoria permanece `PARTIAL`.
+- Detalhes aceitam teasers/trailers múltiplos e reproduzem um trailer Jikan real
+  dentro da página; TMDB aguarda chave gratuita e prova externa.
 - Player HTTPS/HLS/YouTube e leitores existentes, ainda sem matriz E2E real de
   formatos.
 - Diretório de fontes por categoria/modo/requisito; entrada mapeada não significa

@@ -28,7 +28,9 @@
 - [ ] Provider Protocol v1 + identidade canônica.
 - [x] Fundação vertical de Novels: domínio, rota, detalhe, backup e prévia real.
 - [ ] Completar providers, leitura integral, sync e gates globais de Novels.
-- [ ] Detalhes/trailers reais por categoria.
+- [x] Coleção tipada de teasers/trailers e reprodução Jikan real no detalhe.
+- [ ] Validar múltiplos vídeos TMDB reais após configurar chave gratuita.
+- [ ] Completar detalhes específicos, temporadas/episódios e relações por categoria.
 - [ ] Player/leitores com conteúdo aberto de teste.
 - [ ] Games manual completo.
 - [ ] Supabase/Auth/RLS após configuração autorizada.

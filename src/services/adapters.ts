@@ -1,4 +1,5 @@
 import { MediaItem } from '@/types';
+import { normalizeJikanVideo } from './mediaVideos';
 
 // --- Interfaces for API Responses ---
 
@@ -42,7 +43,7 @@ export interface JikanAnime {
   title: string;
   title_japanese?: string;
   images?: { jpg?: { image_url?: string; large_image_url?: string } };
-  trailer?: { embed_url?: string; url?: string; images?: { maximum_image_url?: string } };
+  trailer?: { youtube_id?: string; embed_url?: string; url?: string; images?: { maximum_image_url?: string } };
   synopsis?: string;
   aired?: { from?: string };
   score?: number;
@@ -158,31 +159,35 @@ export const adaptTMDBTV = (tv: TMDBTV): MediaItem => ({
   } : undefined
 });
 
-export const adaptJikanAnime = (anime: JikanAnime): MediaItem => ({
-  id: `mal-anime-${anime.mal_id}`,
-  malId: anime.mal_id,
-  source: 'myanimelist',
-  sourceId: anime.mal_id,
-  externalIds: { mal: String(anime.mal_id) },
-  providerIdentities: [{ provider: 'myanimelist', providerId: String(anime.mal_id), mediaType: 'anime', verifiedAt: Date.now() }],
-  title: anime.title,
-  originalTitle: anime.title_japanese,
-  posterPath: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url,
-  backdropPath: anime.trailer?.images?.maximum_image_url || anime.images?.jpg?.large_image_url,
-  overview: anime.synopsis,
-  mediaType: 'anime',
-  releaseDate: anime.aired?.from ? new Date(anime.aired.from).toISOString().split('T')[0] : undefined,
-  voteAverage: anime.score,
-  genres: anime.genres?.map(g => g.name),
-  status: anime.status,
-  popularity: anime.members ? anime.members / 1000 : 0,
-  trailerUrl: anime.trailer?.embed_url || anime.trailer?.url,
-  isAdult: Boolean(anime.rating?.toLowerCase().includes('rx') || anime.explicit_genres?.length),
-  explicitContent: Boolean(anime.rating?.toLowerCase().includes('rx') || anime.explicit_genres?.length),
-  ageRating: anime.rating?.toLowerCase().includes('rx') ? 18 : undefined,
-  ageRatingSystem: anime.rating ? 'Jikan/MAL' : undefined,
-  contentDescriptors: anime.explicit_genres?.map((genre) => genre.name),
-});
+export const adaptJikanAnime = (anime: JikanAnime): MediaItem => {
+  const video = normalizeJikanVideo(anime.trailer);
+  return {
+    id: `mal-anime-${anime.mal_id}`,
+    malId: anime.mal_id,
+    source: 'myanimelist',
+    sourceId: anime.mal_id,
+    externalIds: { mal: String(anime.mal_id) },
+    providerIdentities: [{ provider: 'myanimelist', providerId: String(anime.mal_id), mediaType: 'anime', verifiedAt: Date.now() }],
+    title: anime.title,
+    originalTitle: anime.title_japanese,
+    posterPath: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url,
+    backdropPath: anime.trailer?.images?.maximum_image_url || anime.images?.jpg?.large_image_url,
+    overview: anime.synopsis,
+    mediaType: 'anime',
+    releaseDate: anime.aired?.from ? new Date(anime.aired.from).toISOString().split('T')[0] : undefined,
+    voteAverage: anime.score,
+    genres: anime.genres?.map(g => g.name),
+    status: anime.status,
+    popularity: anime.members ? anime.members / 1000 : 0,
+    trailerUrl: video?.embedUrl,
+    videos: video ? [video] : undefined,
+    isAdult: Boolean(anime.rating?.toLowerCase().includes('rx') || anime.explicit_genres?.length),
+    explicitContent: Boolean(anime.rating?.toLowerCase().includes('rx') || anime.explicit_genres?.length),
+    ageRating: anime.rating?.toLowerCase().includes('rx') ? 18 : undefined,
+    ageRatingSystem: anime.rating ? 'Jikan/MAL' : undefined,
+    contentDescriptors: anime.explicit_genres?.map((genre) => genre.name),
+  };
+};
 
 export const adaptJikanManga = (manga: JikanManga): MediaItem => ({
   id: `mal-manga-${manga.mal_id}`,

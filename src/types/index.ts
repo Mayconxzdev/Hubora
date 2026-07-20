@@ -36,6 +36,20 @@ export interface ExternalIdMap {
   steam?: string;
 }
 
+export type MediaVideoKind = 'trailer' | 'teaser' | 'clip' | 'featurette' | 'opening' | 'ending' | 'gameplay' | 'other';
+
+export interface MediaVideo {
+  id: string;
+  key: string;
+  name: string;
+  kind: MediaVideoKind;
+  provider: 'TMDB / YouTube' | 'Jikan / MyAnimeList' | 'YouTube';
+  embedUrl: string;
+  official: boolean;
+  language?: string;
+  publishedAt?: string;
+}
+
 export interface MediaItem {
   id: string | number;
   tmdbId?: number;
@@ -54,6 +68,7 @@ export interface MediaItem {
   cast?: { name: string; character: string; profilePath?: string }[];
   similar?: MediaItem[];
   trailerUrl?: string;
+  videos?: MediaVideo[];
   runtime?: number;
   nextEpisodeToAir?: {
     airDate: string;
