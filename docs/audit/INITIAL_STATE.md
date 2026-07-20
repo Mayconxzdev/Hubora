@@ -1,100 +1,107 @@
-# Hubora 9.0.0 — Estado inicial auditado
+# Hubora 9.0.0 — estado inicial auditado
 
-Data do levantamento: 2026-07-20  
-Branch de trabalho: `refactor/hubora-real-platform`  
-Baseline preservado: commit `0ecfd1d9dfb73585bb03a5e3ac9398dfac6de544`  
-Tag: `hubora-9.0.0-pre-refactor`
+Data do levantamento: 2026-07-20
+Branch de trabalho: `refactor/hubora-verified-platform`
+Baseline importado: `0ecfd1d9dfb73585bb03a5e3ac9398dfac6de544`
+Checkpoint pré-plataforma verificada: `b11100f`, tag `hubora-9.0.0-pre-verified-platform`
 
-Este documento registra evidências observadas. Ele não certifica prontidão para produção nem substitui os gates definidos em `FEATURE_EVIDENCE_MATRIX.md`.
+Este documento registra o que foi observado localmente. Não certifica prontidão de produção e não converte código, catálogo estático ou teste mockado em integração real.
 
 ## Ambiente observado
 
-- Windows 10, build 26100.
-- Node.js 26.4.0.
-- npm 11.17.0.
-- Git 2.54.0.
-- Instalação limpa controlada por `package-lock.json`.
-- `.env.local` existe, não foi lido nem versionado. Apenas os nomes das variáveis foram inventariados.
+- Windows NT 10.0.26100.
+- Node.js 26.4.0; `package.json` aceita `>=22.12.0` e não fixa versão exata.
+- npm 11.17.0; `packageManager` não está declarado.
+- React 19.2.5, React Router 7.14.2, TypeScript 6.0.3 e Vite instalado 7.3.6.
+- `.env.local` existe e está ignorado. Seu conteúdo não foi exibido nem versionado.
+- Não há remote Git configurado; nenhum push, deploy ou alteração remota foi feito.
 
-## Stack e topologia atuais
+## Preservação
 
-- Frontend: React 19, React Router 7, Vite 7, TypeScript 6 e Tailwind CSS 4.
-- Estado: Zustand, TanStack Query e persistência local em IndexedDB/Dexie.
-- Backend local: Express 5 em `server.ts`.
-- Backend hospedado: Netlify Functions em `netlify/functions`.
-- Nuvem opcional: Supabase, com três migrations existentes.
-- PWA: `vite-plugin-pwa`, Workbox e service worker próprio em `src/sw.ts`.
+- O baseline original está no commit `0ecfd1d` e tag `hubora-9.0.0-pre-refactor`.
+- O estado após a primeira limpeza de categoria está em `b11100f` e tag `hubora-9.0.0-pre-verified-platform`.
+- A branch atual foi criada localmente conforme a especificação.
+- O worktree estava limpo antes desta fase documental.
+
+## Stack e topologia encontradas
+
+- Web/PWA: React + Vite, Zustand, TanStack Query, Dexie/IndexedDB.
+- Backend local de desenvolvimento: Express em `server.ts`.
+- Backend hospedável: oito arquivos em `netlify/functions`.
+- Nuvem opcional: cliente Supabase e três migrations.
+- PWA: `vite-plugin-pwa` e service worker próprio.
 - Testes: Vitest e Playwright.
-- Companion atual: servidor Node/PowerShell em `companion/`; não é Tauri e depende de Node instalado.
+- Subsistema contraditório: Companion Node/PowerShell, ZIP público, WebTorrent, debrid, mídia pessoal e launchers locais.
 
-## Inventário aproximado
+## Inventário
 
-| Área | Quantidade observada | Observação |
-|---|---:|---|
-| Arquivos no baseline Git | 517 | Inclui skills locais e documentação |
-| `src/` | 115 arquivos | Aproximadamente 852 KiB |
-| Companion | 4 arquivos-fonte | Há também pacote em `public/` |
-| Netlify Functions | 8 | APIs e proxies específicos |
-| Migrations Supabase | 3 | Auditoria de RLS ainda não constitui prova em ambiente remoto |
-| Testes encontrados | 18 arquivos | 16 suites Vitest no baseline e 2 áreas E2E/configuração |
+| Área | Evidência observada |
+|---|---|
+| Git | 677 arquivos rastreados após inclusão das skills locais auditadas |
+| `src/` | 115 arquivos; páginas, componentes, serviços, store, tipos e service worker |
+| Netlify | 8 arquivos, incluindo TMDB, jogos, catálogo gratuito e health |
+| Supabase | 3 migrations SQL; nenhuma execução remota nesta fase |
+| Companion | 4 arquivos em `companion/`, ZIP em `public/companion`, serviço web e teste |
+| Testes | 16 suites Vitest e 12 casos Playwright em 2 perfis Chromium |
+| Providers | diretório estático com 93 entradas; presença não comprova integração |
 
-## Rotas encontradas
+## Rotas e escopo
 
-Há rotas para home, descoberta, radar, detalhes, biblioteca, diário, guia, lançamentos, perfil, configurações, autenticação, filmes, séries, anime, mangá, quadrinhos, livros, jogos, doramas, privacidade, termos, wrapped, metas, conexões, mídia pessoal, cofre, fontes, provedores, leitor, player e insights.
+Existem rotas para Home, Descoberta, Radar, Detalhes, Biblioteca, Diário, Guia, Lançamentos, Perfil, Configurações, autenticação, oito páginas de categoria, Cofre, Fontes, Provedores, Leitor, Player e Insights.
 
-Lacunas de navegação observadas:
+Lacunas/contradições:
 
-- Novels não possui uma rota de domínio própria; usa filtro do diretório de provedores.
-- Não há rota ou shell de TV/controle remoto.
-- Várias telas obrigatórias do pedido ainda não têm fluxo E2E real.
+- Novels aparece na Home e no tipo de provedores, mas não possui `/novels`, detalhes ou leitor por capítulo.
+- `/personal-media` e a interface do Companion contradizem a decisão de não usar arquivos/servidores locais como base.
+- Player, Settings e protocolo ainda dependem ou anunciam Companion/debrid.
+- Não existe TV; isso está correto para o escopo aprovado e não é uma lacuna.
+- Jogos ainda contêm caminhos de descoberta/launcher além do modelo manual aprovado.
 
-## Baseline executado
+## Baseline executado nesta branch
 
 | Gate | Resultado | Evidência resumida |
 |---|---|---|
-| `npm ci` | PASS com avisos | Primeira tentativa falhou por lock de processo local; após parar somente a árvore do dev server deste workspace, instalou 861 pacotes e auditou 862 |
-| `npm run typecheck` | PASS no baseline | 24,1 s |
-| `npm test` | WARN | Primeira execução: 38/39, falha do Companion; teste isolado passou; segunda execução: 39/39. A intermitência continua aberta |
-| `npm run build` | PASS com avisos | 2.889 módulos, PWA com 65 entradas e 2.597,10 KiB de precache; chunks acima de 500 KiB |
-| `npm run test:e2e` | PASS parcial | 11 executados, 1 ignorado, somente Chromium desktop e Pixel 7; smoke test, não prova fluxos críticos |
-| `npm audit --json` | BLOCKED | 4 vulnerabilidades `high`, todas na cadeia de `webtorrent`; correção sugerida implica downgrade major incompatível |
-| gitleaks/Trivy/Semgrep/Syft | NOT_RUN | Binários não estavam disponíveis; nenhum pacote aleatório foi instalado para mascarar a ausência |
+| `npm ci` | `VERIFIED` com avisos | Primeira tentativa: `EPERM` em DLL carregada por dois previews antigos desta raiz. Somente PIDs 48236 e 40784 foram encerrados; segunda tentativa instalou 861 pacotes |
+| `npm run typecheck` | `VERIFIED` | exit 0, 22,7 s |
+| `npm run lint` | `PARTIAL` | exit 0, 22,6 s; script apenas repete `tsc --noEmit`, sem linter |
+| `npm test` | `PARTIAL` | execução completa: 14/16 arquivos e 40/42 testes; Companion e UI smoke falharam por timeout/carregamento; ambos passaram isoladamente |
+| teste Companion isolado | `VERIFIED` no cenário isolado | 1/1, 2,48 s; não elimina flakiness da suíte completa |
+| UI smoke isolado | `VERIFIED` no cenário isolado | 1/1, 3,88 s; não elimina flakiness da suíte completa |
+| `npm run build` | `VERIFIED` com avisos | exit 0, 2.889 módulos, 65 entradas PWA, 2.594,53 KiB de precache |
+| `npm run test:e2e` | `PARTIAL` | 11 pass, 1 skip em Desktop Chrome e Pixel 7; apenas smoke existente |
+| `npm audit --json` | `BLOCKED` | 4 vulnerabilidades high na cadeia WebTorrent; nenhuma critical |
+| `npm audit signatures` | `VERIFIED` | 861 pacotes com assinatura de registro e 235 com attestations |
+| busca de segredo do produto | `PARTIAL` | nenhuma correspondência suspeita fora de `.agents`; gitleaks, Semgrep e Trivy não instalados |
+| captura visual | `VERIFIED` como baseline visual | Home, Providers e Personal Media em `output/playwright/category-removal/` |
 
-## Bundle observado no baseline
+## Bundle de produção
 
-| Artefato | Tamanho | gzip |
-|---|---:|---:|
-| `hls` | 523,16 KiB | 162,15 KiB |
-| `vendor-graph` | 442,92 KiB | 141,93 KiB |
-| bundle principal | 371,11 KiB | 117,08 KiB |
-| `vendor-cloud` | 213,11 KiB | 55,71 KiB |
-| CSS | 208,27 KiB | 31,31 KiB |
+| Artefato | Tamanho aproximado | Observação |
+|---|---:|---|
+| `hls` | 523,16 KiB | acima do aviso padrão de 500 KiB |
+| `vendor-graph` | 442,92 KiB | grande, carregamento precisa ser medido por rota |
+| bundle principal | 371,10 KiB | ainda contém responsabilidades transversais |
+| `vendor-cloud` | 213,11 KiB | Supabase/cloud |
+| CSS | 208,34 KiB | `src/index.css` possui 2.916 linhas |
+| `PersonalMedia` | 9,26 KiB | deve desaparecer com a remoção aprovada |
+| `companion` | 2,87 KiB | cliente web; não inclui o servidor/pacote Node |
 
-Não há orçamento de performance versionado nem evidência de Lighthouse/Web Vitals em dispositivo real.
+Não existe budget versionado, Lighthouse ou Web Vitals de dispositivo real.
 
-## PWA e offline
+## Dependências e segurança
 
-- O manifest é configurado no Vite e também existe um `public/manifest.json`, criando duas fontes de verdade.
-- O manifest observado não apresenta `maskable`, screenshots de instalação ou idioma.
-- O service worker usa o cache versionado manualmente como `hubora-precache-v7`.
-- Requisições GET same-origin são cacheadas de forma ampla.
-- A resposta offline usa `/index.html` inclusive para requisições que não sejam navegação, o que pode devolver HTML onde JSON/arquivo era esperado.
-- O share target confia no prefixo MIME de imagem sem validar magic bytes.
+As quatro vulnerabilidades high são uma única cadeia: `webtorrent` → `torrent-discovery` → `bittorrent-tracker` → `ip` (`GHSA-2p57-rm9w-gvfp`). O npm propõe `webtorrent@0.7.3`, downgrade major incompatível. Não foi aplicado. A solução alinhada ao produto é remover a engine local junto com o Companion e auditar novamente.
 
-## CI/CD
+O npm também deixou scripts de instalação pendentes para sete pacotes. Parte deles pertence ao grafo WebTorrent. Nenhuma permissão ampla foi concedida apenas para fazer o baseline passar.
 
-- GitHub Actions executa install, typecheck, testes, build e E2E Chromium.
-- Actions usam tags mutáveis como `actions/checkout@v4` e `actions/setup-node@v4`, não SHAs imutáveis.
-- Não há Firefox, WebKit, tablet/TV, acessibilidade automatizada, regressão visual, SBOM ou secret scan no pipeline atual.
+## PWA, CI e operação
 
-## Evidência que não deve ser superinterpretada
+- Há duas fontes de manifest (`vite.config.ts`/plugin e `public/manifest.json`).
+- O service worker possui fallback amplo que pode devolver HTML a GETs não navegacionais.
+- O manifest ainda precisa de `maskable`, idioma e evidências de install/update/offline.
+- CI atual não comprova Firefox, WebKit, acessibilidade, regressão visual, scanners especializados ou ambientes remotos.
+- Health endpoints existem, mas não formam ainda o painel de saúde de provedores exigido.
 
-- Uma rota renderizar não prova integração real.
-- Um teste mockado não prova um provedor externo.
-- O build produzir PWA não prova instalação/offline/upgrade.
-- O smoke E2E não prova login, sincronização, reprodução, leitura, Companion, restore, conflito ou segurança.
-- A documentação existente contém afirmações mais fortes que a evidência observada.
+## Classificação global inicial
 
-## Primeira fatia em andamento
-
-A categoria de áudio narrado fora do escopo foi removida do contrato público, catálogo, UI, integração dedicada, protocolo, testes de smoke e documentação operacional. Os identificadores históricos permanecem somente em testes negativos de regressão. Possíveis registros antigos no IndexedDB não são retornados à UI, mas ainda não foram apagados: exclusão silenciosa seria destrutiva e requer uma migração explicitamente revisada.
+`ALPHA`. O build e o smoke E2E funcionam, mas a suíte completa não está verde, existem vulnerabilidades high, o Companion contraditório ainda está presente e fluxos críticos de autenticação, sincronização, providers, leitura e reprodução não possuem evidência real completa.

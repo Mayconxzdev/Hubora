@@ -1,35 +1,35 @@
-# Tarefas
+# Tarefas do Hubora
 
-## Fatia atual — remover categoria excluída
+## Auditoria e produto
 
-- [x] Adicionar testes negativos de catálogo e protocolo.
-- [x] Demonstrar RED com os testes no comportamento antigo.
-- [x] Remover categoria, provedores dedicados, integração, UI e documentação.
-- [x] Fazer tipos externos desconhecidos falharem fechados.
-- [x] Executar suite completa, typecheck e build.
-- [x] Executar E2E e inspeção browser da Home/Providers/Personal Media.
-- [ ] Registrar evidência e commit atômico.
-- [ ] Decidir migração de registros legados da integração removida no IndexedDB.
+- [x] Preservar baseline, tags e branch local.
+- [x] Auditar/pinar skills preexistentes sem reinstalação cega.
+- [x] Executar baseline local e registrar falhas preexistentes.
+- [x] Aprovar direção visual A+B+C.
+- [x] Criar PRODUCT, DESIGN, DESIGN_SYSTEM e ACCESSIBILITY.
+- [x] Criar matriz inicial de 283 providers sem `VERIFIED` artificial.
+- [x] Criar dead code, contradições, arquitetura, feature matrix e riscos.
+- [ ] Revisar diff, validar links/CSV e fazer commit documental atômico.
 
-## Próxima fatia de alto risco
+## Próxima fatia — remoção do Companion
 
-- [ ] Reproduzir flakiness do teste Companion em repetição controlada.
-- [ ] Especificar política fail-closed para launch, fetch e torrent/debrid.
-- [ ] Adicionar testes de abuso antes da correção.
-- [ ] Desativar superfícies críticas até o Companion Tauri existir.
+- [ ] Escrever ADR e critérios de aceite.
+- [ ] Inventariar chaves/dados legados sem ler segredos nem apagar dados.
+- [ ] Criar testes negativos para rota, UI, pacote, dependência e protocolo.
+- [ ] Remover Companion, WebTorrent/debrid, mídia local principal e launchers.
+- [ ] Implementar comportamento web/Stremio explícito sem promessa falsa.
+- [ ] Reinstalar do lock e executar audit/signatures.
+- [ ] Executar full suite estável, build, E2E e inspeção visual.
+- [ ] Atualizar SBOM, matrizes e evidências; commit local.
 
-## Arquitetura
+## Depois
 
-- [ ] Entrevista mínima de produto/design exigida por Impeccable.
-- [ ] ADR do monorepo e hosts.
-- [ ] ADR de identidade canônica.
-- [ ] ADR de provider SDK/runner.
-- [ ] ADR de sync/conflitos/backup.
-
-## Validação futura
-
-- [ ] Projeto Supabase de teste e validação RLS/realtime.
-- [ ] Matriz Playwright Chromium/Firefox/WebKit e viewports.
-- [ ] Acessibilidade e regressão visual.
-- [ ] Testes PWA install/offline/update.
-- [ ] SBOM e scanners quando ferramentas aprovadas estiverem disponíveis.
+- [ ] Provider Protocol v1 + identidade canônica.
+- [ ] Novels completo em fatia vertical.
+- [ ] Detalhes/trailers reais por categoria.
+- [ ] Player/leitores com conteúdo aberto de teste.
+- [ ] Games manual completo.
+- [ ] Supabase/Auth/RLS após configuração autorizada.
+- [ ] Sync/backup/conflito/Cofre.
+- [ ] Design A+B+C, a11y, PWA, performance e browsers.
+- [ ] Verificação individual de providers e relatórios finais.

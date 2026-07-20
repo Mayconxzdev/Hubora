@@ -1,164 +1,87 @@
-# Hubora Design System 7.1 — Cinematic Focus
+# Hubora — sistema de design inicial
 
-## Direção
+Status: `IMPLEMENTING`. Este documento define o contrato; os tokens atuais ainda precisam ser migrados e verificados.
 
-O Hubora 7.1 usa uma identidade cinematográfica sóbria: preto, branco e dourado quente. A arte das obras recebe destaque, enquanto navegação e controles desaparecem visualmente quando não são necessários. A interface deve parecer premium sem copiar Netflix, Prime Video ou outro serviço específico.
+## Camadas de tokens
 
-## Princípios
+1. **Primitivos:** escala neutra, violeta, tipografia, espaços, raios, duração e elevação.
+2. **Semânticos:** fundo, superfície, texto, borda, foco, seleção, sucesso, aviso, erro e Cofre.
+3. **Componente:** botão, campo, navegação, mídia, tabela, dialog, toast, player e leitor.
 
-1. **Conteúdo primeiro:** a mídia ocupa a maior parte da tela; o shell deve ser discreto.
-2. **Navegação adaptativa:** rail compacta no desktop, expansão sob demanda e barra inferior no celular.
-3. **Uma decisão principal por contexto:** CTAs secundários não competem com a ação principal.
-4. **Divulgação progressiva:** filtros, categorias e áreas menos usadas ficam em “Mais”, popovers, sheets ou painéis temporários.
-5. **Imersão sem ruído:** gradientes, blur e movimento ficam concentrados em hero, detalhes e transições de estado.
-6. **Clareza universal:** ícones não universais ganham rótulo quando a navegação é expandida, tooltip e nome da página no cabeçalho.
-7. **Local-first perceptível:** sincronização aparece como estado, não como bloqueio da experiência.
+Componentes não devem consumir cores primitivas diretamente quando existir token semântico.
 
-## Identidade
+## Cores semânticas propostas
 
-### Escuro
+| Token | Escuro | Claro | Uso |
+|---|---|---|---|
+| `--hub-bg` | `#000000` | `#ffffff` | Base da aplicação |
+| `--hub-surface-1` | `#090909` | `#f7f7f8` | Seção elevada |
+| `--hub-surface-2` | `#111113` | `#eeeeef` | Controle/linha selecionável |
+| `--hub-text` | `#f7f7f8` | `#111113` | Texto primário |
+| `--hub-text-muted` | `#a1a1aa` | `#52525b` | Texto secundário |
+| `--hub-border` | `#27272a` | `#d4d4d8` | Divisores e controles |
+| `--hub-accent` | `#8b7cf6` | `#6757d9` | Ação, seleção e progresso |
+| `--hub-focus` | `#b8adff` | `#4f3fca` | Anel de foco |
+| `--hub-success` | `#34d399` | `#087f5b` | Sucesso/saúde |
+| `--hub-warning` | `#fbbf24` | `#9a6700` | Atenção/requisito |
+| `--hub-danger` | `#fb7185` | `#b42335` | Erro/bloqueio |
+| `--hub-vault` | `#c084fc` | `#7e22ce` | Cofre, sempre com rótulo |
 
-- Fundo: `#030303`.
-- Superfícies: `#0d0d0e`, `#151515`, `#1d1d1d`.
-- Texto forte: `#fffdf8`.
-- Texto secundário: `#aaa49a`.
-- Marca: dourado `#d99a28`.
-- Acento: areia `#e5bf78`.
+Os valores são ponto de partida e só se tornam `VERIFIED` após medição de contraste em todos os estados.
 
-### Claro
+## Tipografia
 
-- Fundo: `#ffffff`.
-- Superfícies: `#ffffff`, `#f4f4f6`, `#ebebef`.
-- Texto forte: `#050506`.
-- Texto secundário: `#5e5e67`.
-- Marca: âmbar profundo `#a9680d`.
+- Uma única família principal variável ou uma pilha de sistema de alta qualidade.
+- Títulos podem usar pesos altos; corpo não deve parecer condensado.
+- Escala responsiva com `clamp`, sem saltos bruscos.
+- Corpo mínimo de 16 px em leitura longa; metadados técnicos nunca abaixo de 12 px.
+- Comprimento de linha: 45–75 caracteres em leitor e textos longos.
 
-Verde, amarelo e vermelho são reservados a estados semânticos. Roxo e ciano legados são normalizados para a paleta oficial.
+## Espaçamento e forma
 
-## Navegação
+- Unidade base: 4 px.
+- Escala recomendada: 4, 8, 12, 16, 24, 32, 48, 64.
+- Raios: 8 para controles, 12 para mídia compacta, 16–20 apenas em superfícies principais.
+- Alvos de toque: mínimo 44 × 44 px.
+- A interface usa alinhamento e espaço; bordas arredondadas não substituem hierarquia.
 
-### Desktop e tablet
+## Componentes essenciais
 
-- Rail compacta de `4.75rem` por padrão.
-- Cinco destinos principais: Início, Descobrir, Biblioteca, Diário e Radar.
-- Ícones com `aria-label` e tooltip quando recolhidos.
-- Expansão temporária por hover, foco ou botão.
-- Opção de fixar a rail aberta; preferência persistida localmente.
-- “Mais” reúne categorias e configurações pessoais; não há área de comunidade.
-- Perfil, notificações, tema e sincronização ficam no cabeçalho.
-- A expansão temporária sobrepõe o conteúdo; não empurra a página.
+### Botão
 
-### Celular
+Variantes: primário, secundário, ghost, destrutivo e link. Estados: default, hover, active, focus-visible, loading e disabled. Ícone sem texto exige nome acessível e tooltip quando não for óbvio.
 
-- Barra inferior com cinco destinos: Início, Descobrir, Biblioteca, Diário e Mais.
-- Áreas secundárias abrem em bottom sheet.
-- Busca ganha ação própria no topo.
-- Respeito a safe areas de iOS e Android.
+### Campo e busca
 
-## Estrutura das telas
+Rótulo visível ou nome acessível equivalente, ajuda separada do erro, validação sem depender apenas de cor e botão de limpar. Busca global mostra escopo e atalhos sem bloquear teclado móvel.
 
-### Início
+### Unidade de mídia
 
-- Hero compacto, sem ocupar toda a primeira dobra.
-- “Continue de onde parou” aparece imediatamente abaixo.
-- Categorias usam faixa horizontal leve.
-- Trilhos exibidos apenas quando contêm conteúdo relevante.
-- Atalhos decorativos redundantes foram removidos.
+Poster/capa, título real, tipo/ano opcional, estado pessoal e uma ação principal. Badges só comunicam fatos. Skeleton preserva proporção. Imagem ausente usa placeholder neutro com título; nunca capa inventada.
 
-### Biblioteca
+### Tabela/lista de saúde
 
-- Cabeçalho funcional, sem hero.
-- Busca, ordenação, filtros e alternância grade/lista em uma única barra.
-- Filtros rápidos são chips; opções avançadas permanecem recolhidas.
-- Cards não repetem status e nota em várias camadas.
+Colunas responsivas, ordenação identificada, cabeçalho acessível, filtros removíveis, estado vazio, última verificação com data/hora e expansão de falhas. No celular, transforma cada linha em grupo rotulado, não em tabela espremida.
 
-### Descobrir
+### Dialog e painel lateral
 
-- Uma busca principal.
-- Três modos: busca direta, busca por pistas e experiência/vibe.
-- Filtros detalhados aparecem sob demanda.
-- Resultados recebem a maior largura disponível.
+Foco preso, retorno de foco, título, descrição quando necessária, `Escape`, prevenção de scroll de fundo e confirmação para ação destrutiva.
 
-### Radar e lançamentos
+### Toast
 
-- Priorizam datas e alterações das obras acompanhadas.
-- Sem banner promocional gigante.
-- Filtros de mídia compactos e eventos em cards legíveis.
+Confirma efeitos transitórios; erros persistentes também aparecem junto ao contexto. Não é o único lugar para informação crítica.
 
-### Detalhes
+### Player e leitor
 
-- Hero limitado a aproximadamente dois terços da viewport.
-- Poster menor e título responsivo.
-- Ação primária evidente; ações secundárias não competem.
-- Movimento de imagem reduzido e sem zoom agressivo.
-- Conteúdo detalhado continua abaixo em painéis claros.
+Controles operáveis por teclado/toque, legendas, velocidade quando aplicável, estado de buffering/erro, retomada e saída previsível. Leitores possuem fonte/tamanho/tema, marcador, progresso e navegação estrutural quando o formato oferecer.
 
-### Perfil e configurações
+## Iconografia e imagens
 
-- Painéis neutros, sem neon.
-- Informações densas divididas por função.
-- Modo claro herda corretamente superfícies, texto e bordas.
-- Estados técnicos usam cores semânticas, não cores da marca.
+- Um único conjunto de ícones, traço e tamanho consistentes.
+- Ícone não substitui texto em ações ambíguas.
+- Imagens externas usam origem conhecida, `alt` contextual e política de referrer/CSP.
+- Backdrops recebem tratamento de contraste local, sem escurecer toda a página indiscriminadamente.
 
-## Componentes
+## Estados obrigatórios
 
-### Card de mídia
-
-- Poster com proporção consistente.
-- Título sempre visível.
-- Status, progresso e nota aparecem uma vez.
-- Ações avançadas surgem por foco/hover ou menu de contexto.
-- Sem expansão que empurre cards vizinhos.
-
-### Hero
-
-- Uma obra por vez.
-- Título, descrição curta e no máximo duas ações.
-- Overlay independente da arte garante legibilidade.
-- Controles de carrossel discretos e acessíveis.
-
-### Modais e sheets
-
-Radix Dialog é usado para:
-
-- foco preso em modais;
-- fechamento com Escape;
-- título e descrição anunciados;
-- retorno de foco ao gatilho;
-- bottom sheet em telas pequenas;
-- cabeçalho/rodapé estáveis quando o conteúdo rola.
-
-### Campos e botões
-
-- Alvo interativo confortável, preferencialmente 44px ou mais nos controles principais.
-- Foco visível com contorno de 3px.
-- Placeholder não substitui label em ações importantes.
-- Botões primários usam dourado; ações perigosas usam vermelho.
-
-## Responsividade
-
-- `320–767px`: barra inferior, grids de uma ou duas colunas e sheets.
-- `768–1199px`: rail compacta e conteúdo fluido.
-- `1200px+`: busca global, rail expansível e maior densidade de cards.
-- Monitores ultrawide: conteúdo limitado a `106rem` para preservar leitura.
-- TV: largura limitada e tipografia escalável evitam conteúdo disperso.
-
-## Acessibilidade
-
-- teclado completo e ordem de foco lógica;
-- foco nunca dependente apenas de cor;
-- controles essenciais não dependem de hover;
-- `prefers-reduced-motion` respeitado pelo Motion e CSS;
-- zoom do navegador permitido;
-- contraste tratado por tokens de tema;
-- textos alternativos e estados vazios descritivos;
-- labels acessíveis em ícones compactos.
-
-## Arquivos centrais
-
-- `src/index.css`: tokens, temas, shell, navegação e compatibilidade visual.
-- `src/components/layout/Sidebar.tsx`: rail compacta, cabeçalho e navegação móvel.
-- `src/components/layout/Layout.tsx`: persistência da navegação fixa.
-- `src/components/ui/Hero.tsx`: hero cinematográfico.
-- `src/components/ui/MediaCard.tsx`: card de mídia simplificado.
-- `src/pages/Home.tsx`, `Discover.tsx`, `Library.tsx`, `Radar.tsx`, `Releases.tsx`: hierarquia principal.
+Todo componente de dados deve prever: inicial, carregando, sucesso com dados, vazio, parcial, desatualizado, erro recuperável, erro bloqueante, offline e sem autorização.

@@ -1,24 +1,44 @@
-id,category,feature,initial_classification,evidence,known_gap
-CORE-001,Core,Home responsiva,partial,"Rota e smoke E2E desktop/mobile Chromium",Sem auditoria visual completa; sem tablet/TV/WebKit/Firefox/a11y
-CORE-002,Core,Categorias de mídia,partial,"Rotas para filmes séries doramas anime livros manga quadrinhos jogos",Novels sem domínio/rota própria; categoria excluída removida na primeira fatia
-LIB-001,Biblioteca,Biblioteca local,partial,"Dexie + Zustand + testes unitários",Sem E2E CRUD/export/restore em dados reais
-LIB-002,Biblioteca,Progresso por tipo,partial,"Tipos e componentes existentes",Sem cobertura real de todos os tipos e conflitos
-SYNC-001,Sincronização,Supabase opcional,partial,"Cliente e migrations existentes",Sem prova remota de RLS/realtime/conflict resolution
-AUTH-001,Identidade,Login e cadastro,partial,"Rotas e integração Supabase",Sem E2E real com projeto Supabase de teste
-DISC-001,Descoberta,Busca e descoberta,partial,"Serviços para múltiplas APIs e telas",Muitos providers sem teste real; falhas e rate limits não cobertos
-PROV-001,Provedores,Diretório de provedores,link,"Catálogo estático com mais de 90 entradas",Listagem não prova integração; diversos itens abrem página externa
-PROV-002,Provedores,Manifesto Hubora/Stremio,partial,"Parser e testes mockados",Validação de schema incompleta; sem runner isolado; SSRF/egress a revisar
-MEDIA-001,Player,Player interno,partial,"Player e HLS presentes",Sem E2E de formatos DRM legendas PiP casting e erros
-MEDIA-002,Leitor,Leitor interno,partial,"Reader e fontes abertas presentes",Sem E2E PDF/EPUB/CBZ/CBR/OPDS/anotações
-PERS-001,Mídia pessoal,Jellyfin,partial,"Cliente e teste mockado",Sem servidor real de teste e matriz de erro/CORS
-PERS-002,Mídia pessoal,Komga,partial,"Cliente existente",Sem integração real reproduzível
-PERS-003,Mídia pessoal,Kavita,partial,"Cliente existente",Sem integração real reproduzível
-PERS-004,Mídia pessoal,OPDS,partial,"Parser JSON/XML e teste OPDS JSON",Sem fixtures abrangentes e segurança de conteúdo
-GAME-001,Jogos,Descoberta de jogos,partial,"IGDB/Steam/CheapShark no código",Credenciais e APIs reais não validadas nesta execução
-GAME-002,Jogos,Scan e launcher local,partial,"Heurística no Companion",Sem Steam libraryfolders.vdf Playnite Epic/GOG robustos; execução insegura
-COMP-001,Companion,Companion Windows,broken,"Servidor Node e teste intermitente",Não Tauri; requer Node; riscos críticos de shell SSRF e segredos
-PWA-001,PWA,Instalação e offline,partial,"Build gera manifest e service worker",Sem teste install/offline/update; estratégia de cache incorreta para APIs
-NOTIF-001,Notificações,Lançamentos e notificações,partial,"Tipos/tabelas/telas existentes",Sem prova push/background/deduplicação/realtime
-TV-001,TV,Modo TV e controle remoto,absent,"Nenhuma rota/shell encontrada",Ausente
-OPS-001,Operação,Observabilidade e diagnóstico,partial,"Health endpoints e logs pontuais",Sem tracing métricas SLO redaction e diagnóstico exportável
-SEC-001,Segurança,Hardening de runtime,broken,"Helmet/rate-limit/CSP parciais",Companion crítico e quatro advisories high
+id,category,feature,status,current_evidence,acceptance_gap
+CORE-001,Core,Home responsiva,PARTIAL,"Rota e smoke Chromium desktop/Pixel 7; baseline visual","Aplicar direção A; estados reais; a11y; Firefox/WebKit; viewports completos"
+CORE-002,Core,Nove categorias,PARTIAL,"Nove botões na Home; oito rotas dedicadas","Criar rota/domínio de Novels e validar cada fluxo ideal"
+CORE-003,Core,Tema claro/escuro,PARTIAL,"Smoke alterna preto/branco","Aplicar mesma hierarquia A/B e validar contraste/flash/persistência"
+DETAIL-001,Detalhes,Identidade e metadados,PARTIAL,"Página Details e componentes existentes","Contrato canônico; dados reais por categoria; estados de erro/ausência"
+DETAIL-002,Detalhes,Trailers múltiplos internos,PARTIAL,"TrailerModal atual","Teaser/trailers reais por origem; tabs; fallback externo; E2E"
+DETAIL-003,Detalhes,Temporadas volumes capítulos relações,PARTIAL,"Componentes e tipos parciais","Cobertura completa por categoria e contract tests"
+LIB-001,Biblioteca,CRUD local,PARTIAL,"Dexie/Zustand e testes unitários","E2E real; upgrade; corrupção; export/restore"
+LIB-002,Biblioteca,Estados e progresso por categoria,PARTIAL,"Tipos e componentes existentes","Semântica específica das nove categorias e conflitos"
+SEARCH-001,Busca,Busca global,PARTIAL,"Busca e APIs agregadas existem","Identidade/deduplicação; pessoas/capítulos/providers; falha parcial"
+RADAR-001,Radar,Texto imagem e OCR,PARTIAL,"Tela/serviço e Tesseract presentes","Fluxo real, confiança, trace.moe, privacidade e E2E"
+NOW-001,Descoberta,Hubora Agora,PARTIAL,"Quatro situações na Home","Recomendação justificável; sem placeholders/percentuais inventados"
+NOVEL-001,Novels,Rota e catálogo,NOT_STARTED,"Somente tipo/filtro/botão","/novels e estados reais"
+NOVEL-002,Novels,Detalhes e capítulos,NOT_STARTED,"Nenhuma rota dedicada","/novels/:id; índice; relações; atualização"
+NOVEL-003,Novels,Leitor por capítulo,NOT_STARTED,"Reader genérico","/novels/:id/read/:chapterId; tipografia; progresso; histórico"
+PLAYER-001,Player,HTTPS e HLS interno,PARTIAL,"Player e HLS.js presentes","E2E com conteúdo aberto; erro; buffering; legendas; retomada"
+PLAYER-002,Player,YouTube incorporado,PARTIAL,"Embed/trailer existente","IDs oficiais reais; CSP; consentimento; fallback"
+PLAYER-003,Player,Stremio Service e deep link,NOT_STARTED,"Parser Stremio parcial depende do Companion","Service opcional; notWebReady/infoHash; deep link; teste aberto"
+READER-001,Leitor,EPUB e HTML/TXT,PARTIAL,"Reader/EpubReader presentes","Fixtures reais; sanitização; marcadores; offline"
+READER-002,Leitor,PDF,PARTIAL,"Tipos/fontes declaram PDF","Integração e E2E reais; navegação; acessibilidade"
+READER-003,Leitor,CBZ CBR e imagens,NOT_STARTED,"Declarações de catálogo","Implementação por formato e testes licenciados"
+GAME-001,Jogos,Catálogo e metadados,PARTIAL,"APIs/Netlify function existentes","Credenciais gratuitas futuras; contrato real; região BR"
+GAME-002,Jogos,Estados manuais,PARTIAL,"Página e tipos existentes","Eliminar scan/launcher e comprovar CRUD manual"
+AUTH-001,Identidade,Email e senha,PARTIAL,"Supabase client e páginas","Projeto remoto de teste; confirmação; recuperação; E2E"
+AUTH-002,Identidade,Google e GitHub,NOT_STARTED,"Nenhuma prova OAuth","Configuração manual autorizada; callback; revogação"
+AUTH-003,Identidade,Acesso privado e convites,NOT_STARTED,"Flag de cadastro público","Allowlist/invites; papéis; testes de isolamento"
+SYNC-001,Sync,Sincronização Supabase,PARTIAL,"Migrations e serviço cloud","Ambiente remoto; RLS; conflitos; retry; offline"
+BACKUP-001,Dados,Exportação backup e restore,PARTIAL,"Serviços/testes unitários","E2E com dados representativos; checksum; versões"
+VAULT-001,Cofre,Isolamento transversal,PARTIAL,"Rota/serviço/testes unitários","RLS; não vazamento em busca/notificações/export; aviso sem PIN"
+PROV-001,Providers,Registro oficial,PARTIAL,"93 entradas estáticas","Matriz completa; evidência por capability; remover contagens promocionais"
+PROV-002,Providers,Hubora Provider Protocol,PARTIAL,"Parser e testes mockados","Schema versionado; segurança; contract kit; erros"
+PROV-003,Providers,Manifesto Stremio,PARTIAL,"Parser básico","Manifesto real aberto; tipos; subtitles; Service/deep link"
+PROV-004,Providers,Instalação declarativa,PARTIAL,"Config local de manifest","Validação JSON; assinatura/origem; permissões; desinstalação"
+PROV-005,Providers,Saúde e diagnóstico,PARTIAL,"Health endpoints e UI estática","Checks reais; latência; busca/meta/acesso separados; histórico"
+PWA-001,PWA,Instalação,PARTIAL,"Build/manifest gerados","Manifest único; maskable; install real; screenshots/lang"
+PWA-002,PWA,Offline e atualização,PARTIAL,"Service worker e cache","Estratégias seguras; upgrade; API offline; E2E"
+NOTIF-001,Notificações,Lançamentos e avisos,PARTIAL,"Tipos/telas existentes","Permissão; dedupe; timezone; background; sync"
+OPS-001,Operação,Logs saúde e diagnóstico,PARTIAL,"Endpoints health/logs pontuais","Redaction; correlation; export; SLO; UI C"
+SEC-001,Segurança,Hardening do frontend/API,BLOCKED,"CSP/Helmet/rate limit parciais; quatro high","Remover Companion/WebTorrent; SSRF; RLS; scanners; threat model"
+TEST-001,Qualidade,Unitários,PARTIAL,"40/42 na suíte completa; 42/42 apenas em execuções isoladas combinadas","Eliminar flakiness e manter suíte completa verde"
+TEST-002,Qualidade,E2E navegadores/dispositivos,PARTIAL,"11 pass/1 skip Chromium desktop/Pixel 7","Fluxos críticos; Firefox/WebKit; tablet; evidência real"
+TEST-003,Qualidade,Acessibilidade e visual,NOT_STARTED,"Somente inspeção de três capturas","axe; teclado; leitores de tela; regressão visual"
+PERF-001,Performance,Budgets e Web Vitals,NOT_STARTED,"Tamanhos de build registrados","Budgets; Lighthouse; RUM; otimização por rota"
+COMP-001,Remoção,Companion e dependências,BLOCKED,"Código/UI/ZIP/docs/teste ainda presentes","Remover integralmente com TDD e migração explícita de dados legados"

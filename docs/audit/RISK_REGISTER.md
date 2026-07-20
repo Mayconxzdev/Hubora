@@ -1,24 +1,28 @@
 # Registro inicial de riscos
 
-Escala: impacto e probabilidade em `Baixo`, `Médio`, `Alto`, `Crítico`.
-
-| ID | Risco | Impacto | Probabilidade | Evidência | Tratamento proposto | Estado |
+| ID | Risco | Impacto | Prob. | Evidência | Tratamento | Estado |
 |---|---|---|---|---|---|---|
-| SEC-001 | Companion aceita caminho absoluto e o envia a `cmd.exe /c start` | Crítico | Alto | `companion/server.mjs` | Remover shell; launcher allowlist por aplicativo/ID; canonicalização; testes de abuso | Aberto |
-| SEC-002 | Fetch do Companion aceita URL influenciada pelo usuário sem DNS pinning, bloqueio de IP privado e revalidação de redirect | Crítico | Alto | `companion/server.mjs` | Allowlist/proxy por provider, resolver todos os IPs, bloquear ranges privados, `redirect: error`, egress policy | Aberto |
-| SEC-003 | Chaves de debrid e token de pareamento persistidos em `config.json` | Alto | Alto | `companion/server.mjs` | Migrar para Tauri Stronghold/Windows Credential Manager; rotação e migração segura | Aberto |
-| SEC-004 | Token TorBox pode aparecer em query string | Alto | Médio | `companion/server.mjs` | Authorization header e redaction de logs/URLs | Aberto |
-| SEC-005 | Pareamento público por código curto permite cadastrar nova origin | Alto | Médio | endpoint de pair permite origin desconhecida | Confirmação local explícita, limite agressivo, TTL, binding de dispositivo e auditoria | Aberto |
-| SEC-006 | Vulnerabilidade `high` em `webtorrent`/`ip` | Alto | Alto | `npm audit --json`, GHSA-2p57-rm9w-gvfp | Remover ou isolar WebTorrent; não aceitar downgrade sugerido; revisar alcance e alternativa | Bloqueador |
-| SEC-007 | CSP ampla (`connect-src https: wss:` e `frame-src https:`) | Alto | Médio | `netlify.toml` | CSP por hosts/capacidades e nonces/hashes; testes de headers | Aberto |
-| SEC-008 | Express devolve `error.message` interno ao cliente | Médio | Médio | `server.ts` | Erro público estável + correlation ID; detalhe somente no log seguro | Aberto |
-| LEG-001 | Torrent/debrid não exige prova de licença/open-content | Crítico | Alto | Companion e protocolo existentes | Gate de proveniência/licença; desativado por padrão; políticas auditáveis | Bloqueador |
-| DATA-001 | Local-first e Supabase não têm evidência de conflito determinístico multi-device | Alto | Alto | testes atuais predominantemente mockados | Modelo de revisão, idempotência, outbox, replay e testes concorrentes | Aberto |
-| DATA-002 | Remoção de categoria pode deixar integração antiga no IndexedDB | Médio | Médio | schema Dexie v5 | Migração revisada com backup/quarentena ou remoção confirmada | Decisão pendente |
-| PWA-001 | Fallback offline retorna HTML para GET não-navegação | Alto | Alto | `src/sw.ts` | Estratégias por classe de recurso e testes offline reais | Aberto |
-| PWA-002 | Manifest duplicado e metadados de instalação incompletos | Médio | Alto | `vite.config.ts`, `public/manifest.json` | Uma fonte de verdade, maskable, screenshots, lang e testes install/update | Aberto |
-| TEST-001 | Teste Companion é intermitente em execução completa | Alto | Médio | primeira suite 38/39; isolado e rerun passaram | Reproduzir sob repetição, capturar stdout/stderr/porta e eliminar race | Aberto |
-| TEST-002 | E2E cobre somente smoke Chromium e um teste está ignorado | Alto | Alto | Playwright: 11 pass, 1 skip | Matriz Chromium/Firefox/WebKit + mobile/tablet/TV e fluxos críticos | Aberto |
-| PERF-001 | Chunks e precache grandes sem orçamento | Médio | Alto | build Vite | Budgets, rotas lazy, split por domínio, Lighthouse/Web Vitals | Aberto |
-| SUP-001 | Skills preexistentes não registram commit/licença no lock antigo | Médio | Médio | `skills-lock.json` v1 | Resolver proveniência antes de atualizar/reinstalar | Aberto |
-| OPS-001 | Companion atual exige Node e instalador não cobre update/uninstall/assinatura/single instance | Alto | Alto | scripts em `companion/` | Companion Tauri assinado, update seguro, logs, health, recovery e uninstall | Aberto |
+| SEC-001 | Shell/launcher recebe caminho no Companion | Crítico | Alto | `companion/server.mjs` | remover Companion e launcher | Aberto |
+| SEC-002 | Fetch remoto no Companion/protocolo sem política SSRF completa | Crítico | Alto | servidor/protocolo | remover caminho local; criar egress allowlist no adapter hospedado | Aberto |
+| SEC-003 | Tokens de pareamento/debrid persistidos pelo Companion | Alto | Alto | servidor e Settings | remover UI, persistência e migração explícita | Aberto |
+| SEC-004 | Quatro vulnerabilidades high na cadeia WebTorrent | Alto | Alto | `npm audit` | remover dependência; reauditar; não fazer downgrade incompatível | Bloqueador |
+| SEC-005 | CSP permite hosts HTTPS/frames de forma ampla | Alto | Médio | `netlify.toml` | política por provider/capability; testes de header | Aberto |
+| SEC-006 | Conteúdo remoto/HTML/documentos exigem sanitização e limites | Alto | Alto | readers/providers | allowlist MIME/magic bytes/tamanho; sandbox; fixtures hostis | Aberto |
+| AUTH-001 | Controle privado/RLS não validado em Supabase real | Crítico | Alto | somente migrations locais | ambiente de teste autorizado; testes usuário A/B e service role | Bloqueador remoto |
+| DATA-001 | Conflito multi-device não determinístico | Alto | Alto | sync mockado/parcial | revisões, outbox, idempotência, replay e testes concorrentes | Aberto |
+| DATA-002 | Dados legados do Companion/categoria removida podem permanecer localmente | Médio | Médio | Dexie/localStorage | inventário e migração/export; sem exclusão silenciosa | Decisão futura |
+| PROV-001 | Capability estática confundida com integração real | Alto | Alto | 93 entradas no catálogo | matriz/evidência/health por capability | Aberto |
+| PROV-002 | Domínios e contratos comunitários mudam | Alto | Alto | candidatos experimentais | adapter isolado, circuit breaker, versão e rollback | Aberto |
+| PROV-003 | CORS, login ou anti-bot impede integração direta | Médio | Alto | fontes externas | classificar EXTERNAL_ONLY/BLOCKED, sem contorno oculto | Aberto |
+| PWA-001 | Fallback offline devolve HTML para recurso/API | Alto | Alto | `src/sw.ts` | estratégias por classe e E2E offline | Aberto |
+| PWA-002 | Manifest duplicado e install incompleto | Médio | Alto | Vite + `public/manifest.json` | fonte única, maskable, lang, install/update test | Aberto |
+| TEST-001 | Suíte Vitest completa é intermitente | Alto | Médio | 2 falhas na execução completa; isolados passam | reproduzir, remover races/timeouts e exigir full green | Aberto |
+| TEST-002 | E2E é smoke Chromium e possui 1 skip | Alto | Alto | 11/12 | fluxos críticos, Firefox/WebKit, a11y e dispositivos | Aberto |
+| PERF-001 | HLS >500 KiB, CSS 208 KiB, precache 2,59 MiB | Médio | Alto | build | budgets, lazy load por rota, Lighthouse/Web Vitals | Aberto |
+| OPS-001 | Saúde de provider não diferencia busca/meta/acesso | Alto | Alto | health genérico | checks por capacidade, histórico, latência, diagnóstico | Aberto |
+| DOC-001 | Relatórios antigos overclaimam Companion e features | Alto | Alto | README/relatórios | atualizar, arquivar histórico e ligar afirmações a evidência | Aberto |
+| UX-001 | Contagens/placeholders podem parecer dados reais | Médio | Alto | capturas atuais | estado vazio, fonte/data e sem métricas promocionais | Aberto |
+
+## Gates
+
+`SEC-004`, `AUTH-001` e qualquer falha crítica de isolamento impedem `VERIFIED RELEASE`. A ausência de credenciais remotas bloqueia apenas a validação remota, não a arquitetura, testes locais ou remoção do Companion.

@@ -1,59 +1,97 @@
-# Arquitetura inicial observada
+# Hubora 9.0.0 — arquitetura inicial e direção de migração
 
-## Diagrama atual
+## Topologia observada
 
 ```mermaid
 flowchart LR
-  UI["React SPA / PWA"] --> Store["Zustand + TanStack Query"]
-  UI --> Local["Dexie / IndexedDB"]
-  UI --> Express["Express local server.ts"]
-  UI --> NF["Netlify Functions"]
-  UI --> Supabase["Supabase opcional"]
-  UI --> Companion["Companion Node na porta 49821"]
-  Express --> Providers["APIs externas"]
-  NF --> Providers
+  Browser["React PWA"] --> Local["Dexie / IndexedDB"]
+  Browser --> Express["Express local de desenvolvimento"]
+  Browser --> Functions["Netlify Functions"]
+  Browser -. "configuração futura" .-> Supabase["Supabase Auth / Postgres / Storage"]
+  Browser --> External["APIs e páginas externas"]
+  Browser --> Companion["Companion Node contraditório"]
+  Companion --> OS["Arquivos e launchers Windows"]
   Companion --> Torrent["WebTorrent / debrid"]
-  Companion --> OS["Windows launchers e arquivos locais"]
 ```
 
-## Características
+## Características do código atual
 
-- Organização predominantemente por camada técnica (`pages`, `services`, `components`, `lib`, `store`).
-- Contratos de domínio e transporte compartilham `src/types/index.ts`.
-- A lógica de provedores aparece em catálogo estático, protocolo, serviços específicos e páginas.
-- Há persistência local real, sincronização opcional e recursos remotos, mas as fronteiras não são isoladas em ports/adapters.
-- Express e Netlify Functions constituem dois hosts backend com capacidades parcialmente sobrepostas.
-- O Companion é uma aplicação separada apenas operacionalmente; não há workspace/monorepo formal.
+- `src/App.tsx` centraliza lazy imports, rotas, autenticação e layout.
+- `src/services/api.ts` concentra múltiplos domínios e providers em 1.731 linhas.
+- `src/index.css` concentra 2.916 linhas de estilo global.
+- Zustand e Dexie formam o núcleo local-first; Supabase é opcional no runtime atual.
+- O diretório de providers é declarativo, mas atribui capacidades sem evidência operacional acoplada.
+- O protocolo de providers mistura Hubora/Stremio, fetch do navegador, adaptação e resolução de acesso.
+- O Companion mistura pareamento, persistência de token, proxy/cache, HLS, torrent, debrid, mídia local e shell.
 
-## Acoplamentos relevantes
+## Arquitetura-alvo incremental
 
-1. Componentes/páginas chamam serviços concretos e o Dexie diretamente ou por repositórios finos.
-2. Tipos canônicos, DTOs de provedores e configurações de infraestrutura convivem no mesmo arquivo.
-3. O protocolo converte categorias externas para `MediaType`; antes da primeira fatia, tipos desconhecidos tinham fallback silencioso para filme.
-4. Credenciais de integrações são tratadas no browser; a garantia de armazenamento depende do serviço local de segredo e do IndexedDB.
-5. O Companion combina pareamento, rede, fetch remoto, cache, torrent/debrid e execução no Windows em um único processo.
-
-## Direção proposta, ainda não aplicada
+React, TypeScript e Vite serão preservados. A separação por domínio começa dentro do repositório atual; não será criado um monorepo cosmético antes de existirem fronteiras reais.
 
 ```mermaid
 flowchart TB
-  Apps["apps: web-pwa / api / companion-tauri"] --> AppPorts["application ports"]
-  AppPorts --> Domain["bounded contexts de domínio"]
-  Infra["adapters: Supabase, IndexedDB, providers, OS"] --> AppPorts
-  ProviderSDK["Provider SDK + manifests + policy"] --> AppPorts
-  TestKits["contract tests + fakes + fixtures"] --> AppPorts
+  UI["Web/PWA — UI"] --> App["Casos de uso"]
+  App --> Domain["Domínio canônico"]
+  App --> Ports["Ports: catálogo, acesso, progresso, sync, health"]
+  Adapters["Adaptadores por provider"] --> Ports
+  Registry["Registro + matriz de evidência"] --> Adapters
+  Local["Dexie adapter"] --> Ports
+  Cloud["Supabase adapter futuro"] --> Ports
+  Netlify["Functions/proxy allowlist"] --> Adapters
+  Stremio["Adapter Stremio declarativo"] --> Adapters
 ```
 
-Bounded contexts candidatos:
+## Domínios
 
-- Identity & Access.
-- Catalog & Canonical Identity.
-- Personal Library & Progress.
-- Discovery & Recommendations.
-- Providers & Availability.
-- Reader & Player.
-- Companion & Device Pairing.
-- Sync, Backup & Conflict Resolution.
-- Notifications & Releases.
+- identidade e autorização privada;
+- catálogo/identidade canônica;
+- biblioteca e estados pessoais;
+- progresso e continuidade;
+- descoberta/recomendação;
+- providers, instalação, capacidades e saúde;
+- acesso e player;
+- documentos, capítulos e leitores;
+- sync, backup e conflitos;
+- Cofre transversal;
+- jogos manuais.
 
-Essa direção requer ADRs e validação humana antes de substituir a arquitetura central. A estratégia recomendada é estrangulamento incremental: definir contratos, mover uma fatia vertical por vez e manter adaptadores para o comportamento existente enquanto houver dados compatíveis.
+## Entidades mínimas
+
+- `MediaIdentity`, `ExternalIdentity`, `MediaWork`, `Edition`, `Season`, `Episode`, `Volume`, `Chapter`;
+- `Person`, `Organization`, `FranchiseRelation`;
+- `LibraryEntry`, `Progress`, `PersonalStatus`, `Note`, `Tag`;
+- `Provider`, `ProviderInstallation`, `ProviderCapability`, `ProviderHealth`, `AccessOption`;
+- `UserAccount`, `Membership`, `DeviceSession`, `SyncRevision`, `BackupManifest`.
+
+## Contratos arquiteturais
+
+- UI não acessa provider diretamente.
+- Provider não altera store global.
+- IDs externos são mapeados para identidade canônica antes de deduplicar.
+- Capacidades são declaradas e confirmadas por contract/evidence tests.
+- Manifests instaláveis são HTTP/JSON; não executam JavaScript arbitrário.
+- Fetch remoto passa por allowlist, validação de protocolo/host/IP/redirect e limites.
+- Segredos nunca entram na biblioteca sincronizada nem no bundle público.
+- `infoHash`, magnet e `notWebReady` não viram URL web falsa.
+- Falha de um provider não derruba busca/detalhes globais.
+
+## Decisões já tomadas
+
+1. Web/PWA é a única superfície de produto desta fase.
+2. Companion será removido, não reescrito.
+3. Stremio Service é integração opcional do usuário; deep link é fallback.
+4. Jogos são manuais e não executam programas locais.
+5. Novels é domínio de primeira classe.
+6. Cofre é contexto transversal.
+7. Supabase/Netlify remotos só serão configurados após autorização.
+8. Migração será estranguladora e coberta por testes; nenhum “big bang”/monorepo antecipado.
+
+## ADRs necessários
+
+- remoção do Companion e política para dados legados;
+- protocolo Hubora v1 e adapter Stremio;
+- identidade canônica/deduplicação;
+- segurança de egress/SSRF;
+- sync, revisão, conflito e backup;
+- autenticação privada e modelo de convites;
+- PWA/cache/offline por classe de recurso.

@@ -10,7 +10,8 @@
 
 - Commit baseline: `0ecfd1d9dfb73585bb03a5e3ac9398dfac6de544`
 - Tag anotada: `hubora-9.0.0-pre-refactor`
-- Branch: `refactor/hubora-real-platform`
+- Branch atual: `refactor/hubora-verified-platform`
+- Checkpoint: `b11100f`, tag `hubora-9.0.0-pre-verified-platform`
 - `.env.local` não foi versionado ou exibido.
 
 ## Instalação
@@ -22,12 +23,17 @@ Comando: `npm ci`
 - 861 pacotes instalados; 862 auditados no relato do install.
 - npm indicou scripts de instalação de sete pacotes que ainda precisam de política explícita de allow-scripts.
 
-## Testes antes da mudança
+## Revalidação antes da fase da plataforma verificada
 
-- Primeira suite completa: WARN, 38/39; Companion encerrou com código 1.
-- Teste Companion isolado: PASS, 1/1.
-- Segunda suite completa sem alteração de código: PASS, 39/39.
-- Interpretação: teste intermitente, não sucesso estável.
+- `npm run typecheck`: PASS, exit 0, 22,7 s.
+- `npm run lint`: PASS técnico, exit 0, 22,6 s; o script é apenas `tsc --noEmit` e não constitui lint independente.
+- suite Vitest completa: PARTIAL, 14/16 arquivos e 40/42 testes.
+- falhas: timeout do Companion e UI smoke preso no fallback de carregamento.
+- Companion isolado: PASS, 1/1, 2,48 s.
+- UI smoke isolado: PASS, 1/1, 3,88 s.
+- interpretação: concorrência/estado compartilhado intermitente continua aberta; o resultado completo mais recente não está verde.
+- `npm run build`: PASS, exit 0, 42,1 s.
+- `npm run test:e2e`: PASS parcial, 11 pass e 1 skip em 7,5 s.
 
 ## Testes da fatia de escopo
 
@@ -52,7 +58,7 @@ Comando: `npm ci`
 
 - PASS parcial: 11 executados.
 - WARN: 1 teste ignorado.
-- Projetos: desktop Chromium e Android/Pixel 7 Chromium.
+- Projetos: desktop Chromium e Android/Pixel 7 Chromium. Esse smoke não valida autenticação, sync, providers reais, player ou leitores.
 
 ## Inspeção visual
 
@@ -96,3 +102,10 @@ Scanners externos:
 - Semgrep: não disponível.
 - Syft: não disponível.
 - Nenhuma ferramenta foi instalada sem auditoria somente para obter um resultado verde.
+
+Busca heurística local:
+
+- padrões suspeitos foram pesquisados em arquivos rastreados sem imprimir valores;
+- correspondências ocorreram apenas nas skills de referência;
+- excluindo `.agents`, não houve correspondência suspeita no código do produto;
+- classificação continua `PARTIAL` por não substituir um scanner especializado.

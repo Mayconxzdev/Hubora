@@ -1,4 +1,4 @@
-# Direção visual inicial
+# Direção visual aprovada
 
 ## Evidência observada
 
@@ -25,15 +25,22 @@ Motivos:
 3. Azul e serifas editoriais substituiriam, em vez de preservar, a identidade atual.
 4. A proposta é genérica para landing page; o Hubora é uma aplicação de uso recorrente e densa em conteúdo.
 
-## Direção recomendada para validação humana
+## Decisão do proprietário
 
-- Preservar preto real/branco real e acento violeta como base.
-- Tratar posters/capas como principal fonte de cor.
-- Manter hierarquia compacta, conteúdo primeiro e estados explícitos.
-- Criar tokens semânticos para superfícies, texto, foco, sucesso, aviso, erro e mídia adulta.
-- Suportar `prefers-reduced-motion`, foco visível e contraste WCAG 2.2 AA.
-- Validar 320/375, 768, 1024, 1440 e um viewport 10-foot/TV antes de redesenhar layouts.
+Em 2026-07-20, o proprietário escolheu a Sonda A como experiência principal. A
+Sonda B será usada somente como referência para o tema claro. A Sonda C será
+usada somente em Fontes, Saúde e Diagnóstico, onde a densidade técnica é útil.
 
-## Bloqueio Impeccable
+Essa decisão está consolidada em `PRODUCT.md`, `DESIGN.md`, `DESIGN_SYSTEM.md`
+e `ACCESSIBILITY.md`. Não existe mais bloqueio de entrevista visual para iniciar
+o planejamento; a implementação permanece pendente e será incremental.
 
-`PRODUCT.md` não foi criado. O fluxo `impeccable:init` exige pelo menos uma rodada real de respostas do proprietário sobre usuário, personalidade, referências e anti-referências antes de materializar o contexto de produto. As perguntas estão registradas no handoff da auditoria.
+## Correções identificadas na interface atual
+
+- reduzir cards aninhados e superfícies arredondadas sem função;
+- não exibir contagens promocionais de provedores sem status/evidência;
+- substituir placeholders de recomendação por estados vazios honestos;
+- remover toda a superfície do Companion;
+- criar rota e experiência próprias para Novels;
+- preservar a mesma estrutura em claro/escuro;
+- validar 320, 375, 768, 1024 e 1440 px; TV está fora do escopo.
