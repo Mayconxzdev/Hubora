@@ -16,7 +16,7 @@ interface HeroProps {
 }
 
 const TYPE_LABELS: Record<MediaItem['mediaType'], string> = {
-  movie: 'Filme', tv: 'Série', anime: 'Anime', manga: 'Mangá', comic: 'Quadrinho', book: 'Livro', game: 'Jogo',
+  movie: 'Filme', tv: 'Série', anime: 'Anime', manga: 'Mangá', comic: 'Quadrinho', book: 'Livro', novel: 'Novel', game: 'Jogo',
 };
 
 export function Hero({ item }: HeroProps) {

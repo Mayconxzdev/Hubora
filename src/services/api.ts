@@ -18,7 +18,7 @@ import {
   GoogleBook
 } from './adapters';
 
-import { fetchBooksWithFallback, fetchBooksFallback } from './apiBookService';
+import { adaptGoogleBooksVolume, fetchBooksWithFallback, getOpenLibraryArchiveAccess } from './apiBookService';
 import { getAdultMode } from './adultPolicy';
 import { isVaultUnlocked } from './vault';
 
@@ -359,6 +359,7 @@ const detectIntent = (query: string) => {
     isTv: /\bserie\b|\bseries\b|\bsérie\b|\bséries\b|\btv\b|\btelevision\b|\btelevisão\b/i.test(q),
     isGame: /\bjogo\b|\bjogos\b|\bgame\b|\bgames\b|\bplaystation\b|\bxbox\b|\bnintendo\b|\bpc\b|\bsteam\b|\bepic\b/i.test(q),
     isBook: /\blivro\b|\blivros\b|\bbook\b|\bbooks\b|\bleitura\b|\bread\b|\breading\b/i.test(q),
+    isNovel: /\bnovel\b|\bnovels\b|\blight novel\b|\bwebnovel\b|\bweb novel\b|\bfanfic\b/i.test(q),
     isComic: /\bhq\b|\bhqs\b|\bquadrinho\b|\bquadrinhos\b|\bcomic\b|\bcomics\b|\bdc\b|\bmarvel\b/i.test(q),
     isDorama: /\bdorama\b|\bdoramas\b|\bk-drama\b|\bj-drama\b|\bc-drama\b|\bthai-drama\b|\bdrama\b|\bdramas\b/i.test(q),
   };
@@ -367,7 +368,7 @@ const detectIntent = (query: string) => {
 const cleanQuery = (query: string) => {
   // Remove common filler words and intent indicators in PT and EN
   return query
-    .replace(/\b(quero|ver|assistir|ler|jogar|recomenda|indica|um|uma|filme|serie|série|anime|manga|mangá|jogo|game|livro|hq|dorama|de|sobre|como|parecido|com|want|to|watch|read|play|recommend|show|me|a|an|movie|series|tv|book|comic|drama|about|like|similar|to)\b/gi, '')
+    .replace(/\b(quero|ver|assistir|ler|jogar|recomenda|indica|um|uma|filme|serie|série|anime|manga|mangá|jogo|game|livro|novel|novels|webnovel|fanfic|hq|dorama|de|sobre|como|parecido|com|want|to|watch|read|play|recommend|show|me|a|an|movie|series|tv|book|comic|drama|about|like|similar|to)\b/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
 };
@@ -639,7 +640,7 @@ export const api = {
 
       const orderBy = sort === 'newest' ? 'newest' : 'relevance';
       
-      const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchQuery)}&startIndex=${startIndex}&maxResults=20&orderBy=${orderBy}&langRestrict=pt&printType=books`;
+      const url = `/api/google-books?q=${encodeURIComponent(searchQuery)}&startIndex=${startIndex}&maxResults=20&orderBy=${orderBy}&langRestrict=pt`;
       
       return await fetchBooksWithFallback(url, 'comic', searchQuery);
     } catch (e) {
@@ -655,10 +656,23 @@ export const api = {
 
       const orderBy = sort === 'newest' ? 'newest' : 'relevance';
       
-      const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchQuery)}&startIndex=${startIndex}&maxResults=20&orderBy=${orderBy}&langRestrict=pt&printType=books`;
+      const url = `/api/google-books?q=${encodeURIComponent(searchQuery)}&startIndex=${startIndex}&maxResults=20&orderBy=${orderBy}&langRestrict=pt`;
       
       return await fetchBooksWithFallback(url, 'book', searchQuery);
     } catch (e) {
+      return [];
+    }
+  },
+
+  discoverNovels: async (page = 1, sort = 'relevance', genre = '', query = ''): Promise<MediaItem[]> => {
+    try {
+      const startIndex = (page - 1) * 20;
+      let searchQuery = query.trim() || '"light novel"';
+      if (genre) searchQuery += ` subject:${genre}`;
+      const orderBy = sort === 'newest' ? 'newest' : 'relevance';
+      const url = `/api/google-books?q=${encodeURIComponent(searchQuery)}&startIndex=${startIndex}&maxResults=20&orderBy=${orderBy}&langRestrict=pt`;
+      return await fetchBooksWithFallback(url, 'novel', searchQuery);
+    } catch {
       return [];
     }
   },
@@ -753,8 +767,8 @@ export const api = {
       promises.push(fetch(`/api/games/trending`).then(r => r.json()).catch(() => []));
 
       // Books (Google Books) - Fetch some trending subjects
-      promises.push(fetchBooksWithFallback(`https://www.googleapis.com/books/v1/volumes?q=subject:fiction&orderBy=newest&maxResults=10&langRestrict=pt&printType=books`, 'book', 'ficção').catch(() => []));
-      promises.push(fetchBooksWithFallback(`https://www.googleapis.com/books/v1/volumes?q=subject:comics&orderBy=newest&maxResults=10&langRestrict=pt&printType=books`, 'comic', 'quadrinhos').catch(() => []));
+      promises.push(fetchBooksWithFallback(`/api/google-books?q=${encodeURIComponent('subject:fiction')}&orderBy=newest&maxResults=10&langRestrict=pt`, 'book', 'ficção').catch(() => []));
+      promises.push(fetchBooksWithFallback(`/api/google-books?q=${encodeURIComponent('subject:comics')}&orderBy=newest&maxResults=10&langRestrict=pt`, 'comic', 'quadrinhos').catch(() => []));
 
       const results = await Promise.allSettled(promises) as any[];
       
@@ -840,8 +854,8 @@ export const api = {
 
       promises.push(fetch(`/api/games/upcoming`).then(r => r.json()).catch(() => []));
 
-      promises.push(fetchBooksWithFallback(`https://www.googleapis.com/books/v1/volumes?q=subject:fiction&orderBy=newest&maxResults=15&langRestrict=pt&printType=books`, 'book', 'ficção').catch(() => []));
-      promises.push(fetchBooksWithFallback(`https://www.googleapis.com/books/v1/volumes?q=subject:comics&orderBy=newest&maxResults=15&langRestrict=pt&printType=books`, 'comic', 'quadrinhos').catch(() => []));
+      promises.push(fetchBooksWithFallback(`/api/google-books?q=${encodeURIComponent('subject:fiction')}&orderBy=newest&maxResults=15&langRestrict=pt`, 'book', 'ficção').catch(() => []));
+      promises.push(fetchBooksWithFallback(`/api/google-books?q=${encodeURIComponent('subject:comics')}&orderBy=newest&maxResults=15&langRestrict=pt`, 'comic', 'quadrinhos').catch(() => []));
 
       const results = await Promise.allSettled(promises) as any[];
       const movies: MediaItem[] = [];
@@ -947,6 +961,8 @@ export const api = {
         promises.push(api.discoverTV(page, 'popularity.desc', '', searchTerms));
       } else if (intent.isGame) {
         promises.push(api.discoverGames(page, searchTerms));
+      } else if (intent.isNovel) {
+        promises.push(api.discoverNovels(page, 'relevance', '', searchTerms));
       } else if (intent.isBook) {
         promises.push(api.discoverBooks(page, searchTerms));
       } else {
@@ -957,6 +973,7 @@ export const api = {
         promises.push(api.discoverManga(page, 'bypopularity', '', searchTerms));
         promises.push(api.discoverGames(page, searchTerms));
         promises.push(api.discoverBooks(page, searchTerms));
+        promises.push(api.discoverNovels(page, 'relevance', '', searchTerms));
       }
 
       const results = await Promise.all(promises);
@@ -975,8 +992,9 @@ export const api = {
         const isTvMatch = (intent.isTv || intent.isDorama) && (item.mediaType === 'tv');
         const isGameMatch = intent.isGame && (item.mediaType === 'game');
         const isBookMatch = intent.isBook && (item.mediaType === 'book');
+        const isNovelMatch = intent.isNovel && (item.mediaType === 'novel');
 
-        if (isAnimeMatch || isMangaMatch || isMovieMatch || isTvMatch || isGameMatch || isBookMatch) {
+        if (isAnimeMatch || isMangaMatch || isMovieMatch || isTvMatch || isGameMatch || isBookMatch || isNovelMatch) {
           score += 15; // Strong boost for matching intent
         }
 
@@ -1024,7 +1042,8 @@ export const api = {
     const isMovie = type === 'movie';
     const isTv = type === 'tv';
     const isGame = type === 'game';
-    const isBook = type === 'book' || type === 'comic';
+    const isNovel = type === 'novel';
+    const isBook = type === 'book' || type === 'comic' || isNovel;
 
     const fetchTMDB = async (t: 'movie' | 'tv') => {
       if (!tmdbKey) return null;
@@ -1148,7 +1167,7 @@ export const api = {
         if (!result) {
           try {
             const gbooksQuery = `${title} subject:comics OR subject:graphic novel`;
-            const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(gbooksQuery)}&maxResults=1`);
+            const res = await fetch(`/api/google-books?q=${encodeURIComponent(gbooksQuery)}&maxResults=1`);
             const data = await res.json();
             if (data.items && data.items.length > 0) {
               const item = data.items[0];
@@ -1180,23 +1199,11 @@ export const api = {
       else if (isBook) {
         try {
           const gbooksQuery = title;
-          const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(gbooksQuery)}&maxResults=1`);
+          const res = await fetch(`/api/google-books?q=${encodeURIComponent(gbooksQuery)}&maxResults=1`);
           const data = await res.json();
           if (data.items && data.items.length > 0) {
             const item = data.items[0];
-            result = {
-              id: `gbooks-${item.id}`,
-              title: item.volumeInfo.title,
-              originalTitle: item.volumeInfo.title,
-              posterPath: item.volumeInfo.imageLinks?.thumbnail?.replace('http:', 'https:') || undefined,
-              backdropPath: undefined,
-              overview: item.volumeInfo.description,
-              mediaType: 'book',
-              releaseDate: item.volumeInfo.publishedDate,
-              voteAverage: item.volumeInfo.averageRating ? item.volumeInfo.averageRating * 2 : 0,
-              genres: item.volumeInfo.categories,
-              status: 'Published'
-            };
+            result = adaptGoogleBooksVolume(item, isNovel ? 'novel' : type === 'comic' ? 'comic' : 'book');
           }
         } catch (e) {
           console.error("Google Books failed in searchByTitle", e);
@@ -1211,13 +1218,13 @@ export const api = {
               const doc = data.docs[0];
               const coverId = doc.cover_i;
               result = {
-                id: `openlib-${doc.key.replace('/works/', '')}`,
+                id: `${isNovel ? 'ol-novel-' : 'ol-'}${doc.key.replace('/works/', '')}`,
                 title: doc.title,
                 originalTitle: doc.title,
                 posterPath: coverId ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : undefined,
                 backdropPath: undefined,
                 overview: doc.first_sentence ? doc.first_sentence[0] : "Sem descrição disponível.",
-                mediaType: 'book',
+                mediaType: isNovel ? 'novel' : type === 'comic' ? 'comic' : 'book',
                 releaseDate: doc.first_publish_year ? String(doc.first_publish_year) : undefined,
                 voteAverage: doc.ratings_average ? doc.ratings_average * 2 : 0,
                 genres: doc.subject?.slice(0, 3) || [],
@@ -1602,67 +1609,51 @@ export const api = {
     }
 
     if (id.startsWith('ol-')) {
-      const olId = id.replace('ol-', '');
+      const novel = id.startsWith('ol-novel-');
+      const olId = id.replace(novel ? 'ol-novel-' : 'ol-', '');
       try {
-        const res = await fetch(`https://openlibrary.org/works/${olId}.json`);
+        const [res, editionsRes] = await Promise.all([
+          fetch(`https://openlibrary.org/works/${encodeURIComponent(olId)}.json`),
+          fetch(`https://openlibrary.org/works/${encodeURIComponent(olId)}/editions.json?limit=20`),
+        ]);
         if (res.ok) {
            const data = await res.json();
+           const editions = editionsRes.ok ? await editionsRes.json() : { entries: [] };
+           const archiveEdition = editions.entries?.find((edition: { ocaid?: string }) => Boolean(edition.ocaid));
+           const archiveAccess = await getOpenLibraryArchiveAccess(archiveEdition);
+           const officialUrl = `https://openlibrary.org/works/${encodeURIComponent(olId)}`;
+           const access = [
+             ...(archiveAccess ? [archiveAccess] : []),
+             { id: `openlibrary-${olId}`, label: 'Abrir Open Library', kind: 'official-link' as const, url: officialUrl, provider: 'Open Library', free: false },
+           ];
            return {
             id,
+            source: 'openlibrary',
+            sourceId: olId,
             title: data.title,
-            mediaType: 'book', // Defaulting since we can't tell perfectly without parsing subjects
+            mediaType: novel ? 'novel' : 'book',
             posterPath: data.covers?.[0] ? `https://covers.openlibrary.org/b/id/${data.covers[0]}-L.jpg` : undefined,
              overview: typeof data.description === 'string' ? data.description : data.description?.value || 'Sem descrição.',
-            status: 'Published'
+            status: 'Published',
+            providerUrl: officialUrl,
+            externalIds: { openLibrary: olId },
+            providerIdentities: [{ provider: 'openlibrary', providerId: olId, mediaType: novel ? 'novel' : 'book', verifiedAt: Date.now() }],
+            access,
            }
         }
       } catch (e) { console.warn("OL get details error", e) }
     }
 
     if (id.startsWith('gbooks-')) {
-      const gbooksId = id.replace('gbooks-', '');
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes/${gbooksId}`);
+      const novel = id.startsWith('gbooks-novel-');
+      const gbooksId = id.replace(novel ? 'gbooks-novel-' : 'gbooks-', '');
+      const res = await fetch(`/api/google-books?id=${encodeURIComponent(gbooksId)}`);
       const data = await res.json();
       
       if (data.id) {
         const categories = data.volumeInfo.categories || [];
         const isComic = categories.some((c: string) => c.toLowerCase().includes('comic') || c.toLowerCase().includes('graphic novel'));
-        
-        const watchProviders = [];
-        if (data.saleInfo?.buyLink) {
-          watchProviders.push({
-            providerId: 1,
-            providerName: 'Google Play Books (Buy)',
-            logoPath: '',
-            url: data.saleInfo.buyLink
-          });
-        }
-        if (data.accessInfo?.webReaderLink) {
-          watchProviders.push({
-            providerId: 2,
-            providerName: 'Google Play Books (Read)',
-            logoPath: '',
-            url: data.accessInfo.webReaderLink
-          });
-        }
-
-        return {
-          id: `gbooks-${data.id}`,
-          title: data.volumeInfo.title,
-          originalTitle: data.volumeInfo.title,
-          posterPath: data.volumeInfo.imageLinks?.thumbnail?.replace('http:', 'https:') || undefined,
-          backdropPath: undefined,
-          overview: data.volumeInfo.description,
-          mediaType: isComic ? 'comic' : 'book',
-          releaseDate: data.volumeInfo.publishedDate,
-          voteAverage: data.volumeInfo.averageRating ? data.volumeInfo.averageRating * 2 : 0,
-          genres: categories,
-          authors: data.volumeInfo.authors,
-          pages: data.volumeInfo.pageCount,
-          publisher: data.volumeInfo.publisher,
-          status: 'Published',
-          watchProviders: watchProviders.length > 0 ? watchProviders : undefined
-        };
+        return adaptGoogleBooksVolume(data, novel ? 'novel' : isComic ? 'comic' : 'book');
       }
       return null;
     }
@@ -1728,4 +1719,3 @@ export const mangaDexApi = {
     }
   }
 };
-

@@ -8,6 +8,9 @@ Os estados canônicos são `NOT_STARTED`, `IMPLEMENTING`, `PARTIAL`, `BLOCKED` e
 - Home, nove entradas, quatro intenções e navegação responsiva em smoke Chromium.
 - Busca, detalhes, biblioteca, progresso, backup e sync com implementações
   parciais e cobertura predominantemente local/mockada.
+- Novels possui rota própria, catálogo Open Library real, detalhes e prévia
+  restrita do Internet Archive comprovada; Google Books aguarda chave gratuita
+  no backend e a categoria permanece `PARTIAL`.
 - Player HTTPS/HLS/YouTube e leitores existentes, ainda sem matriz E2E real de
   formatos.
 - Diretório de fontes por categoria/modo/requisito; entrada mapeada não significa
@@ -35,3 +38,5 @@ Os estados canônicos são `NOT_STARTED`, `IMPLEMENTING`, `PARTIAL`, `BLOCKED` e
   programas de TV, documentários ou conteúdo genérico do YouTube.
 - Sem modo TV.
 - Metadados, homepage acessível e mocks não comprovam reprodução/leitura.
+- Um iframe ou `ocaid` não comprova leitura integral: a disponibilidade pode ser
+  prévia, empréstimo, restrita ou aberta e deve ser rotulada conforme a origem.

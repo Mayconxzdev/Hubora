@@ -12,7 +12,7 @@ import { useStore } from '@/store/useStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { SEO } from '@/components/ui/SEO';
 
-type FilterType = 'all' | 'movie' | 'tv' | 'anime' | 'manga' | 'game' | 'book' | 'comic';
+type FilterType = 'all' | 'movie' | 'tv' | 'anime' | 'manga' | 'game' | 'book' | 'novel' | 'comic';
 type SourceFilterType = 'all' | 'cinema' | 'streaming';
 type SortType = 'date_asc' | 'date_desc' | 'popularity';
 type TimeframeType = 'today' | 'week' | 'month' | 'next30' | 'next90' | 'year' | 'all';
@@ -35,6 +35,7 @@ const MEDIA_TYPES: Array<{ id: FilterType; label: string }> = [
   { id: 'manga', label: 'Mangá' },
   { id: 'game', label: 'Jogos' },
   { id: 'book', label: 'Livros' },
+  { id: 'novel', label: 'Novels' },
   { id: 'comic', label: 'Quadrinhos' },
 ];
 

@@ -1,4 +1,4 @@
-export type MediaType = 'movie' | 'tv' | 'anime' | 'manga' | 'comic' | 'book' | 'game';
+export type MediaType = 'movie' | 'tv' | 'anime' | 'manga' | 'comic' | 'book' | 'novel' | 'game';
 export type AdultContentMode = 'off' | 'mature' | 'vault';
 export type SpoilerShieldMode = 'off' | 'balanced' | 'strict' | 'custom';
 export type ItemVisibility = 'private' | 'friends' | 'public';

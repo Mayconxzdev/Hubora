@@ -112,11 +112,11 @@ interface GoogleBooksApi {
 
 declare global { interface Window { google?: GoogleBooksApi } }
 
-function safeSource(value: string | null): string | null {
+export function safeReaderSource(value: string | null): string | null {
   if (!value) return null;
   try {
     const url = new URL(value);
-    if (url.protocol !== 'https:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') return null;
+    if (url.protocol !== 'https:') return null;
     return url.toString();
   } catch { return null; }
 }
@@ -167,10 +167,10 @@ function GoogleBookViewer({ volumeId }: { volumeId: string }) {
 export function Reader() {
   const [params] = useSearchParams();
   const kind = params.get('kind') || 'html';
-  const source = safeSource(params.get('url'));
+  const source = safeReaderSource(params.get('url'));
   const volumeId = params.get('volumeId');
   const title = params.get('title') || 'Leitura';
-  const officialUrl = safeSource(params.get('official')) || source;
+  const officialUrl = safeReaderSource(params.get('official')) || source;
   const storageKey = useMemo(() => `hubora-reader:${volumeId || source || title}`.slice(0, 500), [volumeId, source, title]);
   const content = useMemo(() => {
     if (kind === 'manga' && params.get('chapterId')) {

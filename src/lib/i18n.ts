@@ -11,6 +11,9 @@ export const getMediaI18n = (t: (key: TranslationKey) => string) => ({
       case 'anime': return t('media.type.anime');
       case 'manga': return t('media.type.manga');
       case 'comic': return t('media.type.comic');
+      case 'book': return t('media.type.book');
+      case 'novel': return t('media.type.novel');
+      case 'game': return t('media.type.game');
       default: return type;
     }
   },

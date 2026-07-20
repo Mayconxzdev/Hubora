@@ -56,7 +56,7 @@ async function startServer() {
     contentSecurityPolicy: isProduction ? {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: ["'self'", 'https://www.google.com', 'https://books.google.com'],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
         connectSrc: [
@@ -71,7 +71,7 @@ async function startServer() {
           'https://store.steampowered.com',
           ...(supabaseOrigin ? [supabaseOrigin] : []),
         ],
-        frameSrc: ['https://www.youtube.com', 'https://www.youtube-nocookie.com', 'https://open.spotify.com'],
+        frameSrc: ['https://www.youtube.com', 'https://www.youtube-nocookie.com', 'https://www.google.com', 'https://books.google.com', 'https://archive.org'],
         workerSrc: ["'self'", 'blob:'],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
@@ -118,6 +118,41 @@ async function startServer() {
       res.status(response.status).set('content-type', 'application/json; charset=utf-8').set('cache-control', response.ok ? 'public, max-age=120' : 'no-store').send(body);
     } catch {
       res.status(502).json({ error: 'O catálogo TMDB está temporariamente indisponível.' });
+    }
+  });
+
+  app.get('/api/google-books', async (req, res) => {
+    const id = typeof req.query.id === 'string' ? req.query.id.trim() : '';
+    const query = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    if (id && !/^[A-Za-z0-9_-]{1,100}$/.test(id)) {
+      res.status(400).json({ error: 'ID de volume inválido.' });
+      return;
+    }
+    if (!id && (!query || query.length > 200)) {
+      res.status(400).json({ error: 'Consulta inválida.' });
+      return;
+    }
+    const upstream = id
+      ? new URL(`https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(id)}`)
+      : new URL('https://www.googleapis.com/books/v1/volumes');
+    if (!id) {
+      const startIndex = Math.min(1_000, Math.max(0, Number.parseInt(String(req.query.startIndex || '0'), 10) || 0));
+      const maxResults = Math.min(40, Math.max(1, Number.parseInt(String(req.query.maxResults || '20'), 10) || 20));
+      upstream.searchParams.set('q', query);
+      upstream.searchParams.set('startIndex', String(startIndex));
+      upstream.searchParams.set('maxResults', String(maxResults));
+      upstream.searchParams.set('orderBy', req.query.orderBy === 'newest' ? 'newest' : 'relevance');
+      upstream.searchParams.set('langRestrict', /^[a-z]{2}$/i.test(String(req.query.langRestrict || 'pt')) ? String(req.query.langRestrict || 'pt').toLowerCase() : 'pt');
+      upstream.searchParams.set('printType', 'books');
+    }
+    const apiKey = process.env.GOOGLE_BOOKS_API_KEY?.trim();
+    if (apiKey) upstream.searchParams.set('key', apiKey);
+    try {
+      const response = await fetch(upstream, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(9_000) });
+      const body = await response.text();
+      res.status(response.status).set('content-type', 'application/json; charset=utf-8').set('cache-control', response.ok ? 'public, max-age=300' : 'no-store').send(body);
+    } catch {
+      res.status(502).json({ error: 'O catálogo Google Books está temporariamente indisponível.' });
     }
   });
 

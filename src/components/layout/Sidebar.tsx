@@ -18,6 +18,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  ScrollText,
   Sun,
   Tv,
   User,
@@ -47,6 +48,7 @@ const CATEGORIES = [
   { icon: Layers3, label: 'Mangás', path: '/manga' },
   { icon: Drama, label: 'Doramas', path: '/doramas' },
   { icon: BookOpen, label: 'Livros', path: '/books' },
+  { icon: ScrollText, label: 'Novels', path: '/novels' },
   { icon: PanelsTopLeft, label: 'Quadrinhos', path: '/comics' },
   { icon: Gamepad2, label: 'Jogos', path: '/games' },
 ] as const;
@@ -61,6 +63,7 @@ const PAGE_LABELS: Array<[RegExp, string]> = [
   [/^\/manga/, 'Mangás'],
   [/^\/doramas/, 'Doramas'],
   [/^\/books/, 'Livros'],
+  [/^\/novels/, 'Novels'],
   [/^\/comics/, 'Quadrinhos'],
   [/^\/games/, 'Jogos'],
   [/^\/radar/, 'Radar'],

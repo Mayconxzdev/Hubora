@@ -52,7 +52,7 @@ interface HuboraSearchItem {
 }
 
 const MEDIA_MAP: Record<string, MediaType> = {
-  movie: 'movie', movies: 'movie', series: 'tv', tv: 'tv', dorama: 'tv', doramas: 'tv', anime: 'anime', manga: 'manga', comic: 'comic', comics: 'comic', book: 'book', books: 'book', novel: 'book', novels: 'book', game: 'game', games: 'game',
+  movie: 'movie', movies: 'movie', series: 'tv', tv: 'tv', dorama: 'tv', doramas: 'tv', anime: 'anime', manga: 'manga', comic: 'comic', comics: 'comic', book: 'book', books: 'book', novel: 'novel', novels: 'novel', game: 'game', games: 'game',
 };
 
 export const BUILTIN_PROVIDERS: ProviderManifest[] = [
@@ -66,11 +66,11 @@ export const BUILTIN_PROVIDERS: ProviderManifest[] = [
   },
   {
     id: 'google-books', name: 'Google Books', description: 'Livros, amostras, previews incorporáveis e acesso por região.', version: '1',
-    baseUrl: 'https://www.googleapis.com/books/v1', capabilities: ['catalog', 'search', 'details', 'reader'], mediaTypes: ['book', 'comic'], official: true, enabledByDefault: true,
+    baseUrl: 'https://www.googleapis.com/books/v1', capabilities: ['catalog', 'search', 'details', 'reader'], mediaTypes: ['book', 'novel', 'comic'], official: true, enabledByDefault: true,
   },
   {
     id: 'open-library', name: 'Open Library', description: 'Obras, edições e acesso a títulos disponíveis para leitura ou empréstimo.', version: '1',
-    baseUrl: 'https://openlibrary.org', capabilities: ['catalog', 'search', 'details', 'reader'], mediaTypes: ['book', 'comic'], official: true, enabledByDefault: true,
+    baseUrl: 'https://openlibrary.org', capabilities: ['catalog', 'search', 'details', 'reader'], mediaTypes: ['book', 'novel', 'comic'], official: true, enabledByDefault: true,
   },
   {
     id: 'project-gutenberg', name: 'Project Gutenberg', description: 'Catálogo OPDS de ebooks gratuitos.', version: '1',

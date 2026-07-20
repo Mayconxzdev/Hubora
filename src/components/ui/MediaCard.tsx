@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Edit3, Plus, Star } from 'lucide-react';
+import { BookOpen, Check, Edit3, Plus, Star } from 'lucide-react';
 import { MediaItem, UserMediaEntry } from '@/types';
 import { getMediaI18n } from '@/lib/i18n';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -35,6 +35,7 @@ const TYPE_LABELS: Record<MediaItem['mediaType'], string> = {
   manga: 'Mangá',
   comic: 'Quadrinho',
   book: 'Livro',
+  novel: 'Novel',
   game: 'Jogo',
 };
 
@@ -52,7 +53,7 @@ function quickAdvance(entry: UserMediaEntry, item: MediaItem) {
   } else if (item.mediaType === 'comic') {
     progress.currentIssue = (progress.currentIssue || 0) + 1;
     message = `Edição ${progress.currentIssue} registrada`;
-  } else if (item.mediaType === 'book') {
+  } else if (item.mediaType === 'book' || item.mediaType === 'novel') {
     progress.currentPage = (progress.currentPage || 0) + 10;
     message = `Página ${progress.currentPage} registrada`;
   } else if (item.mediaType === 'game') {
@@ -92,6 +93,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({ item, aspect = 'poster', i
   const rating = item.voteAverage && item.voteAverage > 0 ? item.voteAverage.toFixed(1) : null;
   const title = i18n.displayTitle(item);
   const completion = entry ? getCompletionPercentage(entry) : 0;
+  const artwork = item.posterPath || item.backdropPath;
 
   return (
     <>
@@ -99,11 +101,18 @@ export const MediaCard: React.FC<MediaCardProps> = ({ item, aspect = 'poster', i
         <div className="hub-media-poster">
           <Link to={`/details/${item.id}`} className="block" aria-label={`Abrir detalhes de ${title}`}>
             <div className={cn('relative', aspect === 'poster' ? 'aspect-[2/3]' : 'aspect-video')}>
-              <OptimizedImage
-                src={item.posterPath || item.backdropPath || '/icons/hubora-512.png'}
-                alt={title}
-                className="hub-media-image h-full w-full"
-              />
+              {artwork ? (
+                <OptimizedImage src={artwork} alt={title} className="hub-media-image h-full w-full" />
+              ) : (
+                <div className="hub-media-image grid h-full w-full place-items-center bg-[radial-gradient(circle_at_50%_28%,color-mix(in_srgb,var(--hub-brand)_18%,transparent),transparent_52%),var(--hub-surface-2)] px-5 text-center">
+                  <div className="flex flex-col items-center gap-3 text-[var(--hub-subtle)]">
+                    <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-3)] text-[var(--hub-muted)]">
+                      <BookOpen size={24} aria-hidden="true" />
+                    </span>
+                    <span className="text-[0.65rem] font-black uppercase tracking-[0.16em]">Capa indisponível</span>
+                  </div>
+                </div>
+              )}
               <div className="hub-media-gradient" />
 
               <div className="absolute left-2.5 top-2.5 z-[2] flex max-w-[calc(100%-4.5rem)] flex-wrap gap-1.5">

@@ -1,13 +1,13 @@
 # Contradições iniciais
 
-Esta tabela registra o estado encontrado antes da implementação. C-001, C-002, C-003, C-011 e C-012 foram tratados na primeira fatia; a prova atual está em `docs/evidence/COMPANION_REMOVAL.md`. As demais contradições continuam abertas até possuírem implementação e evidência próprias.
+Esta tabela registra o estado encontrado antes da implementação. C-001, C-002, C-003, C-011 e C-012 foram tratados na primeira fatia; a prova está em `docs/evidence/COMPANION_REMOVAL.md`. C-004 recebeu uma fundação vertical comprovada em `docs/evidence/NOVELS_VERTICAL.md`, mas permanece parcial. As demais contradições continuam abertas até possuírem implementação e evidência próprias.
 
 | ID | Decisão aprovada | Estado encontrado | Consequência | Resolução |
 |---|---|---|---|---|
 | C-001 | Não usar nem recriar Companion | Servidor, instalador, ZIP, UI, player, settings, protocolo e docs ativos | Arquitetura, segurança e UX divergem | remoção completa em fatia TDD |
 | C-002 | Sem engine torrent local/debrid obrigatório | WebTorrent e APIs de debrid no Companion; magnet tratado como vídeo | quatro advisories high e promessa web falsa | remover; adapter Stremio Service/deep link explícito |
 | C-003 | Jogos informados manualmente | launcher/scan/caminhos Windows | risco de shell e requisito local indevido | remover controlador/launcher; manter estados manuais |
-| C-004 | Novels com prioridade máxima | botão/filtro, mas nenhuma rota própria | categoria incompleta | criar domínio, rotas, detalhes e leitor |
+| C-004 | Novels com prioridade máxima | botão/filtro, mas nenhuma rota própria | categoria incompleta | parcial: domínio, rota, detalhe e prévia real; providers/sync/gates globais pendentes |
 | C-005 | Todas as fontes devem ter estado real | diretório mostra 93 fontes e capabilities sem evidência operacional | catálogo pode parecer integração | separar registry, classificação e evidence matrix |
 | C-006 | Nada fictício | Home mostra loading/comparação genéricos e UI agrega contagens estáticas | comunica inteligência/dados não comprovados | estados vazios/loading ligados a operação real |
 | C-007 | Supabase guarda dados em qualquer dispositivo | migrations/cliente existem, mas não há ambiente remoto validado | sync e RLS não comprovados | validar só após configuração autorizada |

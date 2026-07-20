@@ -252,8 +252,8 @@ export const adaptRAWGGame = (game: RAWGGame): MediaItem => ({
   status: 'Released'
 });
 
-export const adaptGoogleBook = (item: GoogleBook, type: 'book' | 'comic' | 'manga' = 'book'): MediaItem => ({
-  id: `gbooks-${item.id}`,
+export const adaptGoogleBook = (item: GoogleBook, type: 'book' | 'comic' | 'manga' | 'novel' = 'book'): MediaItem => ({
+  id: `${type === 'novel' ? 'gbooks-novel-' : 'gbooks-'}${item.id}`,
   source: 'google-books',
   sourceId: item.id,
   externalIds: { googleBooks: item.id },

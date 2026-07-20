@@ -32,8 +32,8 @@ export function preferencesForMedia(mediaType: MediaType): Array<{ key: keyof Re
     { key: 'release', label: 'Lançamento ou atualização' },
     { key: 'price', label: 'Promoção quando disponível' },
   ];
-  if (mediaType === 'book') return [
-    { key: 'new_volume', label: 'Nova edição' },
+  if (mediaType === 'book' || mediaType === 'novel') return [
+    { key: 'new_volume', label: mediaType === 'novel' ? 'Novo capítulo, volume ou edição' : 'Nova edição' },
     { key: 'availability', label: 'Prévia ou leitura disponível' },
   ];
   return [
@@ -103,6 +103,6 @@ export function releaseKindFor(mediaType: MediaType): string {
   if (mediaType === 'tv' || mediaType === 'anime') return 'novos episódios ou temporadas';
   if (mediaType === 'manga' || mediaType === 'comic') return 'novos capítulos ou volumes';
   if (mediaType === 'game') return 'lançamento, atualização ou promoção';
-  if (mediaType === 'book') return 'novas edições ou disponibilidade';
+  if (mediaType === 'book' || mediaType === 'novel') return mediaType === 'novel' ? 'novos capítulos, volumes ou disponibilidade' : 'novas edições ou disponibilidade';
   return 'lançamento ou disponibilidade';
 }

@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 export function WhereToWatch({ item }: { item: MediaItem }) {
   const navigate = useNavigate();
-  const readable = ['book', 'comic', 'manga'].includes(item.mediaType);
+  const readable = ['book', 'novel', 'comic', 'manga'].includes(item.mediaType);
   const video = ['movie', 'tv', 'anime'].includes(item.mediaType);
   const title = readable ? 'Ler ou obter' : item.mediaType === 'game' ? 'Jogar ou obter' : 'Assistir';
 
@@ -256,6 +256,8 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
                   ? 'comics'
                   : item.mediaType === 'book'
                   ? 'books'
+                  : item.mediaType === 'novel'
+                  ? 'novels'
                   : item.mediaType === 'game'
                   ? 'games'
                   : item.mediaType

@@ -5,7 +5,7 @@ import { api } from '@/services/api';
 import { useStore } from '@/store/useStore';
 import { formatProgress } from '@/utils/formatProgress';
 import { Button } from '@/components/ui/Button';
-import { Plus, Check, Star, Calendar, Clock, PlayCircle, BookOpen, Edit3, User, Users, Video, Sparkles, Lightbulb, AlertTriangle, Film, Tv, Compass, Gamepad2, Music } from 'lucide-react';
+import { Plus, Check, Star, Calendar, Clock, PlayCircle, BookOpen, Edit3, User, Users, Video, Sparkles, Lightbulb, AlertTriangle, Film, Tv, Compass, Gamepad2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { LibraryStatus, MediaItem } from '@/types';
 import { cn } from '@/lib/utils';
@@ -520,31 +520,6 @@ export function Details() {
             </div>
           </section>
         )}
-
-        {/* Soundtrack Section (Spotify Embed) */}
-        <section className="max-w-4xl mx-auto">
-          <div className="glass-card p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-purple-500/5 pointer-events-none" />
-            <div className="relative z-10">
-              <h3 className="text-2xl font-black text-white flex items-center gap-3 mb-8">
-                <Music size={28} className="text-green-450 drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-                Trilha Sonora Oficial
-              </h3>
-              
-              <div className="rounded-2xl overflow-hidden bg-black/40 border border-white/5">
-                <iframe 
-                  src={`https://open.spotify.com/embed/search/${encodeURIComponent(item.title + ' soundtrack')}`} 
-                  width="100%" 
-                  height="300" 
-                  frameBorder="0" 
-                  allow="encrypted-media"
-                  className="rounded-2xl"
-                  title={`Trilha sonora de ${item.title}`}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Trailer Modal */}
 

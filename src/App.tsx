@@ -45,6 +45,7 @@ const Anime = lazy(() => import('@/pages/Anime').then(m => ({ default: m.Anime }
 const Manga = lazy(() => import('@/pages/Manga').then(m => ({ default: m.Manga })));
 const Comics = lazy(() => import('@/pages/Comics').then(m => ({ default: m.Comics })));
 const Books = lazy(() => import('@/pages/Books').then(m => ({ default: m.Books })));
+const Novels = lazy(() => import('@/pages/Novels').then(m => ({ default: m.Novels })));
 const Games = lazy(() => import('@/pages/Games').then(m => ({ default: m.Games })));
 const Doramas = lazy(() => import('@/pages/Doramas').then(m => ({ default: m.Doramas })));
 const Privacy = lazy(() => import('@/pages/Privacy').then(m => ({ default: m.Privacy })));
@@ -132,6 +133,7 @@ function AnimatedRoutes() {
           <Route path="/manga" element={<PageTransition><Manga /></PageTransition>} />
           <Route path="/comics" element={<PageTransition><Comics /></PageTransition>} />
           <Route path="/books" element={<PageTransition><Books /></PageTransition>} />
+          <Route path="/novels" element={<PageTransition><Novels /></PageTransition>} />
           <Route path="/games" element={<PageTransition><Games /></PageTransition>} />
           <Route path="/doramas" element={<PageTransition><Doramas /></PageTransition>} />
           <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { ConsumptionEvent, CustomList, Goal, UserMediaEntry, UserProfile } from '@/types';
 
-const mediaTypeSchema = z.enum(['movie', 'tv', 'anime', 'manga', 'comic', 'book', 'game']);
+const mediaTypeSchema = z.enum(['movie', 'tv', 'anime', 'manga', 'comic', 'book', 'novel', 'game']);
 const statusSchema = z.enum(['planning', 'consuming', 'completed', 'dropped', 'paused']);
 
 const mediaSchema = z.object({

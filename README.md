@@ -20,10 +20,12 @@ em B e densidade técnica de C somente em Fontes, Saúde e Diagnóstico. Consult
 
 Classificação global: **ALPHA**.
 
-- TypeScript e build de produção passam no baseline auditado.
-- O smoke Playwright atual passa 11 cenários e ignora 1.
-- A suíte Vitest completa apresentou flakiness, embora os casos tenham passado
-  isoladamente; ela ainda precisa ficar verde em uma execução completa.
+- TypeScript e build de produção passam na fatia atual.
+- A suíte Vitest atual passa 54/54 testes em uma execução completa.
+- O smoke Playwright atual passa 13 cenários e ignora 1 cenário deliberado.
+- Novels possui uma fundação vertical real com fallback Open Library e prévia
+  restrita do Internet Archive; isso ainda não comprova a categoria inteira nem
+  as outras oito categorias.
 - O diretório de runtime contém fontes mapeadas, não integrações automaticamente
   verificadas.
 - A matriz inicial possui 283 candidatos/classificações e nenhuma entrada
@@ -32,8 +34,9 @@ Classificação global: **ALPHA**.
 
 Evidências: [estado inicial](docs/audit/INITIAL_STATE.md),
 [matriz de recursos](docs/audit/FEATURE_MATRIX_INITIAL.csv),
-[matriz de provedores](docs/audit/PROVIDER_MATRIX_INITIAL.csv) e
-[validação de baseline](docs/evidence/BASELINE_VALIDATION.md).
+[matriz de provedores](docs/audit/PROVIDER_MATRIX_INITIAL.csv),
+[validação de baseline](docs/evidence/BASELINE_VALIDATION.md) e
+[fatia vertical de Novels](docs/evidence/NOVELS_VERTICAL.md).
 
 ## Executar localmente
 

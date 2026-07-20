@@ -63,7 +63,10 @@ async function googleSnapshot(row: Subscription): Promise<Snapshot | null> {
   const data = await response.json() as Record<string, any>;
   const access = data.accessInfo || {}; const info = data.volumeInfo || {};
   const marker = `${info.publishedDate || ''}:${access.viewability || ''}:${Boolean(access.publicDomain)}:${Boolean(access.embeddable)}`;
-  return { key: `book:${marker}`, eventType: 'availability', notificationKind: 'availability', label: access.publicDomain ? 'Este livro está disponível em domínio público.' : access.embeddable ? 'A prévia incorporável deste livro está disponível.' : `Informações do livro atualizadas${info.publishedDate ? ` • ${info.publishedDate}` : ''}.`, url: `/details/gbooks-${id}`, payload: { publishedDate: info.publishedDate, viewability: access.viewability, publicDomain: access.publicDomain, embeddable: access.embeddable } };
+  const novel = row.media_type === 'novel';
+  const subject = novel ? 'Esta novel' : 'Este livro';
+  const possessive = novel ? 'desta novel' : 'deste livro';
+  return { key: `${novel ? 'novel' : 'book'}:${marker}`, eventType: 'availability', notificationKind: 'availability', label: access.publicDomain ? `${subject} está disponível em domínio público.` : access.embeddable ? `A prévia incorporável ${possessive} está disponível.` : `Informações da obra atualizadas${info.publishedDate ? ` • ${info.publishedDate}` : ''}.`, url: `/details/${novel ? 'gbooks-novel-' : 'gbooks-'}${id}`, payload: { publishedDate: info.publishedDate, viewability: access.viewability, publicDomain: access.publicDomain, embeddable: access.embeddable } };
 }
 
 async function snapshot(row: Subscription): Promise<Snapshot | null> {

@@ -14,6 +14,8 @@
 | PROV-001 | Capability estática confundida com integração real | Alto | Alto | 93 entradas no catálogo | matriz/evidência/health por capability | Aberto |
 | PROV-002 | Domínios e contratos comunitários mudam | Alto | Alto | candidatos experimentais | adapter isolado, circuit breaker, versão e rollback | Aberto |
 | PROV-003 | CORS, login ou anti-bot impede integração direta | Médio | Alto | fontes externas | classificar EXTERNAL_ONLY/BLOCKED, sem contorno oculto | Aberto |
+| PROV-004 | Google Books anônimo está sem quota no ambiente | Médio | Alto | chamada real 429; `NOVELS_VERTICAL.md` | Function server-only, chave gratuita no Netlify e fallback Open Library | Parcial; configuração remota pendente |
+| MEDIA-003 | JavaScript de embed externo pode falhar sem impedir o conteúdo | Médio | Médio | `ia-sentry.min.js` falhou no Chromium headless | isolar em sandbox, manter abertura na origem e registrar health/erro por provider | Aberto |
 | PWA-001 | Fallback offline devolve HTML para recurso/API | Alto | Alto | `src/sw.ts` | estratégias por classe e E2E offline | Aberto |
 | PWA-002 | Manifest duplicado e install incompleto | Médio | Alto | Vite + `public/manifest.json` | fonte única, maskable, lang, install/update test | Aberto |
 | TEST-001 | Suíte Vitest completa era intermitente | Alto | Médio | baseline 2 falhas; pós-fatia 45/45 | monitorar recorrência; manter full green como gate | Monitorado: verde nesta fatia |

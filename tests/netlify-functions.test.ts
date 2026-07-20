@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import health from '../netlify/functions/health.mts';
 import games from '../netlify/functions/games.mts';
 import tmdb from '../netlify/functions/tmdb.mts';
+import googleBooks from '../netlify/functions/google-books.mts';
 
 describe('Netlify functions', () => {
   it('returns local-first health without credentials', async () => {
@@ -54,6 +55,32 @@ describe('Netlify functions', () => {
       globalThis.fetch = previousFetch;
       if (previousKey === undefined) delete process.env.TMDB_API_KEY;
       else process.env.TMDB_API_KEY = previousKey;
+    }
+  });
+
+  it('mantém a chave do Google Books no servidor', async () => {
+    const previousFetch = globalThis.fetch;
+    const previousKey = process.env.GOOGLE_BOOKS_API_KEY;
+    const fakeKey = 'google-books-server-only-test-key';
+    let upstreamUrl = '';
+    process.env.GOOGLE_BOOKS_API_KEY = fakeKey;
+    globalThis.fetch = async (input) => {
+      upstreamUrl = String(input);
+      return new Response(JSON.stringify({ items: [{ id: 'volume-1' }] }), { status: 200, headers: { 'content-type': 'application/json' } });
+    };
+
+    try {
+      const response = await googleBooks(new Request('http://localhost/api/google-books?q=light%20novel&maxResults=20'));
+      expect(response.status).toBe(200);
+      expect(upstreamUrl).toContain('books/v1/volumes');
+      expect(upstreamUrl).toContain('langRestrict=pt');
+      expect(upstreamUrl).toContain('printType=books');
+      expect(upstreamUrl).toContain(`key=${fakeKey}`);
+      expect(await response.text()).not.toContain(fakeKey);
+    } finally {
+      globalThis.fetch = previousFetch;
+      if (previousKey === undefined) delete process.env.GOOGLE_BOOKS_API_KEY;
+      else process.env.GOOGLE_BOOKS_API_KEY = previousKey;
     }
   });
 });

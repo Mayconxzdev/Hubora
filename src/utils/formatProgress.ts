@@ -29,7 +29,7 @@ export function formatProgress(item: UserMediaEntry | undefined): string {
      if (progress.currentVolume) return `Vol ${progress.currentVolume}`;
      return '';
   }
-  if (mediaType === 'book') {
+  if (mediaType === 'book' || mediaType === 'novel') {
      if (progress.currentPage && progress.totalPages) return `${progress.currentPage} / ${progress.totalPages} págs`;
      if (progress.currentPage) return `Pág ${progress.currentPage}`;
      return '';
@@ -56,7 +56,8 @@ export function getCompletionPercentage(item: UserMediaEntry): number {
       const current = item.progress.currentChapter || item.progress.currentIssue || 0;
       return Math.min(100, Math.max(0, Math.round((current / 50) * 100))); // Default fallback
     }
-    case 'book': {
+    case 'book':
+    case 'novel': {
        const total = item.progress.totalPages || 300;
        const current = item.progress.currentPage || 0;
        return Math.min(100, Math.max(0, Math.round((current / total) * 100)));

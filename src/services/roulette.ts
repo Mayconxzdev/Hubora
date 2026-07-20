@@ -17,7 +17,7 @@ function estimatedMinutes(entry: UserMediaEntry): number {
   const media = entry.media;
   if (media.runtime) return media.runtime;
   if (entry.mediaType === 'tv' || entry.mediaType === 'anime') return 24;
-  if (entry.mediaType === 'book') return Math.max(20, Math.min(180, ((media.pages || 250) - (entry.progress.currentPage || 0)) * 1.2));
+  if (entry.mediaType === 'book' || entry.mediaType === 'novel') return Math.max(20, Math.min(180, ((media.pages || 250) - (entry.progress.currentPage || 0)) * 1.2));
   if (entry.mediaType === 'manga' || entry.mediaType === 'comic') return 25;
   if (entry.mediaType === 'game') return Math.max(30, Math.min(180, (entry.progress.hoursPlayed || 0) > 0 ? 60 : 90));
   return 100;

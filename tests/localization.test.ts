@@ -12,9 +12,9 @@ describe('localização brasileira dos catálogos', () => {
     });
 
     await api.discoverBooks(1, 'relevance', '', 'teste-localizacao-unico');
-    const googleRequest = requestedUrls.find((url) => url.includes('googleapis.com')) || '';
+    const googleRequest = requestedUrls.find((url) => url.includes('/api/google-books')) || '';
     expect(googleRequest).toContain('langRestrict=pt');
-    expect(googleRequest).toContain('printType=books');
+    expect(googleRequest).not.toContain('key=');
   });
 
   it('envia idioma pt-BR e região BR para próximos filmes', async () => {

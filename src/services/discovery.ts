@@ -29,6 +29,7 @@ const MEDIA_TERMS: Record<MediaType, string[]> = {
   manga: ['manga', 'mangá'],
   comic: ['quadrinho', 'quadrinhos', 'hq', 'comic', 'comics'],
   book: ['livro', 'romance literario', 'literatura', 'book'],
+  novel: ['novel', 'light novel', 'webnovel', 'web novel', 'fanfic'],
   game: ['jogo', 'game', 'videogame'],
 };
 
@@ -137,14 +138,14 @@ function itemText(item: MediaItem): string {
 
 function isShort(item: MediaItem): boolean {
   if (item.mediaType === 'movie') return Boolean(item.runtime && item.runtime <= 105);
-  if (item.mediaType === 'book') return Boolean(item.pages && item.pages <= 300);
+  if (item.mediaType === 'book' || item.mediaType === 'novel') return Boolean(item.pages && item.pages <= 300);
   if (item.mediaType === 'tv' || item.mediaType === 'anime') return Boolean(item.episodesCount && item.episodesCount <= 13);
   return false;
 }
 
 function isLong(item: MediaItem): boolean {
   if (item.mediaType === 'movie') return Boolean(item.runtime && item.runtime >= 150);
-  if (item.mediaType === 'book') return Boolean(item.pages && item.pages >= 500);
+  if (item.mediaType === 'book' || item.mediaType === 'novel') return Boolean(item.pages && item.pages >= 500);
   if (item.mediaType === 'tv' || item.mediaType === 'anime') return Boolean(item.episodesCount && item.episodesCount >= 40);
   return false;
 }

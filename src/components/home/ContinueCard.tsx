@@ -17,7 +17,7 @@ export function ContinueCard({ entry }: { entry: UserMediaEntry }) {
     if (entry.mediaType === 'tv' || entry.mediaType === 'anime') progress.currentEpisode = (progress.currentEpisode || 0) + 1;
     else if (entry.mediaType === 'manga') progress.currentChapter = (progress.currentChapter || 0) + 1;
     else if (entry.mediaType === 'comic') progress.currentIssue = (progress.currentIssue || 0) + 1;
-    else if (entry.mediaType === 'book') progress.currentPage = (progress.currentPage || 0) + 10;
+    else if (entry.mediaType === 'book' || entry.mediaType === 'novel') progress.currentPage = (progress.currentPage || 0) + 10;
     else if (entry.mediaType === 'game') progress.hoursPlayed = (progress.hoursPlayed || 0) + 1;
     else if (entry.mediaType === 'movie') progress.watched = true;
     updateLibraryItem(entry.id, { progress, ...(entry.mediaType === 'movie' ? { status: 'completed' as const } : {}) });

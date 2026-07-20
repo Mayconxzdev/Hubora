@@ -22,7 +22,7 @@ function EventIcon({ event, entry }: { event: ConsumptionEvent; entry?: UserMedi
   if (event.kind === 'completed') return <CheckCircle2 size={18} className="text-green-400" />;
   if (event.kind === 'rating') return <Star size={18} className="text-yellow-400" />;
   if (entry?.mediaType === 'game') return <Gamepad2 size={18} className="text-cyan-400" />;
-  if (['book', 'manga', 'comic'].includes(entry?.mediaType || '')) return <BookOpen size={18} className="text-blue-400" />;
+  if (['book', 'novel', 'manga', 'comic'].includes(entry?.mediaType || '')) return <BookOpen size={18} className="text-blue-400" />;
   return <TrendingUp size={18} className="text-purple-400" />;
 }
 

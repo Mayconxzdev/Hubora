@@ -40,6 +40,7 @@ test('mantém as áreas principais simples e navegáveis', async ({ page }) => {
     ['/manga', /Mangás/i],
     ['/doramas', /Doramas/i],
     ['/books', /Livros/i],
+    ['/novels', /Novels/i],
     ['/comics', /Quadrinhos/i],
     ['/games', /Jogos/i],
     ['/radar', /Radar/i],

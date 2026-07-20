@@ -39,7 +39,7 @@ const CATEGORIES = [
   { label: 'Livros', path: '/books', icon: BookOpen, tone: 'yellow' },
   { label: 'Quadrinhos', path: '/comics', icon: PanelsTopLeft, tone: 'cyan' },
   { label: 'Jogos', path: '/games', icon: Gamepad2, tone: 'indigo' },
-  { label: 'Novels', path: '/providers?category=novels', icon: ScrollText, tone: 'pink' },
+  { label: 'Novels', path: '/novels', icon: ScrollText, tone: 'pink' },
 ] as const;
 
 type DecisionMode = 'continue' | 'short' | 'discover' | 'surprise';
@@ -98,7 +98,7 @@ export function Home() {
       const localShorts = library
         .filter((entry) => entry.status === 'consuming' || entry.status === 'planning')
         .map((entry) => entry.media)
-        .filter((m) => ['anime', 'manga', 'comic', 'book'].includes(m.mediaType) || (m.runtime && m.runtime <= 45));
+        .filter((m) => ['anime', 'manga', 'comic', 'book', 'novel'].includes(m.mediaType) || (m.runtime && m.runtime <= 45));
       
       const feedShorts = [...feed].filter((m) => ['anime', 'manga', 'comic'].includes(m.mediaType) || (m.runtime && m.runtime <= 110));
       
@@ -202,7 +202,7 @@ export function Home() {
             </h2>
             {decisionItem && (
               <p className="hub-recommendation-meta">
-                {decisionItem.mediaType === 'tv' ? 'Série' : decisionItem.mediaType === 'movie' ? 'Filme' : decisionItem.mediaType === 'comic' ? 'Quadrinho' : decisionItem.mediaType === 'book' ? 'Livro' : decisionItem.mediaType === 'game' ? 'Jogo' : decisionItem.mediaType === 'manga' ? 'Mangá' : 'Anime'}
+                {decisionItem.mediaType === 'tv' ? 'Série' : decisionItem.mediaType === 'movie' ? 'Filme' : decisionItem.mediaType === 'comic' ? 'Quadrinho' : decisionItem.mediaType === 'book' ? 'Livro' : decisionItem.mediaType === 'novel' ? 'Novel' : decisionItem.mediaType === 'game' ? 'Jogo' : decisionItem.mediaType === 'manga' ? 'Mangá' : 'Anime'}
                 {decisionItem.releaseDate ? ` • ${decisionItem.releaseDate.slice(0, 4)}` : ''}
                 {decisionItem.voteAverage ? ` • ★ ${decisionItem.voteAverage.toFixed(1)}` : ''}
               </p>

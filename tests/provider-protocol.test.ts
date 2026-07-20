@@ -78,9 +78,9 @@ describe('Hubora Provider Protocol', () => {
     });
     const inspected = await inspectStremioProvider('https://provider.example/manifest.json');
     expect(inspected.config.protocol).toBe('hubora');
-    expect(inspected.config.mediaTypes).toEqual(expect.arrayContaining(['movie', 'tv', 'book', 'game']));
+    expect(inspected.config.mediaTypes).toEqual(expect.arrayContaining(['movie', 'tv', 'novel', 'game']));
     const items = await searchStremioCatalog(inspected.config, 'obra');
-    expect(items[0]).toMatchObject({ title: 'Uma obra', mediaType: 'book', externalIds: { isbn: '9780000000000' } });
+    expect(items[0]).toMatchObject({ title: 'Uma obra', mediaType: 'novel', externalIds: { isbn: '9780000000000' } });
   });
 
   it('ignora categorias que não pertencem ao escopo do produto', async () => {
