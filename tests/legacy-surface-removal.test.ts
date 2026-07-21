@@ -41,8 +41,8 @@ describe('remoção do Companion e da execução local', () => {
       'src/pages/Sources.tsx',
       'server.ts',
       'README.md',
-      'FEATURES-AND-LIMITS.md',
-      'NETLIFY_DEPLOY.md',
+      'docs/legacy/FEATURES-AND-LIMITS.md',
+      'docs/architecture/NETLIFY_DEPLOY.md',
     ]) {
       const source = readFileSync(resolve(root, relativePath), 'utf8');
       expect(source, relativePath).not.toMatch(/companion|real-debrid|torbox|webtorrent|gameController/i);
