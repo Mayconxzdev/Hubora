@@ -53,7 +53,7 @@ export function Login() {
   const handleGuestMode = () => {
     localStorage.setItem('hubora_guest_mode', 'true');
     toast.success('Modo Visitante ativo! Seus dados serão salvos localmente.');
-    window.location.href = '/';
+    navigate('/');
   };
 
   return (

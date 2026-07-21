@@ -94,16 +94,15 @@ function LoadingFallback() {
 
 function AuthGate({ children, user, ready, accessApproved }: { children: ReactNode; user: AuthUser | null; ready: boolean; accessApproved: boolean }) {
   const location = useLocation();
-  const requireAuth = import.meta.env.VITE_REQUIRE_AUTH !== 'false' && isSupabaseConfigured;
-  const isGuestMode = typeof window !== 'undefined' && localStorage.getItem('hubora_guest_mode') === 'true';
-  const publicPaths = ['/login', '/register', '/forgot-password', '/privacy', '/terms'];
-  const isPublic = publicPaths.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`));
+  const strictPrivateInstallation = import.meta.env.VITE_REQUIRE_AUTH === 'true';
 
-  if (isPublic) return <>{children}</>;
   if (!ready) return <LoadingFallback />;
-  if (!requireAuth || isGuestMode) return <>{children}</>;
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-  if (!accessApproved) return <Navigate to="/login?denied=1" replace />;
+  if (strictPrivateInstallation && user && !accessApproved) {
+    if (location.pathname !== '/login') {
+      return <Navigate to="/login?denied=1" replace />;
+    }
+  }
+
   return <>{children}</>;
 }
 
