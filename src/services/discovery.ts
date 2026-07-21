@@ -22,9 +22,11 @@ export interface RankedRecommendation {
   reasons: string[];
 }
 
-const MEDIA_TERMS: Record<MediaType, string[]> = {
+const MEDIA_TERMS: Record<string, string[]> = {
   movie: ['filme', 'movie', 'cinema'],
-  tv: ['serie', 'série', 'series', 'show', 'dorama', 'kdrama'],
+  tv: ['serie', 'série', 'series', 'show'],
+  series: ['serie', 'série', 'series', 'show'],
+  drama: ['dorama', 'kdrama', 'cdrama', 'jdrama'],
   anime: ['anime'],
   manga: ['manga', 'mangá'],
   comic: ['quadrinho', 'quadrinhos', 'hq', 'comic', 'comics'],

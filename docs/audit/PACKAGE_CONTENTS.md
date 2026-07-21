@@ -1,7 +1,7 @@
 # Inventário de Conteúdo do Pacote (PACKAGE_CONTENTS.md)
 
-Data do empacotamento: 2026-07-21T10:36:48.735Z
-Total de arquivos válidos no release: 701
+Data do empacotamento: 2026-07-21T11:21:03.097Z
+Total de arquivos válidos no release: 707
 
 | Caminho do Arquivo | Tamanho (Bytes) | SHA-256 Checksum |
 | :--- | :--- | :--- |
@@ -490,13 +490,16 @@ Total de arquivos válidos no release: 701
 | `DESIGN_SYSTEM.md` | 4355 | `b69ca2b6e0eb4d53...` |
 | `docs/ARCHITECTURE.md` | 2235 | `fb67b2dfdb2cdeeb...` |
 | `docs/audit/ARCHITECTURE_INITIAL.md` | 4155 | `c6f34c796ed2d3b3...` |
+| `docs/audit/CLEAN_INSTALL_REPORT.md` | 1161 | `cc9617245b25c8f4...` |
 | `docs/audit/CONTRADICTIONS.md` | 3492 | `6bfd05e9b72ee0ed...` |
 | `docs/audit/DEAD_CODE_REPORT.md` | 3559 | `6ba7092458999c09...` |
 | `docs/audit/DESIGN_DIRECTION_INITIAL.md` | 2175 | `714edfbebb051588...` |
 | `docs/audit/FEATURE_MATRIX_INITIAL.csv` | 6034 | `a11d11bbef0d14ae...` |
 | `docs/audit/INITIAL_STATE.md` | 6676 | `64c418d899171e9c...` |
+| `docs/audit/PACKAGE_CONTENTS.md` | 61339 | `decd3172c2e657d1...` |
 | `docs/audit/PROVIDER_MATRIX_INITIAL.csv` | 33835 | `d455bc5a1fb2c66a...` |
 | `docs/audit/PROVIDER_MATRIX_README.md` | 1426 | `34cfb010015cb5c5...` |
+| `docs/audit/REPRODUCIBILITY_REPORT.md` | 1087 | `f14efa109d3997c8...` |
 | `docs/audit/RISK_REGISTER.md` | 4813 | `f826c9e924b9bc1b...` |
 | `docs/audit/SKILLS_AUDIT.md` | 2226 | `64af4fd8d1243cd0...` |
 | `docs/decisions/0001-preserve-imported-baseline.md` | 1387 | `2ef6a504d107bf9a...` |
@@ -508,7 +511,7 @@ Total de arquivos válidos no release: 701
 | `docs/evidence/BASELINE_VALIDATION.md` | 4109 | `060ea5905084358c...` |
 | `docs/evidence/COMPANION_REMOVAL.md` | 4998 | `d06019a4e672d42a...` |
 | `docs/evidence/DETAIL_VIDEOS.md` | 3645 | `0f49a452ff1a2eab...` |
-| `docs/evidence/FEATURE_EVIDENCE_MATRIX.md` | 4668 | `9fe9334d993d644d...` |
+| `docs/evidence/FEATURE_EVIDENCE_MATRIX.md` | 3443 | `a03a968ab104156e...` |
 | `docs/evidence/NOVELS_VERTICAL.md` | 5002 | `48707cd06c6c4129...` |
 | `docs/evidence/sbom.cdx.json` | 760337 | `3a0fe3fbb9cf6715...` |
 | `docs/evidence/screenshots/companion-removal/providers-desktop-dark.png` | 655967 | `23c934a36b733cf3...` |
@@ -564,10 +567,11 @@ Total de arquivos válidos no release: 701
 | `skills-lock.json` | 3366 | `eab23d3d7be1513d...` |
 | `src/App.tsx` | 14790 | `31d377a8fb44f940...` |
 | `src/components/details/DetailsInsight.tsx` | 2426 | `a4f7c89c90b859b0...` |
-| `src/components/details/MediaPassport.tsx` | 3474 | `8dfcdc8a5b5f9b03...` |
+| `src/components/details/MediaPassport.tsx` | 3553 | `e6f4dd55120321a8...` |
 | `src/components/details/WhereToWatch.tsx` | 13576 | `25cf5b0696d442e9...` |
 | `src/components/discover/SceneSearch.tsx` | 3830 | `1adc9683f8a6d655...` |
 | `src/components/discover/VibeSearch.tsx` | 5353 | `9fb336ef2978ffa7...` |
+| `src/components/games/GameManagementModal.tsx` | 9562 | `c4bb449427cd8612...` |
 | `src/components/guide/FranchiseItemCard.tsx` | 3906 | `9ab82936c8cf0daf...` |
 | `src/components/home/BacklogRoulette.tsx` | 3970 | `4e151402e698a811...` |
 | `src/components/home/ChoiceForToday.tsx` | 8020 | `6284ee1b32f2e5c4...` |
@@ -589,9 +593,9 @@ Total de arquivos válidos no release: 701
 | `src/components/ui/CommandPalette.tsx` | 4179 | `cf6c46aa9f80d3b0...` |
 | `src/components/ui/Dialog.tsx` | 2596 | `eba2664470dada54...` |
 | `src/components/ui/ErrorBoundary.tsx` | 2663 | `f82e0252e0c520e2...` |
-| `src/components/ui/Hero.tsx` | 3488 | `b4f06352435f0974...` |
+| `src/components/ui/Hero.tsx` | 3507 | `c467f72c0a3b9825...` |
 | `src/components/ui/Input.tsx` | 546 | `a81e791ba2e36c17...` |
-| `src/components/ui/MediaCard.tsx` | 8194 | `e230543d50c3e710...` |
+| `src/components/ui/MediaCard.tsx` | 8295 | `db9b255ce90c41d0...` |
 | `src/components/ui/Notifications.tsx` | 4782 | `c87a1fbf2481670d...` |
 | `src/components/ui/OptimizedImage.tsx` | 2184 | `46384967aa6fed06...` |
 | `src/components/ui/QuickPickModal.tsx` | 7129 | `d937da167c08134e...` |
@@ -620,7 +624,7 @@ Total de arquivos válidos no release: 701
 | `src/pages/Discover.tsx` | 10924 | `491d7c9901c4b54f...` |
 | `src/pages/Doramas.tsx` | 3518 | `08f4b57aadb87331...` |
 | `src/pages/ForgotPassword.tsx` | 2387 | `4b10c413009764b3...` |
-| `src/pages/Games.tsx` | 3471 | `daa1aaf5b166a0ed...` |
+| `src/pages/Games.tsx` | 3909 | `92cc734314e7e3a1...` |
 | `src/pages/Goals.tsx` | 3684 | `0f25e3bad5b385b7...` |
 | `src/pages/Guide.tsx` | 13713 | `aa723abf6016205d...` |
 | `src/pages/Home.tsx` | 15063 | `13c60cbed75692cd...` |
@@ -652,12 +656,13 @@ Total de arquivos válidos no release: 701
 | `src/services/automaticBackup.ts` | 2066 | `4c1db803063d4904...` |
 | `src/services/backup.ts` | 4279 | `c5a971cc45e1614d...` |
 | `src/services/cloud.ts` | 8029 | `c791b7df50a8ca6b...` |
-| `src/services/discovery.ts` | 10525 | `003b5b9a0cc79215...` |
+| `src/services/discovery.ts` | 10602 | `7705ac084329709a...` |
 | `src/services/featureRepository.ts` | 2072 | `dde269e344e9cd93...` |
 | `src/services/franchise.ts` | 2398 | `e220b2bdf1f1a81d...` |
 | `src/services/identity.ts` | 2754 | `84b040cc7da7210a...` |
 | `src/services/imageStorage.ts` | 974 | `ab42994e9f5da93b...` |
 | `src/services/localRepository.ts` | 6850 | `cbeaa482044e32b4...` |
+| `src/services/mediaPresentation/index.ts` | 11530 | `3b85f45d097f3a2e...` |
 | `src/services/mediaVideos.ts` | 3648 | `082aeeea1863db54...` |
 | `src/services/notifications.ts` | 4677 | `cbff440e296de2ed...` |
 | `src/services/personalMedia.ts` | 11466 | `31852dbd2d1f5ac3...` |
@@ -672,7 +677,7 @@ Total de arquivos válidos no release: 701
 | `src/services/wrapped.ts` | 5313 | `8ec19e09678fe141...` |
 | `src/store/useStore.ts` | 18741 | `0b8361b4291994de...` |
 | `src/sw.ts` | 3355 | `39018f2a7a66dfc6...` |
-| `src/types/index.ts` | 10764 | `4e83f1503ba4d60f...` |
+| `src/types/index.ts` | 10864 | `4247bcb236e9a26a...` |
 | `src/utils/formatProgress.ts` | 2909 | `2d997fb0c0a9aaec...` |
 | `src/utils/hype.ts` | 1836 | `b4f4d88fb19fe971...` |
 | `src/vite-env.d.ts` | 431 | `45db6409e87d91e9...` |
@@ -680,7 +685,7 @@ Total de arquivos válidos no release: 701
 | `supabase/migrations/002_hubora_v6_hardening.sql` | 2290 | `bfcc7fd62f193a50...` |
 | `supabase/migrations/003_hubora_personal_edition.sql` | 8553 | `264e97d3071618e6...` |
 | `tasks/plan.md` | 3150 | `7f08e274c6faa0ca...` |
-| `tasks/todo.md` | 2931 | `77a5100cb9164065...` |
+| `tasks/todo.md` | 1645 | `8ad726c811bcb78a...` |
 | `tests/access-policy.test.ts` | 920 | `60d5cb658f80f0c3...` |
 | `tests/automatic-backup.test.ts` | 1407 | `d7ddf62aa2323854...` |
 | `tests/backup.test.ts` | 1345 | `af86e94166703e22...` |
@@ -690,6 +695,7 @@ Total de arquivos válidos no release: 701
 | `tests/legacy-surface-removal.test.ts` | 1771 | `b886a83f4a8f1c7c...` |
 | `tests/localization.test.ts` | 1904 | `2bc15eb660af690c...` |
 | `tests/localRepository.test.ts` | 2300 | `2f93ef30243212d9...` |
+| `tests/media-presentation-contract.test.ts` | 2297 | `f65398598fa1dc6e...` |
 | `tests/media-videos.test.tsx` | 2899 | `56d8d296fd6f5067...` |
 | `tests/navigation-ui.test.tsx` | 826 | `843faa40839287cf...` |
 | `tests/netlify-functions.test.ts` | 3672 | `447eec21096c1113...` |

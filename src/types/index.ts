@@ -1,4 +1,4 @@
-export type MediaType = 'movie' | 'tv' | 'anime' | 'manga' | 'comic' | 'book' | 'novel' | 'game';
+export type MediaType = 'movie' | 'tv' | 'series' | 'drama' | 'anime' | 'manga' | 'comic' | 'book' | 'novel' | 'game';
 export type AdultContentMode = 'off' | 'mature' | 'vault';
 export type SpoilerShieldMode = 'off' | 'balanced' | 'strict' | 'custom';
 export type ItemVisibility = 'private' | 'friends' | 'public';
@@ -165,6 +165,9 @@ export interface ProgressState {
   // Game
   platform?: string;
   hoursPlayed?: number;
+  completionPercentage?: number;
+  isInstalled?: boolean;
+  isOwned?: boolean;
   completionStatus?: string;
   mainStoryCompleted?: boolean;
   favoritePlatform?: string;

@@ -28,9 +28,13 @@ const STATUS_LABELS: Record<string, string> = {
   dropped: 'Abandonado',
 };
 
-const TYPE_LABELS: Record<MediaItem['mediaType'], string> = {
+import { getMediaPresentationContract } from '@/services/mediaPresentation';
+
+const TYPE_LABELS: Record<string, string> = {
   movie: 'Filme',
   tv: 'Série',
+  series: 'Série',
+  drama: 'Dorama',
   anime: 'Anime',
   manga: 'Mangá',
   comic: 'Quadrinho',

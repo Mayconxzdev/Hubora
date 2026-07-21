@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import type { MediaItem } from '@/types';
 
 function mediaLabel(type: MediaItem['mediaType']): string {
-  return ({ movie: 'Filme', tv: 'Série', anime: 'Anime', manga: 'Mangá', comic: 'Quadrinho', book: 'Livro', novel: 'Novel', game: 'Jogo' } as const)[type];
+  const map: Record<string, string> = { movie: 'Filme', tv: 'Série', series: 'Série', drama: 'Dorama', anime: 'Anime', manga: 'Mangá', comic: 'Quadrinho', book: 'Livro', novel: 'Novel', game: 'Jogo' };
+  return map[type] || 'Mídia';
 }
 
 export function MediaPassport({ item }: { item: MediaItem }) {
