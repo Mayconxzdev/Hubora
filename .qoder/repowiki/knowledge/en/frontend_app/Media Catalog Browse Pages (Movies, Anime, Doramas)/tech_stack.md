@@ -1,1 +1,0 @@
-React + TypeScript, `@tanstack/react-query` for infinite queries, `react-intersection-observer` for scroll-triggered pagination, Tailwind utility classes for skeleton loaders, and TMDB/Jikan APIs via `@/services/api`.

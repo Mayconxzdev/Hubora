@@ -1,1 +1,0 @@
-React + TypeScript with `@tanstack/react-query` for infinite query caching, `react-intersection-observer` for scroll-triggered pagination, `lucide-react` icons, and Tailwind utility classes for skeleton loaders.

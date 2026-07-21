@@ -1,1 +1,0 @@
-Auth entry points (login/register/forgot-password), user profile dashboard, and library identity normalization for multi-provider media linking.

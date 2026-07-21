@@ -1,17 +1,34 @@
+# Dependências e Builds
 node_modules/
-build/
 dist/
+build/
 coverage/
-.DS_Store
-*.log
-.env*
-!.env.example
-.scripts/
-.antigravity/
-__pycache__/
-*.py[cod]
 
+# Logs e Dados Temporários
+*.log
+.DS_Store
+*.py[cod]
+__pycache__/
+
+# Variáveis de Ambiente e Credenciais Seguras
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# Ferramentas Internas e Metadados de IA / IDE
+.agents/
+.qoder/
+.antigravity/
+.vscode/
+.idea/
+tasks/
+output/
+.scripts/
+
+# Testes e Relatórios de Renderização
 test-results/
 playwright-report/
 .playwright/
-output/playwright/*live*.png

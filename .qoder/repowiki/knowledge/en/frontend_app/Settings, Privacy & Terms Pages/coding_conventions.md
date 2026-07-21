@@ -1,4 +1,0 @@
-- Static content pages (`Privacy`, `Terms`) declare a `sections` array of `{ icon, title, body }` objects and render them with `.map(...)` into identical `hub-panel` card markup, rather than hand-writing each section.
-- All pages wrap their root in a `div.hub-page` container and use `hub-page-header` + `hub-section-eyebrow` + `hub-page-title` + `hub-page-subtitle` for consistent page chrome.
-- User preference mutations go through `updateUser({ preferences: { ...user.preferences, ... } })` from `useStore` instead of direct state writes, so changes propagate across the app.
-- Side-effectful actions surface feedback exclusively via `sonner`'s `toast.success` / `toast.error` rather than inline error messages.

@@ -1,1 +1,0 @@
-Renders the Discover page with three search modes — quick title lookup, scene/clue description, and vibe-based recommendation — plus image/OCR and link resolution for identifying media from screenshots or shared URLs.

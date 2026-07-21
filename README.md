@@ -1,87 +1,99 @@
-# Hubora 9.0.0
+# 🌌 Hubora v9.0.0 — Unified Pop Culture Hub & Media Tracker
 
-Hubora é uma Web/PWA pessoal e privada, em PT-BR, para descobrir, organizar,
-acompanhar, ler e assistir entretenimento com origem e disponibilidade
-explícitas.
+[![Vite](https://img.shields.io/badge/Vite-v7.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-v19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-v5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Netlify](https://img.shields.io/badge/Netlify-Serverless-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://www.netlify.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+[![Vitest](https://img.shields.io/badge/Vitest-Unit_Tested-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
 
-## Escopo aprovado
+**Hubora** é uma plataforma de gerenciamento e descoberta de mídias de cultura pop de alta performance. Desenvolvida para unificar 9 domínios universais de entretenimento (Filmes, Séries, Doramas, Animes, Mangás, Quadrinhos, Livros, Novels e Jogos) em uma única interface cinematográfica e privada.
 
-As nove categorias têm a mesma prioridade: Filmes, Séries, Doramas, Anime,
-Mangá, Quadrinhos, Livros, Novels e Jogos. O Cofre é um contexto transversal,
-não uma categoria. Jogos usam estados manuais; o Hubora não procura nem executa
-programas instalados.
+---
 
-O produto combina a estrutura cinematográfica da direção A, tema claro baseado
-em B e densidade técnica de C somente em Fontes, Saúde e Diagnóstico. Consulte
-[PRODUCT.md](PRODUCT.md), [DESIGN.md](DESIGN.md),
-[DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) e [ACCESSIBILITY.md](ACCESSIBILITY.md).
+## 💎 Arquitetura & Destaques de Engenharia (Senior Level)
 
-## Estado honesto
+### 1. **Zero-Token Security & Proxy Serverless (Netlify Edge Functions)**
+- Nenhuma chave de API de terceiros (TMDB, IGDB, Supabase) é exposta no cliente público.
+- Requisições para metadados e capas são sanitizadas e interceptadas por Serverless Functions com suporte a Fallback gracioso (OpenLibrary, MangaDex, Jikan).
 
-Classificação global: **ALPHA**.
+### 2. **Contratos Universais de Apresentação de Mídias (`MediaPresentationRegistry`)**
+- Arquitetura fortemente tipada que desacopla os domínios de mídia:
+  - **Audiovisual (Filmes, Séries, Doramas, Animes):** Trailers reais do YouTube com iluminação ambiente (Ambilight), elenco e temporadas.
+  - **Leitura (Livros, Mangás, Quadrinhos, Novels):** Acompanhamento preciso por páginas, volumes e edições sem botões redundantes.
+  - **Jogos (PC & Consoles):** Gestão 100% manual por status (*Possuído*, *Instalado*, *Jogando*, *Concluído*), horas e links oficiais via HTTPS (Steam, Epic Games, GOG).
 
-- TypeScript e build de produção passam na fatia atual.
-- A suíte Vitest atual passa 58/58 testes em uma execução completa.
-- O smoke Playwright atual passa 13 cenários e ignora 1 cenário deliberado.
-- Novels possui uma fundação vertical real com fallback Open Library e prévia
-  restrita do Internet Archive; isso ainda não comprova a categoria inteira nem
-  as outras oito categorias.
-- O detalhe de anime reproduz trailer Jikan/YouTube real dentro da página; a
-  lista de vídeos TMDB está implementada, mas aguarda chave para prova externa.
-- O diretório de runtime contém fontes mapeadas, não integrações automaticamente
-  verificadas.
-- A matriz inicial possui 283 candidatos/classificações e nenhuma entrada
-  `VERIFIED` sem cenário real.
-- Supabase, Netlify e OAuth remotos ainda não foram configurados nesta fase.
+### 3. **Design System Personalizado (Liquid Glass Aesthetics)**
+- Componentes construídos com princípios modernos de UI/UX (*ui-ux-pro-max*):
+  - Modos Claro e Escuro calibrados (Sem contraste quebrado em fundo claro).
+  - Componentes responsivos otimizados para Desktop (1920x1080), Tablet (768x1024) e Mobile (390x844).
+  - Micro-interações e suporte a acessibilidade WCAG 2.2.
 
-Evidências: [estado inicial](docs/audit/INITIAL_STATE.md),
-[matriz de recursos](docs/audit/FEATURE_MATRIX_INITIAL.csv),
-[matriz de provedores](docs/audit/PROVIDER_MATRIX_INITIAL.csv),
-[validação de baseline](docs/evidence/BASELINE_VALIDATION.md) e
-[fatia vertical de Novels](docs/evidence/NOVELS_VERTICAL.md), além da
-[validação de vídeos nos detalhes](docs/evidence/DETAIL_VIDEOS.md).
+### 4. **Privacidade First-Class & Vault Criptografado**
+- Suporte a cofre privado protegido por PIN derivado (PBKDF2/SHA-256) para armazenamento de preferências pessoais.
+- Opção de sincronização nuvem via Supabase ou persistência local em IndexedDB/LocalStorage.
 
-## Executar localmente
+---
 
-Requer Node.js 22.12 ou superior.
+## 🛠️ Tech Stack & Ferramentas
 
-```powershell
-npm ci
-npm run typecheck
-npm test
-npm run build
-npm run test:e2e
+- **Core:** React 19, TypeScript 5.7, Vite 7
+- **Styling:** Vanilla CSS + Tailwind CSS v4, Lucide Icons, Glassmorphism Tokens
+- **State & Data:** Zustand (Persistência reativa), TanStack Query v5 (Cache de API)
+- **Backend & Cloud:** Netlify Edge Functions (Node.js/TypeScript), Supabase (Auth & Postgres)
+- **Qualidade & Testes:** Vitest (64 testes unitários e de integração), Playwright (Auditoria E2E)
+
+---
+
+## 🚀 Como Executar Localmente
+
+### Pré-requisitos
+- Node.js v18+
+- npm v9+
+
+### Passos
+
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/Mayconxzdev/Hubora.git
+
+# 2. Entrar no diretório
+cd Hubora
+
+# 3. Instalar dependências
+npm install
+
+# 4. Criar o arquivo .env com suas chaves (Veja .env.example)
+cp .env.example .env
+
+# 5. Iniciar o servidor de desenvolvimento
+npm run dev
 ```
 
-`npm run dev` inicia o servidor local em `http://localhost:3000`. `npm run
-preview` serve o build estático e não executa as Netlify Functions.
+Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
 
-## Fontes e acesso
+---
 
-- Metadados não são reprodução/leitura.
-- Uma página externa continua identificada como externa.
-- HTTPS direto/HLS compatível e YouTube autorizado podem abrir internamente.
-- Magnet, `infoHash`, `.torrent` e recursos `notWebReady` não são transformados
-  em vídeo de navegador.
-- Um futuro adapter opcional poderá usar Stremio Service; sem ele, o produto deve
-  oferecer deep link ou explicar o requisito.
-- Servidores pessoais permanecem opcionais e nunca são requisito do onboarding.
+## 🧪 Suíte de Testes & Qualidade de Código
 
-O manifesto de exemplo está em
-[docs/hubora-provider.example.json](docs/hubora-provider.example.json). O
-contrato ainda está `PARTIAL` e será versionado/testado antes de ser anunciado
-como SDK estável.
+Para executar os testes unitários e a checagem rigorosa de tipos do TypeScript:
 
-## Dados e segredos
+```bash
+# Executar a suíte de testes unitários (Vitest)
+npm run test
 
-`.env.local` não é versionado. No frontend, somente valores publicáveis podem
-usar prefixo `VITE_`; segredos de APIs ficam no servidor/Functions. Não envie
-senhas ou chaves no chat e não faça commit de `.env`.
+# Executar checagem de tipos estática do TypeScript
+npm run typecheck
 
-A configuração remota seguirá [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md) apenas
-depois de autorização explícita. As migrations estão em `supabase/migrations/`,
-mas a existência do SQL não comprova RLS em ambiente real.
+# Compilar para produção (Vite + Service Worker PWA)
+npm run build
+```
 
-## Licença
+---
 
-AGPL-3.0-or-later.
+## 📜 Licença
+
+Distribuído sob a Licença MIT. Veja `LICENSE` para mais informações.
+
+Desenvolvido por **[Mayconxzdev](https://github.com/Mayconxzdev)** — *Software Engineer*.

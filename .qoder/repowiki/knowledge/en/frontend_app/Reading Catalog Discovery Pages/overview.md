@@ -1,1 +1,0 @@
-React route pages that let users browse and paginate through discoverable reading catalogs (books, manga, comics, novels) with search, sort, and genre filters.

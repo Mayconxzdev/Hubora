@@ -1,1 +1,0 @@
-Three React page components that present paginated, filterable catalogs of movies, anime, and doramas by delegating UI to shared SectionPageLayout and SectionToolbar.

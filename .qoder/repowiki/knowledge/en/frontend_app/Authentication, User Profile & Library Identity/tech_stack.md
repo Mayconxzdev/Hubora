@@ -1,1 +1,0 @@
-Supabase Auth client (Google OAuth + email/password) with environment-gated configuration; Cytoscape.js loaded dynamically only on the Connections page; Sonner for toast notifications; React Router v6 (`useSearchParams`, `useNavigate`) for redirect handling.

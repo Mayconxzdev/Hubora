@@ -1,5 +1,0 @@
-- Each catalog page declares its own typed constant arrays (`*_GENRES`, `SORT_OPTIONS`) using `{ value, labelKey: TranslationKey }` entries consumed by `SectionToolbar`.
-- Search input is debounced with a 500 ms `setTimeout` inside a `useEffect` whose cleanup clears the timer before updating the `debouncedQuery` state used as a react-query key.
-- Infinite pagination is wired identically: `useInfiniteQuery` with a string-based `queryKey` prefixed by the catalog name, `initialPageParam: 1`, and a `getNextPageParam` returning `allPages.length + 1` when the last page has items.
-- End-of-list loading is shown by rendering a fixed set of skeleton cards inside the `footer` slot of `SectionPageLayout`, keyed by a `skeleton-footer-${i}` id.
-- Error objects are passed down as `error as Error` to the shared layout rather than handled inline.
