@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: frontend_app/settings_privacy
+title: Settings, Privacy & Terms Pages
+scope:
+    - src/pages/Settings.tsx
+    - src/pages/Privacy.tsx
+    - src/pages/Terms.tsx
+    - src/services/privacy.ts
+source_files: []
+depends_on: []
+related_to: []

@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: frontend_app/shared_infra
+title: shared_infra
+scope:
+    - src/App.tsx
+    - src/main.tsx
+    - src/index.css
+    - src/sw.ts
+source_files: []
+depends_on: []
+related_to: []

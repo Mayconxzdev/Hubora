@@ -17,7 +17,6 @@ import { ScrollToTop } from '@/components/layout/ScrollToTop';
 import { ScrollToTopButton } from '@/components/ui/ScrollToTopButton';
 import { requestPersistentStorage } from '@/lib/db';
 import { CommandPalette } from '@/components/ui/CommandPalette';
-import { ensureAutomaticBackup } from '@/services/automaticBackup';
 import { verifyUserAllowed } from '@/services/accessPolicy';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { notificationService } from '@/services/notifications';
@@ -230,7 +229,7 @@ export default function App() {
 
   useEffect(() => {
     if (!initialized) return;
-    void ensureAutomaticBackup(user).catch((error) => console.warn('Backup automático local falhou:', error));
+    void import('@/services/automaticBackup').then(({ ensureAutomaticBackup }) => ensureAutomaticBackup(user)).catch((error) => console.warn('Backup automático local falhou:', error));
   }, [initialized, user?.uid]);
 
   useEffect(() => {

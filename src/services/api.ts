@@ -978,7 +978,7 @@ export const api = {
       }
 
       const results = await Promise.all(promises);
-      let flatResults = results.flat();
+      const flatResults = results.flat();
 
       // 4. Scoring and Ranking
       const scoredResults = flatResults.map(item => {
@@ -1048,7 +1048,7 @@ export const api = {
 
     const fetchTMDB = async (t: 'movie' | 'tv') => {
       if (!tmdbKey) return null;
-      let url = tmdbUrl(`/search/${t}`, { query: title, language: 'pt-BR', include_adult: forceAdult || !sfw });
+      const url = tmdbUrl(`/search/${t}`, { query: title, language: 'pt-BR', include_adult: forceAdult || !sfw });
       let finalUrl = url;
       if (year) {
         if (t === 'movie') finalUrl = `${url}&year=${year}`;
@@ -1076,7 +1076,7 @@ export const api = {
         const cleanedTitle = title.replace(/\s*-\s*/g, ' ').replace(/[:]/g, '').trim();
         if (cleanedTitle !== title) {
           console.warn(`Busca TMDB falhou. Tentando com título limpo: ${cleanedTitle}...`);
-          let cleanedUrl = tmdbUrl(`/search/${t}`, { query: cleanedTitle, language: 'pt-BR', include_adult: forceAdult || !sfw });
+          const cleanedUrl = tmdbUrl(`/search/${t}`, { query: cleanedTitle, language: 'pt-BR', include_adult: forceAdult || !sfw });
           let finalCleanedUrl = cleanedUrl;
           if (year) {
             if (t === 'movie') finalCleanedUrl = `${cleanedUrl}&year=${year}`;

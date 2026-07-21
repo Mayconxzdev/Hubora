@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: docs_and_decisions
+title: docs_and_decisions
+scope:
+    - docs/
+    - tasks/
+source_files: []
+depends_on: []
+related_to: []

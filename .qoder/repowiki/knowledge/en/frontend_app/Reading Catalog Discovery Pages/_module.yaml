@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: frontend_app/reading_catalog
+title: Reading Catalog Discovery Pages
+scope:
+    - src/pages/Books.tsx
+    - src/pages/Manga.tsx
+    - src/pages/Comics.tsx
+    - src/pages/Novels.tsx
+source_files: []
+depends_on: []
+related_to: []

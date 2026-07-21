@@ -1,0 +1,5 @@
+- Search-mode routing is driven by URL query params (`q`, `scene`, `vibe`, `focus`) read/written through `useSearchParams`, with `classifySearch` deciding which tab to activate before navigation.
+- All natural-language normalization goes through `normalizeText` from `@/services/identity` before any string comparison, ensuring accent-insensitive matching across tag synonyms and marker lists.
+- Each radar branch returns a `RadarCandidate` object carrying `title`, `subtitle`, `confidence`, `reason`, and `source` ('ocr' | 'trace.moe' | 'catalog' | 'link' | 'barcode'), so the caller merges heterogeneous sources without per-source branching.
+- External heavy libraries (Tesseract worker) and non-critical remote calls (trace.moe) are wrapped in try/catch blocks that surface errors as `warnings` rather than failing the whole analysis, keeping the pipeline opportunistic.
+- Client-side scoring functions (`rankCandidates`, `rankQuickPick`) compute numeric scores and human-readable `reasons[]` arrays alongside each result, separating ranking logic from presentation.

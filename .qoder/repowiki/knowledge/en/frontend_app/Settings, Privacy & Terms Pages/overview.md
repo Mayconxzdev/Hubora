@@ -1,0 +1,1 @@
+User-facing pages for account settings (theme, language, adult mode, backups), plus static Privacy and Terms policy screens backed by a local-only privacy helper.

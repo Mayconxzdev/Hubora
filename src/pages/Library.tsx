@@ -69,7 +69,7 @@ export function Library() {
   }, [items]);
   
   const filteredAndSortedItems = useMemo(() => {
-    let result = items.filter((item) => {
+    const result = items.filter((item) => {
       const statusMatch = activeTab === 'all' || item.status === activeTab;
       const mediaMatch = activeMediaFilter === 'all' || item.media.mediaType === activeMediaFilter;
       
@@ -84,7 +84,7 @@ export function Library() {
     });
 
     result.sort((a, b) => {
-      let comparison = 0;
+      let comparison: number;
       switch (sortBy) {
         case 'title':
           comparison = a.media.title.localeCompare(b.media.title);
@@ -92,11 +92,12 @@ export function Library() {
         case 'rating':
           comparison = (a.rating || 0) - (b.rating || 0);
           break;
-        case 'releaseDate':
+        case 'releaseDate': {
           const dateA = a.media.releaseDate ? new Date(a.media.releaseDate).getTime() : 0;
           const dateB = b.media.releaseDate ? new Date(b.media.releaseDate).getTime() : 0;
           comparison = dateA - dateB;
           break;
+        }
         case 'dateAdded':
         default:
           comparison = new Date(a.dateAdded || a.lastUpdated || 0).getTime() - new Date(b.dateAdded || b.lastUpdated || 0).getTime();
@@ -281,33 +282,7 @@ export function Library() {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="min-h-[400px]"
         >
-          {false ? (
-            viewMode === 'grid' ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                {Array(12).fill(0).map((_, i) => (
-                  <div key={`skeleton-${i}`} className="relative">
-                    <MediaCard isLoading={true} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {Array(6).fill(0).map((_, i) => (
-                  <div key={`skeleton-list-${i}`} className="flex items-center gap-5 p-4 bg-slate-900/40 border border-white/5 rounded-3xl">
-                    <div className="w-20 h-28 md:w-24 md:h-36 flex-shrink-0 rounded-2xl overflow-hidden bg-slate-800 animate-pulse" />
-                    <div className="flex-1 min-w-0 py-2 space-y-3">
-                      <div className="h-6 bg-slate-800 rounded-md w-3/4 animate-pulse" />
-                      <div className="flex gap-3">
-                        <div className="h-5 bg-slate-800 rounded-full w-16 animate-pulse" />
-                        <div className="h-5 bg-slate-800 rounded-full w-24 animate-pulse" />
-                      </div>
-                      <div className="h-2 bg-slate-800 rounded-full w-full max-w-md animate-pulse mt-4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-          ) : filteredAndSortedItems.length > 0 ? (
+          {filteredAndSortedItems.length > 0 ? (
             viewMode === 'grid' ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                 {filteredAndSortedItems.map((item) => (

@@ -19,12 +19,11 @@ import { huboraDb } from '@/lib/db';
 
 const XP_THRESHOLDS = [0, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500, 7000, 9000, 12000];
 
-function levelForXp(xp: number): number {
-  let level = 1;
+export function levelForXp(xp: number): number {
   for (let index = XP_THRESHOLDS.length - 1; index >= 0; index -= 1) {
     if (xp >= XP_THRESHOLDS[index]) return index + 1;
   }
-  return level;
+  return 1;
 }
 
 function defaultProfile(authUser: AuthUser): UserProfile {

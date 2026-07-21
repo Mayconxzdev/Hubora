@@ -1,0 +1,4 @@
+- Each catalog page declares its filter options as module-level const arrays of `{ value: string; labelKey: TranslationKey }` named `<SLUG>_GENRES` and `SORT_OPTIONS`, referenced by both the query key and `SectionToolbar` props.
+- Search input is debounced via a 500 ms `useEffect` that writes into a separate `debouncedQuery` state, which alone participates in the react-query `queryKey` to avoid re-fetching on every keystroke.
+- Infinite pagination uses the same pattern: `getNextPageParam` returns `allPages.length + 1` when the last page has items, and a sentinel `<div ref={ref}>` inside the layout's `footer` prop drives `fetchNextPage` through `useInView`.
+- Error and empty states are passed directly to `SectionPageLayout` via `isLoading`/`isError`/`error`/`emptyMessage` props rather than being handled inline in the page component.

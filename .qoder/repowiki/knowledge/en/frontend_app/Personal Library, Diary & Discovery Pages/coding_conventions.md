@@ -1,0 +1,6 @@
+- Pages wrap their content in a `<div className="hub-page">` shell with an `hub-page-header` section that includes an eyebrow icon, title, and subtitle.
+- User-facing strings go through the `t()` translation function using dot-notation keys (e.g. `library.title`, `releases.filter.movies`) rather than inline literals.
+- Derived lists are built with `useMemo` over store slices and filter/sort state, keeping rendering pure and keyed on stable identifiers like `mediaId`.
+- Remote reads use `@tanstack/react-query`'s `useQuery` with a string queryKey and a `staleTime` cache window instead of manual fetch + effect.
+- Local persistence is accessed through repository functions (`localRepository.getConsumptionEvents`, `featureRepository.goals.*`) rather than direct IndexedDB calls.
+- Empty states render a centered `hub-empty-state` block with an icon, headline, and description instead of returning null.

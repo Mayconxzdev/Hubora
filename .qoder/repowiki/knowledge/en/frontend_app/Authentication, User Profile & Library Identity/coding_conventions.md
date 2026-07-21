@@ -1,0 +1,5 @@
+- Service methods wrap every Supabase call in `const { error } = await ...; if (error) throw error;` so callers can use try/catch without checking return objects.
+- Pages gate features off `import.meta.env.VITE_*` flags (e.g. `VITE_ENABLE_EMAIL_LOGIN`, `VITE_ALLOW_PUBLIC_SIGNUP`) rather than hard-coding behavior, and surface errors via `toast.error` plus a visible `<p>` error block.
+- Auth pages consistently wrap content in `AuthLayout` with a `title`/`description` prop and set SEO via `react-helmet-async`'s `<Helmet><title>...</title></Helmet>`.
+- Form inputs pair a `lucide-react` icon absolutely positioned at `left-4 top-1/2 -translate-y-1/2` inside a relative wrapper with `className="pl-11"` on the input.
+- Identity utilities are pure functions exported individually (`normalizeProvider`, `parseProviderIdentity`, `createEntryId`, `findLibraryEntry`) instead of being grouped into a class or single default export.

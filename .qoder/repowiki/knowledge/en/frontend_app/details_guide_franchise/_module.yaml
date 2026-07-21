@@ -1,0 +1,14 @@
+schema_version: 1
+module_path: frontend_app/details_guide_franchise
+title: details_guide_franchise
+scope:
+    - src/pages/Details.tsx
+    - src/pages/Guide.tsx
+    - src/pages/Series.tsx
+    - src/pages/Providers.tsx
+    - src/pages/Sources.tsx
+    - src/pages/AdultVault.tsx
+    - src/services/franchise.ts
+source_files: []
+depends_on: []
+related_to: []

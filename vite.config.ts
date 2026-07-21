@@ -68,7 +68,7 @@ export default defineConfig(() => ({
             'vendor-content': ['react-markdown', 'remark-gfm'],
             'vendor-ui': ['motion', 'lucide-react'],
             'vendor-graph': ['cytoscape'],
-            'vendor-utils': ['date-fns', 'zod', 'papaparse'],
+            'vendor-utils': ['date-fns', 'zod'],
           },
         },
       },
