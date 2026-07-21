@@ -17,6 +17,7 @@ export function Register() {
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
+      localStorage.removeItem('hubora_guest_mode');
       await authService.registerWithEmail(email, password);
       toast.success('Conta criada com sucesso!');
       navigate('/');
@@ -27,8 +28,9 @@ export function Register() {
   };
 
   const handleGuestMode = () => {
+    localStorage.setItem('hubora_guest_mode', 'true');
     toast.success('Modo Visitante ativo! Seus dados serão salvos localmente.');
-    navigate('/');
+    window.location.href = '/';
   };
 
   return (

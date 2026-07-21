@@ -95,12 +95,13 @@ function LoadingFallback() {
 function AuthGate({ children, user, ready, accessApproved }: { children: ReactNode; user: AuthUser | null; ready: boolean; accessApproved: boolean }) {
   const location = useLocation();
   const requireAuth = import.meta.env.VITE_REQUIRE_AUTH !== 'false' && isSupabaseConfigured;
+  const isGuestMode = typeof window !== 'undefined' && localStorage.getItem('hubora_guest_mode') === 'true';
   const publicPaths = ['/login', '/register', '/forgot-password', '/privacy', '/terms'];
   const isPublic = publicPaths.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`));
 
   if (isPublic) return <>{children}</>;
   if (!ready) return <LoadingFallback />;
-  if (!requireAuth) return <>{children}</>;
+  if (!requireAuth || isGuestMode) return <>{children}</>;
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   if (!accessApproved) return <Navigate to="/login?denied=1" replace />;
   return <>{children}</>;
@@ -124,7 +125,7 @@ function AnimatedRoutes() {
           <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
           <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
           <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
-          <Route path="/register" element={import.meta.env.VITE_ALLOW_PUBLIC_SIGNUP === 'true' ? <PageTransition><Register /></PageTransition> : <Navigate to="/login" replace />} />
+          <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
           <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
           <Route path="/movies" element={<PageTransition><Movies /></PageTransition>} />
           <Route path="/series" element={<PageTransition><Series /></PageTransition>} />

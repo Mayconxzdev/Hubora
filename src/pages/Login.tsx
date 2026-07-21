@@ -27,6 +27,7 @@ export function Login() {
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
+      localStorage.removeItem('hubora_guest_mode');
       await authService.loginWithEmail(email, password);
       toast.success('Login realizado com sucesso!');
       navigate('/');
@@ -40,6 +41,7 @@ export function Login() {
     setLoadingGoogle(true);
     setError('');
     try {
+      localStorage.removeItem('hubora_guest_mode');
       await authService.loginWithGoogle();
     } catch (err: any) {
       setError('O login com Google não está habilitado no projeto Supabase atual. Você pode navegar como Visitante ou criar uma conta por e-mail.');
@@ -49,8 +51,9 @@ export function Login() {
   };
 
   const handleGuestMode = () => {
+    localStorage.setItem('hubora_guest_mode', 'true');
     toast.success('Modo Visitante ativo! Seus dados serão salvos localmente.');
-    navigate('/');
+    window.location.href = '/';
   };
 
   return (

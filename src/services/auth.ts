@@ -48,6 +48,7 @@ export const authService = {
   },
 
   logout: async () => {
+    localStorage.removeItem('hubora_guest_mode');
     if (!supabase) return;
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
