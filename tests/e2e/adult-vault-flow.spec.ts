@@ -52,7 +52,7 @@ function observeProviderAdultTitles(page: Page): Set<string> {
   const titles = new Set<string>();
   page.on('response', (response) => {
     const url = response.url();
-    if (!url.includes('api.jikan.moe/v4/anime') && !url.includes('graphql.anilist.co')) return;
+    if (!url.includes('/api/jikan') && !url.includes('graphql.anilist.co')) return;
     void response.json().then((payload: {
       data?: Array<{ title?: string; rating?: string; explicit_genres?: unknown[] }>
         | { Page?: { media?: Array<{ isAdult?: boolean; title?: { english?: string; romaji?: string; native?: string } }> } };

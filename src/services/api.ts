@@ -190,6 +190,21 @@ const setJikanCache = (url: string, data: any) => {
 
 const JIKAN_TIMEOUT_MS = 8_000;
 
+function jikanProxyUrl(url: string): string {
+  const parsed = new URL(url);
+  if (parsed.origin !== 'https://api.jikan.moe' || !parsed.pathname.startsWith('/v4/')) {
+    throw new Error('Rota Jikan inválida');
+  }
+  const proxy = new URL('/api/jikan', window.location.origin);
+  proxy.searchParams.set('path', parsed.pathname.slice('/v4'.length));
+  parsed.searchParams.forEach((value, key) => proxy.searchParams.set(key, value));
+  return `${proxy.pathname}${proxy.search}`;
+}
+
+function isJikanUsable(response: Response): boolean {
+  return response.ok && response.headers.get('x-hubora-provider-status') !== 'unavailable';
+}
+
 async function fetchJikanAttempt(url: string, options?: RequestInit): Promise<Response> {
   const controller = new AbortController();
   const abortFromCaller = () => controller.abort();
@@ -197,7 +212,7 @@ async function fetchJikanAttempt(url: string, options?: RequestInit): Promise<Re
   options?.signal?.addEventListener('abort', abortFromCaller, { once: true });
 
   try {
-    return await fetch(url, {
+    return await fetch(jikanProxyUrl(url), {
       ...options,
       headers: { Accept: 'application/json', ...options?.headers },
       signal: controller.signal,
@@ -242,7 +257,7 @@ const fetchJikan = async (url: string, options?: RequestInit, retries = 1): Prom
             res = await fetchJikanAttempt(url, options);
           }
 
-          if (res.ok) {
+          if (isJikanUsable(res)) {
             const clonedRes = res.clone();
             const data = await clonedRes.json();
             jikanCache.set(url, { data, timestamp: Date.now() });
@@ -542,7 +557,7 @@ export const api = {
       if (query) url += `&q=${encodeURIComponent(query)}`;
 
       const res = await fetchJikan(url, { signal });
-      if (!res.ok) return discoverAnilist(page, 'ANIME', sort, genre, query, signal);
+      if (!isJikanUsable(res)) return discoverAnilist(page, 'ANIME', sort, genre, query, signal);
       const data = await res.json();
       if (data.data && data.data.length > 0) return deduplicateMediaItems(data.data.map(adaptJikanAnime));
       return discoverAnilist(page, 'ANIME', sort, genre, query, signal);
@@ -565,7 +580,7 @@ export const api = {
       if (query) url += `&q=${encodeURIComponent(query)}`;
 
       const res = await fetchJikan(url, { signal });
-      if (!res.ok) return discoverAnilist(page, 'MANGA', sort, genre, query, signal);
+      if (!isJikanUsable(res)) return discoverAnilist(page, 'MANGA', sort, genre, query, signal);
       const data = await res.json();
       if (data.data && data.data.length > 0) return deduplicateMediaItems(data.data.map(adaptJikanManga));
       return discoverAnilist(page, 'MANGA', sort, genre, query, signal);
@@ -698,7 +713,7 @@ export const api = {
     try {
       const sfw = !isAdultAllowed();
       const res = await fetchJikan(`${JIKAN_BASE_URL}/top/anime?limit=10&sfw=${sfw}`);
-      if (!res.ok) return discoverAnilist(1, 'ANIME', 'trending');
+      if (!isJikanUsable(res)) return discoverAnilist(1, 'ANIME', 'trending');
       const data = await res.json();
       if (data.data && data.data.length > 0) return deduplicateMediaItems(data.data.map(adaptJikanAnime));
       return discoverAnilist(1, 'ANIME', 'trending');
@@ -711,7 +726,7 @@ export const api = {
     try {
       const sfw = !isAdultAllowed();
       const res = await fetchJikan(`${JIKAN_BASE_URL}/top/manga?limit=10&sfw=${sfw}`);
-      if (!res.ok) return discoverAnilist(1, 'MANGA', 'trending');
+      if (!isJikanUsable(res)) return discoverAnilist(1, 'MANGA', 'trending');
       const data = await res.json();
       if (data.data && data.data.length > 0) return deduplicateMediaItems(data.data.map(adaptJikanManga));
       return discoverAnilist(1, 'MANGA', 'trending');
@@ -731,9 +746,15 @@ export const api = {
         promises.push(fetch(tmdbUrl('/trending/tv/week', { language: 'pt-BR' })).then((r) => r.json()));
       }
 
-      promises.push(fetchJikan(`${JIKAN_BASE_URL}/top/anime?filter=airing&limit=15&sfw=${sfw}`).then((r) => r.json()));
       promises.push(
-        fetchJikan(`${JIKAN_BASE_URL}/top/manga?filter=publishing&limit=15&sfw=${sfw}`).then((r) => r.json()),
+        fetchJikan(`${JIKAN_BASE_URL}/top/anime?filter=airing&limit=15&sfw=${sfw}`).then(async (r) =>
+          isJikanUsable(r) ? r.json() : discoverAnilist(1, 'ANIME', 'trending'),
+        ),
+      );
+      promises.push(
+        fetchJikan(`${JIKAN_BASE_URL}/top/manga?filter=publishing&limit=15&sfw=${sfw}`).then(async (r) =>
+          isJikanUsable(r) ? r.json() : discoverAnilist(1, 'MANGA', 'trending'),
+        ),
       );
       promises.push(
         fetch(`/api/games/trending`)
@@ -761,7 +782,11 @@ export const api = {
           if (res.value.results) {
             movies.push(...res.value.results.map(adaptTMDBMovie));
           } else if (Array.isArray(res.value)) {
-            games.push(...res.value);
+            const value = res.value as MediaItem[];
+            if (value[0]?.mediaType === 'anime') anime.push(...value);
+            else if (value[0]?.mediaType === 'manga') manga.push(...value);
+            else if (value[0]?.mediaType === 'book' || value[0]?.mediaType === 'novel') books.push(...value);
+            else games.push(...value);
           } else if (res.value.data) {
             anime.push(...res.value.data.map(adaptJikanAnime));
           }
@@ -912,7 +937,7 @@ export const api = {
       const malId = id.replace('mal-anime-', '');
       try {
         const response = await fetchJikan(`${JIKAN_BASE_URL}/anime/${encodeURIComponent(malId)}/full`);
-        if (!response.ok) return null;
+        if (!isJikanUsable(response)) return null;
         const payload = await response.json();
         return payload?.data ? adaptJikanAnime(payload.data) : null;
       } catch (error) {
@@ -925,7 +950,7 @@ export const api = {
       const malId = id.replace('mal-manga-', '');
       try {
         const response = await fetchJikan(`${JIKAN_BASE_URL}/manga/${encodeURIComponent(malId)}/full`);
-        if (!response.ok) return null;
+        if (!isJikanUsable(response)) return null;
         const payload = await response.json();
         return payload?.data ? adaptJikanManga(payload.data) : null;
       } catch (error) {
@@ -1024,7 +1049,7 @@ export const api = {
   getCurrentSeasonAnime: async (_limit = 12): Promise<MediaItem[]> => {
     try {
       const res = await fetchJikan(`${JIKAN_BASE_URL}/seasons/now?limit=12`);
-      if (!res.ok) return [];
+      if (!isJikanUsable(res)) return [];
       const data = await res.json();
       if (data.data) return deduplicateMediaItems(data.data.map(adaptJikanAnime));
       return [];
