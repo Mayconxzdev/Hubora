@@ -10,6 +10,13 @@ function responseStatus(response: Response): string {
   return `erro ${response.status}`;
 }
 
+const PROVIDER_HEADERS = {
+  Accept: 'application/json',
+  // CheapShark rejects some default server fetch clients without an identifier.
+  // This is an identifier only; it does not contain a credential or user data.
+  'User-Agent': 'Hubora/1.0 (+https://hubora.netlify.app)',
+};
+
 async function probe(url: string, options?: RequestInit): Promise<string> {
   try {
     return responseStatus(await fetchWithTimeout(url, options, 5_000));
@@ -64,7 +71,16 @@ async function probeGoogleBooks(): Promise<string> {
   url.searchParams.set('q', 'test');
   url.searchParams.set('maxResults', '1');
   url.searchParams.set('key', key);
-  return probe(url.toString());
+  try {
+    const response = await fetchWithTimeout(url, { headers: PROVIDER_HEADERS }, 5_000);
+    if (response.ok) return 'conectado';
+    // Google uses HTTP 400 for an invalid server key. The fixed probe query
+    // makes this a configuration diagnosis, never a claim about catalog data.
+    if (response.status === 400) return 'credencial inválida ou API não habilitada';
+    return responseStatus(response);
+  } catch (error) {
+    return error instanceof Error && error.name === 'AbortError' ? 'timeout' : 'indisponível';
+  }
 }
 
 async function probeRawg(): Promise<string> {
@@ -95,7 +111,7 @@ export default async function healthFull(_request: Request, _context: Context) {
     probe('https://api.jikan.moe/v4/anime?limit=1'),
     probeGoogleBooks(),
     probe('https://openlibrary.org/search.json?q=test&limit=1'),
-    probe('https://www.cheapshark.com/api/1.0/games?title=test&limit=1'),
+    probe('https://www.cheapshark.com/api/1.0/games?title=test&limit=1', { headers: PROVIDER_HEADERS }),
     probe('https://store.steampowered.com/api/storesearch/?term=test&l=english&cc=US'),
     probe('https://graphql.anilist.co', {
       method: 'POST',

@@ -31,7 +31,6 @@ for (const [name, route] of routes) {
     });
     await expect(page).toHaveTitle(/Hubora/);
     await expect(page.locator('head title')).toHaveCount(1);
-    await expect(page.locator('head title')).toHaveText(/Hubora/);
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
       .analyze();

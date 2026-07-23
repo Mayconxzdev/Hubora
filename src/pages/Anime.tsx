@@ -4,6 +4,7 @@ import { useInView } from 'react-intersection-observer';
 import { api } from '@/services/api';
 import { SectionPageLayout } from '@/components/section/SectionPageLayout';
 import { SectionToolbar } from '@/components/section/SectionToolbar';
+import { SEO } from '@/components/ui/SEO';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
 
@@ -78,6 +79,8 @@ export function Anime() {
   const anime = data ? data.pages.flat() : [];
 
   return (
+    <>
+    <SEO title={t('section.anime.title')} description={t('section.anime.subtitle')} />
     <SectionPageLayout 
       title={t('section.anime.title')}
       subtitle={t('section.anime.subtitle')}
@@ -114,5 +117,6 @@ export function Anime() {
         genreOptions={ANIME_GENRES}
       />
     </SectionPageLayout>
+    </>
   );
 }

@@ -102,7 +102,7 @@ export function Register() {
           <div role="status" className="rounded-xl border border-[color-mix(in_srgb,var(--hub-brand)_40%,var(--hub-border))] bg-[var(--hub-brand-soft)] p-5 text-sm leading-relaxed text-[var(--hub-text)]">
             <strong className="block text-base text-[var(--hub-text-strong)]">Confirme seu e-mail</strong>
             <span className="mt-2 block">Enviamos uma confirmação para <strong>{confirmationEmail}</strong>. Abra a mensagem e depois volte para entrar. Se ela não aparecer, verifique o spam.</span>
-            <Link to="/login" className="mt-4 inline-flex min-h-11 items-center font-bold text-[var(--hub-brand)] hover:underline">Ir para o login</Link>
+            <Link to="/login" className="hub-auth-link mt-4 inline-flex min-h-11 items-center font-bold hover:underline">Ir para o login</Link>
           </div>
         )}
 
@@ -153,7 +153,7 @@ export function Register() {
 
         <p className="mt-7 text-center text-sm text-[var(--hub-muted)]">
           Já usa o Hubora?{' '}
-          <Link to="/login" className="font-bold text-[var(--hub-brand)] hover:underline">
+          <Link to="/login" className="hub-auth-link font-bold hover:underline">
             Entrar
           </Link>
         </p>

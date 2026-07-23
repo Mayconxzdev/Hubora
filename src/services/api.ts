@@ -1,15 +1,11 @@
 import { MediaItem } from '@/types';
 import { useStore } from '@/store/useStore';
-import { calculateHypeScore } from '@/utils/hype';
 import {
   adaptTMDBMovie,
   adaptTMDBTV,
   adaptJikanAnime,
   adaptJikanManga,
   adaptAnilistMedia,
-  TMDBTV,
-  JikanAnime,
-  JikanManga,
   AnilistMedia,
 } from './adapters';
 
@@ -58,9 +54,6 @@ const fetchWithRetry = async (url: string, options?: RequestInit, maxRetries = 3
   throw new Error(`Max retries reached for ${url}`);
 };
 
-// TMDB Configuration
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
-
 function tmdbUrl(path: string, params: Record<string, string | number | boolean | undefined> = {}) {
   const query = new URLSearchParams({ path });
   for (const [key, value] of Object.entries(params)) {
@@ -102,7 +95,6 @@ function stripMarkup(value?: string) {
 
 function adaptTVMazeShow(show: TVMazeShow): MediaItem {
   const country = show.network?.country?.code || show.webChannel?.country?.code;
-  const next = show._embedded?.nextepisode;
   return {
     id: `tvmaze-tv-${show.id}`,
     sourceId: show.id,
@@ -196,7 +188,27 @@ const setJikanCache = (url: string, data: any) => {
   }
 };
 
-const fetchJikan = async (url: string, options?: RequestInit, retries = 2): Promise<Response> => {
+const JIKAN_TIMEOUT_MS = 8_000;
+
+async function fetchJikanAttempt(url: string, options?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const abortFromCaller = () => controller.abort();
+  const timeout = window.setTimeout(() => controller.abort(), JIKAN_TIMEOUT_MS);
+  options?.signal?.addEventListener('abort', abortFromCaller, { once: true });
+
+  try {
+    return await fetch(url, {
+      ...options,
+      headers: { Accept: 'application/json', ...options?.headers },
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timeout);
+    options?.signal?.removeEventListener('abort', abortFromCaller);
+  }
+}
+
+const fetchJikan = async (url: string, options?: RequestInit, retries = 1): Promise<Response> => {
   return new Promise((resolve, reject) => {
     const cachedData = jikanCache.get(url);
     if (cachedData && Date.now() - cachedData.timestamp < JIKAN_CACHE_TTL) {
@@ -224,10 +236,10 @@ const fetchJikan = async (url: string, options?: RequestInit, retries = 2): Prom
       reject,
       task: async () => {
         try {
-          let res = await fetch(url, options);
-          if (res.status === 429 && retries > 0) {
-            await new Promise((r) => setTimeout(r, 1000));
-            res = await fetch(url, options);
+          let res = await fetchJikanAttempt(url, options);
+          if ((res.status === 429 || res.status >= 500) && retries > 0) {
+            await new Promise((r) => setTimeout(r, res.status === 429 ? 1_000 : 500));
+            res = await fetchJikanAttempt(url, options);
           }
 
           if (res.ok) {
@@ -534,7 +546,7 @@ export const api = {
       const data = await res.json();
       if (data.data && data.data.length > 0) return deduplicateMediaItems(data.data.map(adaptJikanAnime));
       return discoverAnilist(page, 'ANIME', sort, genre, query, signal);
-    } catch (e) {
+    } catch {
       return discoverAnilist(page, 'ANIME', sort, genre, query, signal);
     }
   },
@@ -557,7 +569,7 @@ export const api = {
       const data = await res.json();
       if (data.data && data.data.length > 0) return deduplicateMediaItems(data.data.map(adaptJikanManga));
       return discoverAnilist(page, 'MANGA', sort, genre, query, signal);
-    } catch (e) {
+    } catch {
       return discoverAnilist(page, 'MANGA', sort, genre, query, signal);
     }
   },
@@ -655,7 +667,7 @@ export const api = {
         return infoData.deals || [];
       }
       return [];
-    } catch (e) {
+    } catch {
       return [];
     }
   },

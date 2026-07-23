@@ -20,7 +20,7 @@ describe('contrato de detalhes de jogos', () => {
     expect(client).not.toContain("title: 'Jogo Indisponível'");
     expect(client).not.toContain('voteAverage: 9');
     expect(client).not.toContain("genres: ['Ação', 'Aventura']");
-    expect(client).toMatch(/if \(id\.startsWith\('igdb-'\)[\s\S]*?return null;/);
+    expect(client).toMatch(/if \(\s*id\.startsWith\('igdb-'\)[\s\S]*?id\.startsWith\('ftg-'\)[\s\S]*?return null;/);
   });
 
 });

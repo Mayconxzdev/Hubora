@@ -12,9 +12,7 @@ import {
   FileText,
   Gamepad2,
   Bookmark,
-  Heart,
   Calendar,
-  History,
   ShieldCheck,
   Server,
   Cable,
@@ -29,7 +27,6 @@ import {
   Sun,
   LogOut,
   LogIn,
-  ChevronDown,
   Boxes,
   ChevronRight
 } from 'lucide-react';

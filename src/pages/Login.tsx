@@ -145,7 +145,7 @@ export function Login() {
                   <span className="text-xs font-black uppercase tracking-[0.11em] text-[var(--hub-subtle)]">
                     Senha
                   </span>
-                  <Link to="/forgot-password" className="text-xs font-bold text-[var(--hub-brand)] hover:underline">
+                  <Link to="/forgot-password" className="hub-auth-link text-xs font-bold hover:underline">
                     Esqueceu?
                   </Link>
                 </div>
@@ -169,7 +169,7 @@ export function Login() {
 
             <div className="mt-6 text-center text-xs text-[var(--hub-muted)]">
               {allowPublicSignup
-                ? <>Ainda não tem conta?{' '}<Link to="/register" className="font-bold text-[var(--hub-brand)] hover:underline">Criar conta no Hubora</Link></>
+                ? <>Ainda não tem conta?{' '}<Link to="/register" className="hub-auth-link font-bold hover:underline">Criar conta no Hubora</Link></>
                 : 'O cadastro público está desativado nesta instalação.'}
             </div>
           </>

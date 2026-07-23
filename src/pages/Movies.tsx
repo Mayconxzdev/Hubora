@@ -4,6 +4,7 @@ import { useInView } from 'react-intersection-observer';
 import { api } from '@/services/api';
 import { SectionPageLayout } from '@/components/section/SectionPageLayout';
 import { SectionToolbar } from '@/components/section/SectionToolbar';
+import { SEO } from '@/components/ui/SEO';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
 
@@ -87,6 +88,8 @@ export function Movies() {
   const movies = data ? data.pages.flat() : [];
 
   return (
+    <>
+    <SEO title={t('section.movies.title')} description={t('section.movies.subtitle')} />
     <SectionPageLayout 
       title={t('section.movies.title')}
       subtitle={t('section.movies.subtitle')}
@@ -123,5 +126,6 @@ export function Movies() {
         genreOptions={MOVIE_GENRES}
       />
     </SectionPageLayout>
+    </>
   );
 }

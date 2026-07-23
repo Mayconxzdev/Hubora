@@ -116,7 +116,9 @@ function DirectVideo({ source, hls }: { source: string; hls: boolean }) {
       video.src = source;
       setLoading(false);
     } else {
-      void import('hls.js').then((module) => {
+      // The light build retains MSE/HLS playback while keeping this on-demand
+      // player chunk substantially smaller than the full diagnostics build.
+      void import('hls.js/light').then((module) => {
         if (cancelled) return;
         const Hls = module.default;
         if (!Hls.isSupported()) throw new Error('HLS não é compatível neste navegador.');

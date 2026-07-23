@@ -1254,6 +1254,26 @@ html.light .hub-brand-mark {
   border-color: color-mix(in srgb, var(--hub-brand) 52%, transparent);
 }
 
+.hub-auth-link {
+  color: #b8afff;
+}
+
+html.light .hub-auth-link {
+  color: var(--hub-brand-strong);
+}
+
+/* Filled actions and accent text have different contrast requirements. */
+.text-\[var\(--hub-brand\)\],
+.hub-section-eyebrow,
+.hub-provider-mode,
+.hub-recommendation-label {
+  color: var(--hub-brand-readable) !important;
+}
+
+.hub-provider-result-heading > div > span {
+  color: var(--hub-brand-readable) !important;
+}
+
 /* Normalize old neon/purple fragments into the warm cinematic system. */
 .text-purple-300,
 .text-purple-400,
@@ -1575,11 +1595,13 @@ html.light .hub-quick-pick-button {
   --hub-subtle: #92929c;
   --hub-border: rgba(255, 255, 255, 0.09);
   --hub-border-strong: rgba(255, 255, 255, 0.17);
-  --hub-brand: #8c7cff;
-  --hub-brand-strong: #725cff;
+  --hub-brand: #5141a5;
+  --hub-brand-strong: #44368b;
   --hub-brand-soft: rgba(140, 124, 255, 0.14);
-  --hub-brand-contrast: #090812;
-  --hub-accent: #a99eff;
+  --hub-brand-contrast: #ffffff;
+  --hub-brand-readable: #b8afff;
+  --hub-accent: #8173d4;
+  --hub-danger: #b3263a;
   --hub-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.46);
   --hub-shadow-md: 0 18px 48px rgba(0, 0, 0, 0.42);
   --hub-shadow-lg: 0 30px 90px rgba(0, 0, 0, 0.58);
@@ -1606,7 +1628,9 @@ html.light {
   --hub-brand-strong: #4932cd;
   --hub-brand-soft: rgba(93, 69, 232, 0.09);
   --hub-brand-contrast: #ffffff;
+  --hub-brand-readable: #4932cd;
   --hub-accent: #725cff;
+  --hub-danger: #b3263a;
   --hub-shadow-sm: 0 1px 2px rgba(15, 15, 20, 0.04);
   --hub-shadow-md: 0 16px 44px rgba(15, 15, 20, 0.09);
   --hub-shadow-lg: 0 28px 80px rgba(15, 15, 20, 0.14);
