@@ -27,7 +27,11 @@ jobs:
 
   browser-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [desktop-chromium, tablet-chromium, android-chromium]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,4 +44,4 @@ jobs:
       - name: Install authorized E2E media generator
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: npm run build
-      - run: npm run test:e2e
+      - run: npm run test:e2e -- --project=${{ matrix.project }}
