@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { MediaCard } from '@/components/ui/MediaCard';
-import { CalendarDays, Clock, Search } from 'lucide-react';
+import { BellRing, CalendarDays, Clock, Search } from 'lucide-react';
 import { MediaItem } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion } from 'motion/react';
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { useStore } from '@/store/useStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { SEO } from '@/components/ui/SEO';
+import { Button } from '@/components/ui/Button';
 
 type FilterType = 'all' | 'movie' | 'tv' | 'anime' | 'manga' | 'game' | 'book' | 'novel' | 'comic';
 type SourceFilterType = 'all' | 'cinema' | 'streaming';
@@ -41,13 +42,15 @@ const MEDIA_TYPES: Array<{ id: FilterType; label: string }> = [
 
 export function Releases() {
   const { t, language } = useTranslation();
-  const { getLibraryItems } = useStore();
+  const { getLibraryItems, user, updateUser } = useStore();
   const [filter, setFilter] = useState<FilterType>('all');
   const [sourceFilter, setSourceFilter] = useState<SourceFilterType>('all');
   const [timeframe, setTimeframe] = useState<TimeframeType>('month');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [sortBy, setSortBy] = useState<SortType>('date_asc');
   const [searchQuery, setSearchQuery] = useState('');
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(() => typeof Notification === 'undefined' ? 'unsupported' : Notification.permission);
+  const [notificationMessage, setNotificationMessage] = useState('');
   const years = Array.from({ length: 5 }, (_, index) => new Date().getFullYear() - 1 + index);
 
   const { data: releases = [], isLoading } = useQuery<MediaItem[]>({
@@ -96,6 +99,29 @@ export function Releases() {
     return releaseDate.toLocaleDateString(language === 'pt-BR' ? 'pt-BR' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
+  const getReleaseLabel = (item: MediaItem) => {
+    if (!item.releaseDate) return t('releases.soon');
+    const date = parseISO(item.releaseDate);
+    if ((item.mediaType === 'tv' || item.mediaType === 'anime') && date < new Date()) return 'Em exibição';
+    return getCountdownText(item.releaseDate);
+  };
+
+  const requestNotifications = async () => {
+    if (typeof Notification === 'undefined') {
+      setNotificationPermission('unsupported');
+      setNotificationMessage('Este navegador não oferece avisos do sistema. As atualizações continuam no sino do Hubora.');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+    setNotificationMessage(permission === 'granted'
+      ? 'Avisos do sistema ativados. Eles aparecem para novas atualizações enquanto o Hubora estiver aberto.'
+      : permission === 'denied'
+        ? 'A permissão foi negada pelo navegador. Você ainda recebe atualizações no sino do Hubora.'
+        : 'A permissão não foi concluída. Você pode tentar novamente quando quiser.');
+    if (user) updateUser({ preferences: { ...user.preferences, notificationsEnabled: permission === 'granted' } });
+  };
+
   return (
     <div className="hub-page">
       <SEO title={t('releases.title')} description={t('releases.subtitle')} />
@@ -106,7 +132,10 @@ export function Releases() {
           <h1 className="hub-page-title">{t('releases.title')}</h1>
           <p className="hub-page-subtitle">{t('releases.subtitle')}</p>
         </div>
+        <Button variant="outline" onClick={() => void requestNotifications()}><BellRing size={17}/>{notificationPermission === 'granted' ? 'Avisos do navegador ativos' : 'Ativar avisos do navegador'}</Button>
       </header>
+
+      {notificationMessage && <div role="status" aria-label="Permissão de notificações" className="hub-panel p-4 text-sm text-[var(--hub-muted)]">{notificationMessage}</div>}
 
       {upcomingWatchlist.length > 0 && (
         <section className="hub-section">
@@ -129,7 +158,7 @@ export function Releases() {
 
       <section className="hub-panel space-y-3 p-3 sm:p-4">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
-          <label className="relative block min-w-0">
+          <label className="relative block min-w-0"><span className="sr-only">Buscar lançamentos</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--hub-subtle)]" size={18} />
             <Input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={t('releases.search')} className="h-12 rounded-xl pl-11" />
           </label>
@@ -150,10 +179,10 @@ export function Releases() {
 
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" aria-label="Período">
           {TIMEFRAMES.map((item) => (
-            <button key={item.id} className={cn('hub-chip shrink-0', timeframe === item.id && 'border-[color-mix(in_srgb,var(--hub-brand)_45%,var(--hub-border))] bg-[var(--hub-brand-soft)] text-[var(--hub-text-strong)]')} onClick={() => setTimeframe(item.id)}>{item.label}</button>
+            <button key={item.id} aria-pressed={timeframe === item.id} className={cn('hub-chip shrink-0', timeframe === item.id && 'border-[color-mix(in_srgb,var(--hub-brand)_45%,var(--hub-border))] bg-[var(--hub-brand-soft)] text-[var(--hub-text-strong)]')} onClick={() => setTimeframe(item.id)}>{item.label}</button>
           ))}
           {timeframe === 'year' && years.map((year) => (
-            <button key={year} className={cn('hub-chip shrink-0', selectedYear === year && 'border-[color-mix(in_srgb,var(--hub-brand)_45%,var(--hub-border))] bg-[var(--hub-brand-soft)] text-[var(--hub-text-strong)]')} onClick={() => setSelectedYear(year)}>{year}</button>
+            <button key={year} aria-pressed={selectedYear === year} className={cn('hub-chip shrink-0', selectedYear === year && 'border-[color-mix(in_srgb,var(--hub-brand)_45%,var(--hub-border))] bg-[var(--hub-brand-soft)] text-[var(--hub-text-strong)]')} onClick={() => setSelectedYear(year)}>{year}</button>
           ))}
         </div>
       </section>
@@ -170,7 +199,7 @@ export function Releases() {
             return (
               <div key={`${item.mediaType}-${item.id}`} className="relative">
                 <span className={cn('absolute left-2.5 top-2.5 z-10 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] font-black backdrop-blur-xl', soon ? 'border-[color-mix(in_srgb,var(--hub-brand)_45%,transparent)] bg-[var(--hub-brand)] text-[var(--hub-brand-contrast)]' : 'border-white/14 bg-black/68 text-white')}>
-                  {soon && <Clock size={12} />}{item.releaseDate ? getCountdownText(item.releaseDate) : t('releases.soon')}
+                  {soon && <Clock size={12} />}{getReleaseLabel(item)}
                 </span>
                 <MediaCard item={item} />
               </div>

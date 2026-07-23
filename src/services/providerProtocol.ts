@@ -300,30 +300,3 @@ export async function resolveSafeStremioStreams(config: ProviderConfig, type: st
     }
   });
 }
-
-export function getUniversalVideoStreams(imdbId: string, title: string, mediaType: string): MediaAccess[] {
-  if (!imdbId) return [];
-  const typeParam = mediaType === 'movie' ? 'movie' : 'tv';
-  return [
-    {
-      id: `builtin:playimdb:${imdbId}`,
-      label: 'PlayIMDb (Player Principal)',
-      kind: 'embed',
-      embedId: imdbId,
-      url: `https://playimdb.com/embed/${imdbId}`,
-      provider: 'PlayIMDb',
-      free: true,
-      legalNote: 'Resolvedor universal de player externo baseado no ID do IMDb.'
-    },
-    {
-      id: `builtin:vidsrc:${imdbId}`,
-      label: 'Vidsrc (Multi-fontes Alternativo)',
-      kind: 'embed',
-      embedId: imdbId,
-      url: `https://vidsrc.to/embed/${typeParam}/${imdbId}`,
-      provider: 'Vidsrc',
-      free: true,
-      legalNote: 'Resolvedor multi-fontes baseado no ID do IMDb.'
-    }
-  ];
-}

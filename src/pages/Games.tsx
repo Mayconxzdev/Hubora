@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
-import { Gamepad2, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Gamepad2 } from 'lucide-react';
 import { api } from '@/services/api';
 import { SectionPageLayout } from '@/components/section/SectionPageLayout';
 import { SectionToolbar } from '@/components/section/SectionToolbar';
@@ -28,6 +29,7 @@ const SORT_OPTIONS: { value: string; labelKey: TranslationKey }[] = [
 
 export function Games() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [sort, setSort] = useState('-rating');
   const [genre, setGenre] = useState('');
   const [query, setQuery] = useState('');
@@ -80,6 +82,7 @@ export function Games() {
         <Button
           variant="outline"
           className="gap-2 border-purple-500/30 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 rounded-xl"
+          onClick={() => navigate('/sources?q=jogo')}
         >
           <Gamepad2 size={16} />
           <span>Gestão Manual & Lojas</span>

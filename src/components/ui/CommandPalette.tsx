@@ -1,22 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, BarChart3, BookOpen, CalendarDays, Compass, Gamepad2, Library, ScrollText, Search, Settings, Server, Shield, Tv } from 'lucide-react';
+import { Activity, BarChart3, CalendarDays, Compass, Library, Search, Settings, Server, Shield } from 'lucide-react';
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { CATEGORY_NAVIGATION } from '@/config/navigation';
 
 const ACTIONS = [
   { label: 'Buscar em todo o Hubora', path: '/discover', icon: Search, keywords: 'buscar pesquisar título vibe' },
   { label: 'Radar por print, cena, link ou vídeo', path: '/radar', icon: Activity, keywords: 'print imagem cena link vídeo identificar' },
   { label: 'Biblioteca', path: '/library', icon: Library, keywords: 'lista progresso backlog' },
   { label: 'Lançamentos', path: '/releases', icon: CalendarDays, keywords: 'episódio temporada capítulo volume estreia' },
-  { label: 'Filmes', path: '/movies', icon: Tv, keywords: 'cinema filme' },
-  { label: 'Séries', path: '/series', icon: Tv, keywords: 'episódio temporada série' },
-  { label: 'Doramas', path: '/doramas', icon: Tv, keywords: 'dorama coreano japonês chinês' },
-  { label: 'Animes', path: '/anime', icon: Compass, keywords: 'anime episódio' },
-  { label: 'Mangás', path: '/manga', icon: BookOpen, keywords: 'manga capítulo volume' },
-  { label: 'Quadrinhos', path: '/comics', icon: BookOpen, keywords: 'comic hq edição' },
-  { label: 'Livros', path: '/books', icon: BookOpen, keywords: 'livro leitura epub pdf' },
-  { label: 'Novels', path: '/novels', icon: ScrollText, keywords: 'novel light novel webnovel fanfic capítulos leitura' },
-  { label: 'Jogos', path: '/games', icon: Gamepad2, keywords: 'game jogar backlog' },
+  ...CATEGORY_NAVIGATION.map(({ label, path, icon, keywords }) => ({ label, path, icon, keywords })),
   { label: 'Fontes e provedores', path: '/providers', icon: Server, keywords: 'provedores autorizações saúde stremio jellyfin livros jogos' },
   { label: 'Conteúdo gratuito', path: '/sources', icon: Server, keywords: 'google books gutenberg open library arquivos gratuitos' },
   { label: 'Insights pessoais', path: '/insights', icon: BarChart3, keywords: 'wrapped metas estatísticas conexões' },

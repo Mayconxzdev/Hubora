@@ -5,6 +5,7 @@ import { api } from '@/services/api';
 import { getOpenLibraryArchiveAccess } from '@/services/apiBookService';
 import { createHuboraBackup, parseHuboraBackup } from '@/services/backup';
 import { safeReaderSource } from '@/pages/Reader';
+import { CATEGORY_NAVIGATION } from '@/config/navigation';
 import type { UserMediaEntry } from '@/types';
 
 afterEach(() => {
@@ -15,7 +16,9 @@ describe('Novels como domínio próprio', () => {
   it('possui página, rota e navegação próprias', () => {
     expect(existsSync(resolve(process.cwd(), 'src/pages/Novels.tsx'))).toBe(true);
     expect(readFileSync(resolve(process.cwd(), 'src/App.tsx'), 'utf8')).toMatch(/path="\/novels"/);
-    expect(readFileSync(resolve(process.cwd(), 'src/components/layout/Sidebar.tsx'), 'utf8')).toMatch(/Novels.*\/novels/);
+    expect(CATEGORY_NAVIGATION).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'novels', label: 'Novels', path: '/novels' }),
+    ]));
   });
 
   it('descobre novels sem reclassificá-las como livros', async () => {

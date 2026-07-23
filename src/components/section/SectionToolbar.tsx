@@ -21,6 +21,7 @@ export function SectionToolbar({ searchQuery, onSearchChange, sortValue, onSortC
   return (
     <div className="hub-toolbar">
       <label className="relative block min-w-0">
+        <span className="sr-only">Pesquisar nesta categoria</span>
         <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--hub-subtle)]" size={18} />
         <input
           type="search"

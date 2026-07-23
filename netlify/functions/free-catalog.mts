@@ -50,14 +50,14 @@ async function openLibrary(query: string): Promise<Item[]> {
   return (data.docs || []).map((doc) => {
     const ia = Array.isArray(doc.ia) ? doc.ia[0] : undefined;
     const access: Item['access'] = [];
-    if (ia) access.push({ kind: 'embed', label: 'Ler no Internet Archive', url: `https://archive.org/embed/${encodeURIComponent(ia)}`, free: true });
+    if (ia && doc.public_scan_b) access.push({ kind: 'embed', label: 'Ler no Internet Archive', url: `https://archive.org/embed/${encodeURIComponent(ia)}`, free: true });
     access.push({ kind: 'official-link', label: 'Abrir Open Library', url: `https://openlibrary.org${doc.key}`, free: Boolean(doc.public_scan_b) });
     return { id: `ol:${doc.key}`, source: 'Open Library', mediaType: 'book', title: doc.title || 'Sem título', authors: doc.author_name || [], image: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : undefined, year: doc.first_publish_year ? String(doc.first_publish_year) : undefined, access };
   });
 }
 
 async function gutenberg(query: string): Promise<Item[]> {
-  const response = await fetchWithTimeout(`https://www.gutenberg.org/ebooks/search.opds/?query=${encodeURIComponent(query)}`, { headers: { 'user-agent': 'Hubora/7.0 (personal media organizer)' } }, 9_000);
+  const response = await fetchWithTimeout(`https://www.gutenberg.org/ebooks/search.opds/?query=${encodeURIComponent(query)}`, { headers: { 'user-agent': 'Hubora/9.0.2 (personal media organizer)' } }, 9_000);
   if (!response.ok) return [];
   const xml = await response.text();
   return Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/gi)).slice(0, 20).map((match) => {
@@ -94,10 +94,10 @@ async function internetArchiveMovies(query: string): Promise<Item[]> {
     output: 'json',
     sort: 'downloads desc',
   });
-  for (const field of ['identifier', 'title', 'creator', 'date', 'description', 'licenseurl', 'rights', 'downloads']) {
+  for (const field of ['identifier', 'title', 'creator', 'date', 'description', 'licenseurl', 'rights', 'collection', 'downloads']) {
     params.append('fl[]', field);
   }
-  const response = await fetchWithTimeout(`https://archive.org/advancedsearch.php?${params.toString()}`, { headers: { 'user-agent': 'Hubora/7.0 (personal media organizer)' } }, 10_000);
+  const response = await fetchWithTimeout(`https://archive.org/advancedsearch.php?${params.toString()}`, { headers: { 'user-agent': 'Hubora/9.0.2 (personal media organizer)' } }, 10_000);
   if (!response.ok) return [];
   const data = await response.json() as { response?: { docs?: Array<Record<string, any>> } };
   return (data.response?.docs || []).flatMap((doc) => {
@@ -106,6 +106,20 @@ async function internetArchiveMovies(query: string): Promise<Item[]> {
     const creator = Array.isArray(doc.creator) ? doc.creator.map(String) : doc.creator ? [String(doc.creator)] : [];
     const year = Array.isArray(doc.date) ? String(doc.date[0] || '') : String(doc.date || '');
     const page = `https://archive.org/details/${encodeURIComponent(identifier)}`;
+    const licenseText = [doc.licenseurl, doc.rights]
+      .flatMap((value) => Array.isArray(value) ? value : value ? [value] : [])
+      .map(String)
+      .join(' ')
+      .toLowerCase();
+    const hasOpenLicense = /creativecommons\.org|public domain|cc0|no known copyright restrictions/.test(licenseText);
+    const access: Item['access'] = hasOpenLicense
+      ? [
+          { kind: 'embed', label: 'Assistir no Hubora', url: `https://archive.org/embed/${encodeURIComponent(identifier)}`, free: true },
+          { kind: 'official-link', label: 'Abrir item e licença', url: page, free: true },
+        ]
+      : [
+          { kind: 'official-link', label: 'Verificar acesso e licença na origem', url: page, free: false },
+        ];
     return [{
       id: `archive:${identifier}`,
       source: 'Internet Archive',
@@ -115,10 +129,7 @@ async function internetArchiveMovies(query: string): Promise<Item[]> {
       description: stripHtml(Array.isArray(doc.description) ? String(doc.description[0] || '') : String(doc.description || doc.rights || '')),
       image: `https://archive.org/services/img/${encodeURIComponent(identifier)}`,
       year: year || undefined,
-      access: [
-        { kind: 'embed', label: 'Assistir no Hubora', url: `https://archive.org/embed/${encodeURIComponent(identifier)}`, free: true },
-        { kind: 'official-link', label: 'Abrir item e licença', url: page, free: true },
-      ],
+      access,
     }];
   });
 }

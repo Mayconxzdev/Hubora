@@ -20,6 +20,7 @@ import { CommandPalette } from '@/components/ui/CommandPalette';
 import { verifyUserAllowed } from '@/services/accessPolicy';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { notificationService } from '@/services/notifications';
+import { accessConfiguration } from '@/config/access';
 
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import type { AuthUser } from '@/types';
@@ -58,6 +59,7 @@ const Providers = lazy(() => import('@/pages/Providers').then(m => ({ default: m
 const Reader = lazy(() => import('@/pages/Reader').then(m => ({ default: m.Reader })));
 const Player = lazy(() => import('@/pages/Player').then(m => ({ default: m.Player })));
 const Insights = lazy(() => import('@/pages/Insights').then(m => ({ default: m.Insights })));
+const NotFound = lazy(() => import('@/pages/NotFound').then(m => ({ default: m.NotFound })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,21 +88,26 @@ const persister = createAsyncStoragePersister({
 
 function LoadingFallback() {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-[color-mix(in_srgb,var(--hub-brand)_28%,transparent)] border-t-[var(--hub-brand)] rounded-full animate-spin" />
+    <div role="status" aria-live="polite" className="min-h-[calc(100vh-var(--hub-header-height))] flex flex-col items-center justify-center gap-4 text-sm font-bold text-[var(--hub-muted)]">
+      <div aria-hidden="true" className="h-12 w-12 animate-spin rounded-full border-4 border-[color-mix(in_srgb,var(--hub-brand)_28%,transparent)] border-t-[var(--hub-brand)]" />
+      <span>Carregando esta área…</span>
     </div>
   );
 }
 
 function AuthGate({ children, user, ready, accessApproved }: { children: ReactNode; user: AuthUser | null; ready: boolean; accessApproved: boolean }) {
   const location = useLocation();
-  const strictPrivateInstallation = import.meta.env.VITE_REQUIRE_AUTH === 'true';
+  const { requireAuthentication } = accessConfiguration();
+  const authenticationRoute = ['/login', '/register', '/forgot-password'].some((path) =>
+    location.pathname === path || location.pathname.startsWith(`${path}/`),
+  );
 
   if (!ready) return <LoadingFallback />;
-  if (strictPrivateInstallation && user && !accessApproved) {
-    if (location.pathname !== '/login') {
-      return <Navigate to="/login?denied=1" replace />;
-    }
+  if (requireAuthentication && !user && !authenticationRoute) {
+    return <Navigate to="/login" replace />;
+  }
+  if (requireAuthentication && user && !accessApproved && location.pathname !== '/login') {
+    return <Navigate to="/login?denied=1" replace />;
   }
 
   return <>{children}</>;
@@ -140,15 +147,13 @@ function AnimatedRoutes() {
           <Route path="/wrapped" element={<PageTransition><Wrapped /></PageTransition>} />
           <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
           <Route path="/connections" element={<PageTransition><Connections /></PageTransition>} />
-          <Route path="/personal-media" element={<Navigate to="/sources" replace />} />
           <Route path="/vault" element={<PageTransition><AdultVault /></PageTransition>} />
           <Route path="/sources" element={<PageTransition><Sources /></PageTransition>} />
           <Route path="/providers" element={<PageTransition><Providers /></PageTransition>} />
           <Route path="/reader" element={<PageTransition><Reader /></PageTransition>} />
           <Route path="/player" element={<PageTransition><Player /></PageTransition>} />
           <Route path="/insights" element={<PageTransition><Insights /></PageTransition>} />
-          <Route path="/community" element={<Navigate to="/" replace />} />
-          <Route path="/duo" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
         </Routes>
       </AnimatePresence>
     </Suspense>
@@ -162,7 +167,7 @@ function AppChrome({ children }: { children: ReactNode }) {
   );
 
   if (authOnly) {
-    return <main className="min-h-screen p-3 sm:p-6">{children}</main>;
+    return <div className="min-h-screen p-3 sm:p-6"><a className="hub-skip-link" href="#hub-auth-content">Pular para o formulário</a>{children}</div>;
   }
 
   return (
@@ -217,7 +222,7 @@ export default function App() {
         await setUser(approved ? authUser : null);
         if (active && request === sequence) setAuthResolved(true);
       })().catch(async (error) => {
-        console.warn('Falha ao validar a sessão privada:', error);
+        console.warn('Falha ao validar a sessão:', error);
         if (!active || request !== sequence) return;
         setAccessApproved(false);
         await setUser(null);
@@ -279,13 +284,13 @@ export default function App() {
         <MotionConfig reducedMotion="user">
         <Router>
           <ScrollToTop />
-          <AuthGate user={sessionUser} ready={authResolved} accessApproved={accessApproved}>
-            <AppChrome>
+          <AppChrome>
+            <AuthGate user={sessionUser} ready={authResolved} accessApproved={accessApproved}>
               <ErrorBoundary>
                 <AnimatedRoutes />
               </ErrorBoundary>
-            </AppChrome>
-          </AuthGate>
+            </AuthGate>
+          </AppChrome>
         </Router>
         </MotionConfig>
         <Toaster theme={theme === 'light' ? 'light' : 'dark'} position="bottom-right" />

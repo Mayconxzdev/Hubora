@@ -1,13 +1,39 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+function buildMetadataPlugin(): Plugin {
+  const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')) as {
+    name: string;
+    version: string;
+  };
+  const commit = process.env.COMMIT_REF
+    || process.env.GITHUB_SHA
+    || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const metadata = JSON.stringify({
+    name: packageJson.name,
+    version: packageJson.version,
+    commit,
+    builtAt: new Date().toISOString(),
+  }, null, 2);
+
+  return {
+    name: 'hubora-build-metadata',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'build-meta.json', source: metadata });
+    },
+  };
+}
 
 export default defineConfig(() => ({
     plugins: [
       react(), 
       tailwindcss(),
+      buildMetadataPlugin(),
       VitePWA({
         strategies: 'injectManifest',
         srcDir: 'src',

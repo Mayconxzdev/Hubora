@@ -1,23 +1,16 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { configuredAllowedEmails, isUserAllowed } from '@/services/accessPolicy';
+import { describe, expect, it } from 'vitest';
+import { isUserAllowed, verifyUserAllowed } from '@/services/accessPolicy';
 
 const user = { uid: 'u1', email: 'maycon@example.com' };
 
-afterEach(() => {
-  vi.unstubAllEnvs();
-});
-
-describe('política de acesso privado', () => {
-  it('permite somente e-mails presentes na allowlist quando configurada', () => {
-    vi.stubEnv('VITE_ALLOWED_EMAILS', ' MAYCON@example.com, amigo@example.com ');
-    expect(configuredAllowedEmails()).toEqual(['maycon@example.com', 'amigo@example.com']);
+describe('política de acesso público', () => {
+  it('permite qualquer conta autenticada, sem allowlist no bundle', async () => {
     expect(isUserAllowed(user)).toBe(true);
-    expect(isUserAllowed({ uid: 'u2', email: 'outra@example.com' })).toBe(false);
+    expect(await verifyUserAllowed({ uid: 'u2', email: 'outra@example.com' })).toBe(true);
   });
 
-  it('permite qualquer conta autenticada quando a allowlist estiver vazia', () => {
-    vi.stubEnv('VITE_ALLOWED_EMAILS', '');
-    expect(isUserAllowed(user)).toBe(true);
-    expect(isUserAllowed({ uid: 'u2' })).toBe(false);
+  it('recusa somente uma sessão sem identificador autenticado', async () => {
+    expect(isUserAllowed({ uid: 'u2' })).toBe(true);
+    expect(await verifyUserAllowed(null)).toBe(false);
   });
 });

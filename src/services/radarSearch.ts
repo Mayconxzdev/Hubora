@@ -18,22 +18,77 @@ export interface RadarImageResult {
   warnings: string[];
 }
 
-export async function recognizeText(file: File, onProgress?: (value: number) => void): Promise<string> {
+export interface RadarOcrBatchResult {
+  texts: string[];
+  warnings: string[];
+}
+
+function rejectAfter<T>(milliseconds: number, message: string): Promise<T> {
+  return new Promise((_, reject) => {
+    window.setTimeout(() => reject(new Error(message)), milliseconds);
+  });
+}
+
+async function createOcrSession(onProgress?: (fileIndex: number, value: number) => void) {
   const { createWorker } = await import('tesseract.js');
-  const worker = await createWorker(['por', 'eng'], 1, {
+  let currentFileIndex = 0;
+  let rejectWorkerError: (error: Error) => void = () => undefined;
+  const workerError = new Promise<never>((_, reject) => { rejectWorkerError = reject; });
+  const workerPromise = createWorker(['por', 'eng'], 1, {
     logger: (message) => {
-      if (message.status === 'recognizing text' && typeof message.progress === 'number') onProgress?.(message.progress);
+      if (message.status === 'recognizing text' && typeof message.progress === 'number') onProgress?.(currentFileIndex, message.progress);
     },
+    errorHandler: (error) => rejectWorkerError(error instanceof Error ? error : new Error(String(error))),
   });
   try {
-    const result = await worker.recognize(file, { rotateAuto: true });
-    return result.data.text.replace(/\s+/g, ' ').trim();
-  } finally {
-    await worker.terminate();
+    const worker = await Promise.race([
+      workerPromise,
+      workerError,
+      rejectAfter<never>(45_000, 'O mecanismo de OCR demorou demais para iniciar.'),
+    ]);
+    return {
+      worker,
+      workerError,
+      setCurrentFileIndex: (index: number) => { currentFileIndex = index; },
+    };
+  } catch (error) {
+    void workerPromise.then((lateWorker) => lateWorker.terminate()).catch(() => undefined);
+    throw error;
   }
 }
 
-async function searchCatalogFromText(text: string): Promise<RadarCandidate[]> {
+export async function recognizeTexts(files: File[], onProgress?: (fileIndex: number, value: number) => void): Promise<RadarOcrBatchResult> {
+  const session = await createOcrSession(onProgress);
+  const texts: string[] = [];
+  const warnings: string[] = [];
+  try {
+    for (let index = 0; index < files.length; index += 1) {
+      session.setCurrentFileIndex(index);
+      try {
+        const result = await Promise.race([
+          session.worker.recognize(files[index], { rotateAuto: true }),
+          session.workerError,
+          rejectAfter<never>(45_000, `A leitura da imagem ${index + 1} excedeu o tempo seguro.`),
+        ]);
+        texts.push(result.data.text.replace(/\s+/g, ' ').trim());
+      } catch (error) {
+        texts.push('');
+        warnings.push(`Imagem ${index + 1}: ${error instanceof Error ? error.message : 'OCR indisponível'}`);
+      }
+    }
+    return { texts, warnings };
+  } finally {
+    await session.worker.terminate();
+  }
+}
+
+export async function recognizeText(file: File, onProgress?: (value: number) => void): Promise<string> {
+  const response = await recognizeTexts([file], (_index, value) => onProgress?.(value));
+  if (response.warnings.length > 0) throw new Error(response.warnings[0].replace(/^Imagem 1:\s*/, ''));
+  return response.texts[0] || '';
+}
+
+export async function searchCatalogFromText(text: string): Promise<RadarCandidate[]> {
   const cleaned = text
     .replace(/[@#][\w.-]+/g, ' ')
     .replace(/https?:\/\/\S+/g, ' ')
@@ -63,7 +118,7 @@ async function searchCatalogFromText(text: string): Promise<RadarCandidate[]> {
   }));
 }
 
-async function searchAnimeFrame(file: File): Promise<RadarCandidate[]> {
+export async function searchAnimeFrame(file: File): Promise<RadarCandidate[]> {
   const body = new FormData();
   body.append('image', file);
   const response = await fetch('https://api.trace.moe/search?anilistInfo', { method: 'POST', body });

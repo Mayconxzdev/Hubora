@@ -28,8 +28,6 @@ const STATUS_LABELS: Record<string, string> = {
   dropped: 'Abandonado',
 };
 
-import { getMediaPresentationContract } from '@/services/mediaPresentation';
-
 const TYPE_LABELS: Record<string, string> = {
   movie: 'Filme',
   tv: 'Série',
@@ -169,7 +167,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({ item, aspect = 'poster', i
         </div>
 
         <Link to={`/details/${item.id}`} className="block hub-media-meta">
-          <h3 className="hub-media-title" title={title}>{title}</h3>
+          <h2 className="hub-media-title text-[0.95rem] font-bold leading-tight tracking-tight text-[var(--hub-text-strong)]" title={title}>{title}</h2>
           <div className="hub-media-subtitle">
             <span>{TYPE_LABELS[item.mediaType]}</span>
             {year && <><span aria-hidden="true">•</span><span>{year}</span></>}

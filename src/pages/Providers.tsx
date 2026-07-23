@@ -11,6 +11,7 @@ import {
   Search,
   Server,
   ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
@@ -19,6 +20,41 @@ import { MODE_LABELS, PROVIDER_CATALOG, PROVIDER_CATEGORIES } from '@/data/provi
 import type { ProviderCatalogEntry, ProviderCategory } from '@/types';
 
 type CategoryFilter = 'all' | ProviderCategory;
+
+interface ProviderHealthSnapshot {
+  tmdb?: string;
+  jikan?: string;
+  googleBooks?: string;
+  openLibrary?: string;
+  cheapshark?: string;
+  steam?: string;
+  anilist?: string;
+  supabase?: string;
+  igdb?: string;
+  rawg?: string;
+  checkedAt?: string;
+  cached?: string;
+}
+
+interface DeploymentConfigSnapshot {
+  ready: boolean;
+  missingRequired: string[];
+  missingRecommended: string[];
+  checkedAt?: string;
+  note?: string;
+}
+
+const HEALTH_KEYS: Partial<Record<string, keyof ProviderHealthSnapshot>> = {
+  tmdb: 'tmdb',
+  jikan: 'jikan',
+  'google-books': 'googleBooks',
+  'open-library': 'openLibrary',
+  cheapshark: 'cheapshark',
+  steam: 'steam',
+  anilist: 'anilist',
+  igdb: 'igdb',
+  rawg: 'rawg',
+};
 
 const MODE_ICONS = {
   metadata: Database,
@@ -49,6 +85,32 @@ export function Providers() {
       : 'all',
   );
   const [featuredOnly, setFeaturedOnly] = useState(false);
+  const [health, setHealth] = useState<ProviderHealthSnapshot | null>(null);
+  const [deploymentConfig, setDeploymentConfig] = useState<DeploymentConfigSnapshot | null>(null);
+  const [healthLoading, setHealthLoading] = useState(false);
+  const [healthError, setHealthError] = useState('');
+
+  const verifyHealth = async () => {
+    setHealthLoading(true);
+    setHealthError('');
+    try {
+      const [healthResponse, configResponse] = await Promise.all([
+        fetch('/api/health/full'),
+        fetch('/api/health/config'),
+      ]);
+      if (!healthResponse.ok || !configResponse.ok) throw new Error('health unavailable');
+      const [healthPayload, configPayload] = await Promise.all([
+        healthResponse.json() as Promise<ProviderHealthSnapshot>,
+        configResponse.json() as Promise<DeploymentConfigSnapshot>,
+      ]);
+      setHealth(healthPayload);
+      setDeploymentConfig(configPayload);
+    } catch {
+      setHealthError('Não foi possível verificar as integrações agora. O diretório continua disponível.');
+    } finally {
+      setHealthLoading(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase('pt-BR');
@@ -87,16 +149,27 @@ export function Providers() {
           <h1 className="hub-page-title">Fontes e provedores</h1>
           <p className="hub-page-subtitle">Consulte o que está apenas mapeado, o que exige configuração e como cada fonte pode ser acessada. Presença neste diretório não comprova integração.</p>
         </div>
-        <Button variant="outline" onClick={() => navigate('/sources')}><Search size={17} /> Buscar conteúdo gratuito</Button>
+        <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => void verifyHealth()} disabled={healthLoading}><RefreshCw size={17} className={healthLoading ? 'animate-spin' : ''}/> {healthLoading ? 'Verificando...' : 'Verificar integrações ativas'}</Button><Button variant="outline" onClick={() => navigate('/sources')}><Search size={17} /> Buscar conteúdo gratuito</Button></div>
       </header>
 
+      {health && <div role="status" aria-label="Última verificação de provedores" className="hub-panel p-4 text-sm text-[var(--hub-muted)]"><strong className="text-[var(--hub-text-strong)]">Verificação concluída.</strong> {health.checkedAt ? `Última verificação: ${new Date(health.checkedAt).toLocaleString('pt-BR')}.` : ''} {health.cached === 'sim' ? 'Resultado recente reutilizado.' : 'Consultas executadas agora.'}</div>}
+      {deploymentConfig && (
+        <div role={deploymentConfig.ready ? 'status' : 'alert'} className={`hub-panel p-4 text-sm ${deploymentConfig.ready ? 'border-emerald-500/25 bg-emerald-500/8 text-emerald-200' : 'border-amber-500/25 bg-amber-500/8 text-amber-200'}`}>
+          <strong className="block text-[var(--hub-text-strong)]">{deploymentConfig.ready ? 'Variáveis essenciais configuradas.' : 'Configuração de produção incompleta.'}</strong>
+          {deploymentConfig.missingRequired.length > 0 && <span className="mt-1 block">Faltam: {deploymentConfig.missingRequired.join(', ')}.</span>}
+          {deploymentConfig.missingRecommended.length > 0 && <span className="mt-1 block">Recomendadas: {deploymentConfig.missingRecommended.join(', ')}.</span>}
+          {deploymentConfig.note && <span className="mt-1 block text-xs opacity-80">{deploymentConfig.note}</span>}
+        </div>
+      )}
+      {healthError && <div role="alert" className="hub-panel border-red-500/25 bg-red-500/8 p-4 text-sm text-red-300">{healthError}</div>}
+
       <section className="hub-provider-controls">
-        <div className="hub-provider-search"><Search size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar fonte, categoria ou capacidade..." /></div>
-        <button className={featuredOnly ? 'is-active' : ''} onClick={() => setFeaturedOnly((value) => !value)}><Filter size={16} /> Prioritárias</button>
+        <div className="hub-provider-search"><Search size={18} /><input aria-label="Buscar provedores" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar fonte, categoria ou capacidade..." /></div>
+        <button aria-pressed={featuredOnly} className={featuredOnly ? 'is-active' : ''} onClick={() => setFeaturedOnly((value) => !value)}><Filter size={16} /> Prioritárias</button>
       </section>
 
       <nav className="hub-provider-categories scrollbar-hide" aria-label="Filtrar fontes por categoria">
-        {PROVIDER_CATEGORIES.map((item) => <button key={item.id} className={category === item.id ? 'is-active' : ''} onClick={() => setCategory(item.id)}><span>{item.label}</span><small>{categoryCounts[item.id]}</small></button>)}
+        {PROVIDER_CATEGORIES.map((item) => <button key={item.id} aria-pressed={category === item.id} className={category === item.id ? 'is-active' : ''} onClick={() => setCategory(item.id)}><span>{item.label}</span><small>{categoryCounts[item.id]}</small></button>)}
       </nav>
 
       <div className="hub-provider-result-heading">
@@ -108,12 +181,15 @@ export function Providers() {
         {filtered.map((entry) => {
           const Icon = MODE_ICONS[entry.mode];
           const noLogin = entry.auth === 'none';
+          const healthKey = HEALTH_KEYS[entry.id];
+          const observedHealth = healthKey && health ? health[healthKey] : undefined;
           return <article key={entry.id} className="hub-provider-card">
             <div className="hub-provider-card-top">
               <span className="hub-provider-card-icon"><Icon size={21} /></span>
               <span className="hub-provider-status"><KeyRound size={13} />{noLogin ? 'Sem login' : entry.auth === 'account' ? 'Exige conta' : 'Configuração'}</span>
             </div>
             <div><span className="hub-provider-mode">{MODE_LABELS[entry.mode]}</span><h3>{entry.name}</h3><p>{entry.description}</p></div>
+            <p className="text-xs text-[var(--hub-subtle)]">{observedHealth ? `Verificado: ${observedHealth}.` : health ? 'Não verificado nesta instalação; cadastro de diretório.' : 'Ainda não verificado nesta sessão.'}</p>
             <div className="hub-provider-tags">{entry.categories.slice(0, 4).map((item) => <span key={item}>{PROVIDER_CATEGORIES.find((categoryItem) => categoryItem.id === item)?.label}</span>)}</div>
             <div className="hub-provider-card-footer">
               <span>{entry.free === true ? 'Grátis' : entry.free === 'partial' ? 'Grátis parcial' : 'Pago'}</span>

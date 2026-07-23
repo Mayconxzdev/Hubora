@@ -24,4 +24,9 @@ describe('backup portátil', () => {
   it('rejeita dados sem identidade e mídia válidas', () => {
     expect(() => parseHuboraBackup({ format: 'hubora-backup', version: 2, exportedAt: 'x', user: null, library: [{}], customLists: [], consumptionEvents: [] })).toThrow();
   });
+
+  it('não converte JSON arbitrário em backup legado vazio', () => {
+    expect(() => parseHuboraBackup({ invalid: true })).toThrow(/biblioteca legada/i);
+    expect(() => parseHuboraBackup({ library: [] })).toThrow(/biblioteca legada/i);
+  });
 });

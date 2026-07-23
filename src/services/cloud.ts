@@ -21,6 +21,21 @@ function timestamp(value: unknown): number {
 export const cloudService = {
   isConfigured: isSupabaseConfigured,
 
+  clearUserData: async (userId: string) => {
+    if (!supabase) return;
+    const operations = [
+      supabase.from('notifications').delete().eq('user_id', userId),
+      supabase.from('release_subscriptions').delete().eq('user_id', userId),
+      supabase.from('consumption_events').delete().eq('user_id', userId),
+      supabase.from('custom_lists').delete().eq('user_id', userId),
+      supabase.from('library_entries').delete().eq('user_id', userId),
+      supabase.from('profiles').delete().eq('id', userId),
+    ];
+    const results = await Promise.all(operations);
+    const failed = results.find((result) => result.error)?.error;
+    if (failed) throw failed;
+  },
+
   updateUserProfile: async (userId: string, data: Partial<UserProfile>) => {
     if (!supabase) return;
     const current = await cloudService.getUserProfile(userId);

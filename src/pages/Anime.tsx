@@ -7,6 +7,12 @@ import { SectionToolbar } from '@/components/section/SectionToolbar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
 
+const ANIME_TABS = [
+  { id: 'popular', label: 'Populares' },
+  { id: 'season', label: 'Temporada Atual' },
+  { id: 'top', label: 'Mais Bem Avaliados' },
+];
+
 const ANIME_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: '1', labelKey: 'genre.action' },
   { value: '2', labelKey: 'genre.adventure' },
@@ -29,6 +35,7 @@ const SORT_OPTIONS: { value: string; labelKey: TranslationKey }[] = [
 
 export function Anime() {
   const { t } = useTranslation();
+  const [tab, setTab] = useState('popular');
   const [sort, setSort] = useState('bypopularity');
   const [genre, setGenre] = useState('');
   const [query, setQuery] = useState('');
@@ -41,6 +48,8 @@ export function Anime() {
     return () => clearTimeout(timer);
   }, [query]);
 
+  const effectiveSort = tab === 'top' ? 'score' : sort;
+
   const { 
     data, 
     isLoading,
@@ -50,8 +59,8 @@ export function Anime() {
     hasNextPage, 
     isFetchingNextPage 
   } = useInfiniteQuery({ 
-    queryKey: ['anime-discover', sort, genre, debouncedQuery], 
-    queryFn: ({ pageParam = 1 }) => api.discoverAnime(pageParam, sort, genre, debouncedQuery),
+    queryKey: ['anime-discover', effectiveSort, genre, debouncedQuery, tab],
+    queryFn: ({ pageParam = 1 }) => tab === 'season' ? api.getCurrentSeasonAnime(pageParam) : api.discoverAnime(pageParam, effectiveSort, genre, debouncedQuery),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length > 0 ? allPages.length + 1 : undefined;
@@ -76,6 +85,9 @@ export function Anime() {
       isError={isError}
       error={error as Error}
       items={anime}
+      tabs={ANIME_TABS}
+      activeTab={tab}
+      onTabChange={setTab}
       emptyMessage="Nenhum anime encontrado. A fonte Jikan (MyAnimeList) pode estar limitando as requisições (rate limit)."
       footer={
         hasNextPage && (

@@ -1,0 +1,89 @@
+id,name,categories,mode,auth,capabilities,free,official,state,evidence,homepage
+jellyfin,Jellyfin,movies|series|anime|doramas,personal-server,server-token,catalog|search|details|stream|subtitles|progress|health,true,true,Configurável e executável,src/services/personalMedia.ts,https://jellyfin.org
+emby,Emby,movies|series|anime|doramas,personal-server,server-token,catalog|search|stream|subtitles|progress|health,partial,true,Servidor catalogado; conector pendente,src/data/providerCatalog.ts,https://emby.media
+plex,Plex Media Server,movies|series|anime|doramas,personal-server,account,catalog|search|stream|subtitles|progress,partial,true,Servidor catalogado; conector pendente,src/data/providerCatalog.ts,https://www.plex.tv
+youtube,YouTube,movies|series|anime|doramas|books|novels|manga|comics|games,embedded-player,none,search|details|stream|subtitles,partial,true,Executável condicionado,src/config/streamHosts.ts + player,https://www.youtube.com
+peertube,PeerTube,movies|series|anime|games,embedded-player,none,catalog|search|stream,true,true,Embed catalogado; integração pendente,src/data/providerCatalog.ts,https://joinpeertube.org
+internet-archive-video,Internet Archive Video,movies|series|anime|doramas,embedded-player,none,catalog|search|details|stream|download,true,true,Executável condicionado,netlify/functions/free-catalog.mts,https://archive.org/details/movies
+wikimedia-commons,Wikimedia Commons,movies|series|anime|books|comics,downloadable-file,none,search|details|stream|reader|download,true,true,Diretório de arquivo; adaptador pendente,src/data/providerCatalog.ts,https://commons.wikimedia.org
+libreflix,Libreflix,movies|series,external-page,none,catalog|search|availability,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://libreflix.org
+mercado-play,Mercado Play,movies|series,external-page,none,catalog|availability,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://play.mercadolivre.com.br
+pluto-tv,Pluto TV,movies|series|anime,external-page,none,catalog|availability,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://pluto.tv/br
+netmovies,NetMovies,movies|series,external-page,none,catalog|availability,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.netmovies.com.br
+itau-cultural-play,Itaú Cultural Play,movies|series,external-page,account,catalog|availability,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://itauculturalplay.com.br
+sesc-digital,Sesc Digital,movies|series,external-page,none,catalog|availability,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://sesc.digital
+viki,Viki,doramas|series|movies,external-page,account,catalog|search|details|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.viki.com
+kocowa,Kocowa,doramas|series,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.kocowa.com
+iqiyi,iQIYI,doramas|series|movies|anime,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.iq.com
+wetv,WeTV,doramas|series,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://wetv.vip
+youku,Youku,doramas|series|movies,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.youku.tv
+crunchyroll,Crunchyroll,anime,external-page,account,catalog|search|details|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.crunchyroll.com/pt-br
+hidive,HIDIVE,anime,external-page,account,catalog|availability,false,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.hidive.com
+retrocrush,RetroCrush,anime,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.retrocrush.tv
+tmdb,TMDB,movies|series|anime|doramas,metadata,api-key,catalog|search|details|availability|health,true,true,Executável,netlify/functions/tmdb.mts + src/services/api.ts,https://www.themoviedb.org
+tvmaze,TVmaze,series|doramas,metadata,none,search|details,true,true,Executável,src/services/api.ts,https://www.tvmaze.com/api
+trace-moe,trace.moe,anime,metadata,none,search|details,true,true,Executável,src/services/api.ts,https://trace.moe
+imdb,IMDb,movies|series|anime|doramas|games,metadata,none,search|details,true,true,Metadados catalogados; adaptador pendente,src/data/providerCatalog.ts,https://www.imdb.com
+tvdb,TheTVDB,series|anime|doramas,metadata,api-key,search|details,partial,true,Metadados catalogados; adaptador pendente,src/data/providerCatalog.ts,https://thetvdb.com
+omdb,OMDb,movies|series,metadata,api-key,search|details,partial,true,Metadados catalogados; adaptador pendente,src/data/providerCatalog.ts,https://www.omdbapi.com
+watchmode,Watchmode,movies|series|anime|doramas,metadata,api-key,search|availability,partial,true,Metadados catalogados; adaptador pendente,src/data/providerCatalog.ts,https://api.watchmode.com
+justwatch,JustWatch,movies|series|anime|doramas,metadata,none,availability,true,true,Metadados catalogados; adaptador pendente,src/data/providerCatalog.ts,https://www.justwatch.com/br
+anilist,AniList,anime|manga,metadata,none,catalog|search|details|progress,true,true,Executável,src/services/api.ts,https://anilist.co
+jikan,Jikan / MyAnimeList,anime|manga,metadata,none,catalog|search|details,true,true,Executável,src/services/api.ts,https://jikan.moe
+kitsu,Kitsu,anime|manga,metadata,none,catalog|search|details,true,true,Metadados catalogados; adaptador pendente,src/data/providerCatalog.ts,https://kitsu.io
+anidb,AniDB,anime,metadata,account,search|details,true,true,Metadados catalogados; adaptador pendente,src/data/providerCatalog.ts,https://anidb.net
+wikidata,Wikidata,movies|series|anime|doramas|books|novels|manga|comics|games,metadata,none,search|details,true,true,Metadados catalogados; adaptador pendente,src/data/providerCatalog.ts,https://www.wikidata.org
+stremio-protocol,Manifesto compatível com Stremio,movies|series|anime,manifest,manifest-url,catalog|search|details|stream|subtitles|health,partial,true,Configurável por manifesto,src/services/providerProtocol.ts,https://stremio.github.io/stremio-addon-sdk/
+custom-provider,Manifesto Hubora,movies|series|anime|doramas|books|novels|manga|comics|games,manifest,manifest-url,catalog|search|details|stream|reader|subtitles|progress|download|chapters|health,partial,false,Configurável por manifesto,src/services/providerProtocol.ts,/sources
+biblioteca-mundial,Biblioteca Mundial,books,external-page,none,catalog|search|reader|download,true,false,Página externa catalogada,src/data/providerCatalog.ts,https://bibliotecamundial.com.br
+project-gutenberg,Project Gutenberg,books,downloadable-file,none,catalog|search|details|reader|download,true,true,Executável,src/services/providerProtocol.ts,https://www.gutenberg.org
+standard-ebooks,Standard Ebooks,books,external-page,none,catalog|search|availability,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://standardebooks.org/ebooks
+dominio-publico,Portal Domínio Público,books,downloadable-file,none,catalog|search|reader|download,true,true,Diretório de arquivo; adaptador pendente,src/data/providerCatalog.ts,http://www.dominiopublico.gov.br
+bndigital,BNDigital,books|comics,external-page,none,catalog|search|reader,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://bndigital.bn.gov.br
+wikisource,Wikisource,books,embedded-player,none,catalog|search|reader,true,true,Embed catalogado; integração pendente,src/data/providerCatalog.ts,https://pt.wikisource.org
+scielo-livros,SciELO Livros,books,external-page,none,catalog|search|reader|download,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://books.scielo.org
+doab,DOAB,books,external-page,none,catalog|search|reader|download,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.doabooks.org
+open-library,Open Library,books|novels,embedded-player,account,catalog|search|details|reader|availability,partial,true,Executável,src/services/api.ts + free-catalog.mts,https://openlibrary.org
+google-books,Google Books,books|novels|comics,embedded-player,api-key,catalog|search|details|reader|availability,partial,true,Executável condicionado,netlify/functions/books.mts + Reader,https://books.google.com.br
+internet-archive-books,Internet Archive BookReader,books|comics,embedded-player,account,catalog|search|reader|download,partial,true,Executável condicionado,netlify/functions/free-catalog.mts + Reader,https://archive.org/details/texts
+mec-livros,MEC Livros,books,external-page,none,catalog|search|reader,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://livros.mec.gov.br
+biblion,BibliON,books|comics,external-page,account,catalog|reader|availability,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://biblion.odilo.us
+kavita,Kavita,books|novels|manga|comics,personal-server,server-token,catalog|search|details|reader|chapters|progress|health,true,true,Configurável e executável,src/services/personalMedia.ts,https://www.kavitareader.com
+calibre-web,Calibre-Web,books|novels|comics,personal-server,server-token,catalog|search|reader|download,true,true,Configurável via OPDS,src/services/personalMedia.ts,https://github.com/janeczku/calibre-web
+kindle,Kindle,books|novels|comics,external-page,account,catalog|availability,false,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.amazon.com.br/kindle-dbs/storefront
+kobo,Kobo,books,external-page,account,catalog|availability,false,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.kobo.com/br/pt
+storytel,Storytel,books,external-page,account,catalog|availability,false,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.storytel.com/br
+royal-road,Royal Road,novels,external-page,account,catalog|search|chapters|progress,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.royalroad.com
+wattpad,Wattpad,novels,external-page,account,catalog|search|chapters,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.wattpad.com
+webnovel,WebNovel,novels,external-page,account,catalog|search|chapters|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.webnovel.com
+scribble-hub,Scribble Hub,novels,external-page,account,catalog|search|chapters,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.scribblehub.com
+tapas-novels,Tapas Novels,novels|comics|manga,external-page,account,catalog|search|chapters,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://tapas.io
+inkitt,Inkitt,novels,external-page,account,catalog|search|chapters,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.inkitt.com
+ao3,Archive of Our Own,novels,downloadable-file,account,catalog|search|reader|download,true,true,Diretório de arquivo; adaptador pendente,src/data/providerCatalog.ts,https://archiveofourown.org
+fanfiction-net,FanFiction.net,novels,external-page,account,catalog|search|chapters,true,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.fanfiction.net
+komga,Komga,manga|comics,personal-server,server-token,catalog|search|reader|chapters|progress|health,true,true,Configurável e executável,src/services/personalMedia.ts,https://komga.org
+suwayomi,Suwayomi Server,manga|comics,personal-server,server-token,catalog|search|reader|chapters|progress|health,true,true,Servidor catalogado; conector pendente,src/data/providerCatalog.ts,https://github.com/Suwayomi/Suwayomi-Server
+manga-plus,MANGA Plus,manga,external-page,account,catalog|search|chapters|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://mangaplus.shueisha.co.jp
+webtoon,WEBTOON,manga|comics,external-page,account,catalog|search|chapters|progress,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.webtoons.com/pt/
+globalcomix,GlobalComix,manga|comics,external-page,account,catalog|search|reader|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://globalcomix.com
+comikey,Comikey,manga,external-page,account,catalog|search|chapters|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://comikey.com
+inkr,INKR,manga|comics,external-page,account,catalog|search|chapters,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://inkr.com
+manga-up,Manga UP!,manga,external-page,account,catalog|chapters|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://global.manga-up.com
+mangadex,MangaDex,manga,external-page,account,catalog|search|details|chapters,true,false,Executável,src/services/mangaService.ts + Reader,https://mangadex.org
+digital-comic-museum,Digital Comic Museum,comics,downloadable-file,account,catalog|search|reader|download,true,true,Diretório de arquivo; adaptador pendente,src/data/providerCatalog.ts,https://digitalcomicmuseum.com
+comic-book-plus,Comic Book Plus,comics,downloadable-file,account,catalog|search|reader|download,true,true,Diretório de arquivo; adaptador pendente,src/data/providerCatalog.ts,https://comicbookplus.com
+marvel-unlimited,Marvel Unlimited,comics,external-page,account,catalog|search|availability,false,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.marvel.com/unlimited
+dc-universe-infinite,DC Universe Infinite,comics,external-page,account,catalog|search|availability,false,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.dcuniverseinfinite.com
+dark-horse-digital,Dark Horse Digital,comics,external-page,account,catalog|search|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://digital.darkhorse.com
+igdb,IGDB,games,metadata,api-key,catalog|search|details|health,true,true,Executável,netlify/functions/_shared/games.ts,https://www.igdb.com
+steam,Steam,games,external-page,account,catalog|search|details|availability,partial,true,Executável externo,netlify/functions/_shared/games.ts,https://store.steampowered.com
+epic-games,Epic Games Store,games,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://store.epicgames.com/pt-BR/
+gog,GOG,games,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.gog.com
+xbox,Xbox / Microsoft Store,games,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.xbox.com/pt-BR/games
+playstation,PlayStation Store,games,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://store.playstation.com/pt-br/
+nintendo,Nintendo eShop,games,external-page,account,catalog|availability,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://www.nintendo.com/pt-br/store/
+itch-io,itch.io,games,external-page,account,catalog|search|stream|download,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://itch.io
+game-jolt,Game Jolt,games,external-page,account,catalog|search|download,partial,true,Página externa catalogada,src/data/providerCatalog.ts,https://gamejolt.com/games
+free-to-game,FreeToGame,games,metadata,none,catalog|search|details|availability,true,true,Executável externo,netlify/functions/_shared/games.ts,https://www.freetogame.com/api-doc
+rawg,RAWG,games,metadata,api-key,catalog|search|details,partial,true,Executável opcional,netlify/functions/_shared/games.ts,https://rawg.io/apidocs
+cheapshark,CheapShark,games,metadata,none,search|availability,true,true,Executável externo,netlify/functions/_shared/games.ts,https://www.cheapshark.com

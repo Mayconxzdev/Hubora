@@ -1,68 +1,55 @@
-# Publicação privada no Netlify
+# Publicação pública do Hubora no Netlify
 
-## 1. Preparar o repositório
+O Hubora é uma aplicação pública e multiusuário. Qualquer pessoa pode criar conta por e-mail/senha ou Google quando esses provedores estiverem habilitados no Supabase. A privacidade da biblioteca, listas, progresso e notificações depende de Supabase Auth e RLS com `auth.uid()`, não de uma allowlist no frontend.
 
-1. Garanta que `.env.local`, `.env`, `dist/`, `node_modules/` e backups não sejam enviados ao Git.
-2. Faça uma última validação local:
-
-```powershell
-npm ci
-npm run check
-npm run test:e2e
-```
-
-3. Publique o repositório privado e importe-o no Netlify.
-
-## 2. Configuração do site
+## Configuração do projeto
 
 - Build command: `npm run build`
 - Publish directory: `dist`
 - Functions directory: `netlify/functions`
-- Node.js: 22 ou superior
+- Node.js: 22
 
-O `netlify.toml` já entrega fallback de SPA, cabeçalhos de segurança, PWA e a Function diária de lançamentos.
+O `netlify.toml` já define build, fallback de SPA, cabeçalhos de segurança e Functions. O site continua conectado ao repositório GitHub; o fluxo correto é branch de release, Pull Request, CI, Deploy Preview e somente então `main`.
 
-## 3. Variáveis de ambiente
+## Variáveis de ambiente
 
-Configure no painel **Site configuration → Environment variables**. Valores com `VITE_` são públicos no bundle; os demais ficam só em Functions.
+Use a matriz canônica em [ENVIRONMENT_VARIABLES.md](../../ENVIRONMENT_VARIABLES.md). Nunca publique valores em Git ou no frontend.
 
-| Variável | Onde | Necessária | Finalidade |
-| --- | --- | --- | --- |
-| `VITE_SUPABASE_URL` | Build | Sim para login/sync | URL do projeto Supabase |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Build | Sim para login/sync | Chave publicável, nunca a secreta |
-| `VITE_REQUIRE_AUTH` | Build | Recomendado | `true` |
-| `VITE_ALLOW_PUBLIC_SIGNUP` | Build | Recomendado | `false` |
-| `VITE_ALLOWED_EMAILS` | Build | Recomendado | Seu e-mail, como segunda barreira |
-| `SUPABASE_URL` | Functions | Para releases | URL do Supabase |
-| `SUPABASE_SECRET_KEY` | Functions | Para releases | Chave secreta **nova**, sem `VITE_` |
-| `TMDB_API_READ_TOKEN` **ou** `TMDB_API_KEY` | Functions | Para catálogo TMDB | Nunca exponha ao navegador |
-| `IGDB_CLIENT_ID` + `IGDB_CLIENT_SECRET` | Functions | Opcional | Catálogo IGDB de jogos |
-| `GOOGLE_BOOKS_API_KEY` | Functions | Opcional | Cota ampliada Google Books |
-| `RAWG_API_KEY` | Functions | Opcional | Dados adicionais de jogos |
+- `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` são valores públicos necessários ao browser.
+- `SUPABASE_SECRET_KEY`, `TMDB_API_KEY`, `IGDB_CLIENT_SECRET`, `IGDB_CLIENT_ID` e `GOOGLE_BOOKS_API_KEY` pertencem apenas às Functions.
+- Configure produção e Deploy Preview. Secrets não devem ter prefixo `VITE_`.
 
-Não configure os dois formatos de chave secreta do Supabase ao mesmo tempo. A chave legada `SUPABASE_SERVICE_ROLE_KEY` existe só para compatibilidade; prefira `SUPABASE_SECRET_KEY`.
+## Supabase
 
-## 4. Autenticação e domínio
+As migrations aplicadas neste projeto, na ordem, são:
 
-1. Faça um deploy de preview.
-2. Copie a URL de preview e a URL final do site.
-3. No Supabase: **Authentication → URL Configuration → Redirect URLs**, inclua:
-   - `https://SEU-SITE.netlify.app/**`
-   - `https://SEU-DOMINIO/**`, se houver domínio próprio.
-4. No provedor Google OAuth, acrescente o callback do Supabase que aparece na documentação/configuração do projeto.
-5. No SQL Editor, mantenha somente o seu e-mail em `private.allowed_emails`.
+1. `001_hubora_core.sql`;
+2. `002_hubora_v6_hardening.sql`;
+3. `003_hubora_public_accounts.sql`.
 
-## 5. Publicar e validar
+Elas já foram aplicadas manualmente no projeto Supabase real do Hubora. Não aplicar migrations privadas antigas, nem criar `private.allowed_emails`; esse modelo foi substituído. Antes de usar Supabase CLI, conferir que as migrations aplicadas pelo SQL Editor não serão tratadas como pendentes sem análise.
 
-1. Faça deploy de produção no Netlify.
-2. Entre com a conta permitida no PC.
-3. Adicione um título, atualize o progresso e confirme no Android.
-4. Instale a PWA no Android pelo Chrome.
-5. Teste trailer, fonte aberta, uma busca de jogo e uma sugestão de Hoje.
-6. Confirme que Fontes não anuncia capacidade sem evidência e que links externos abrem a origem correta.
-7. Se configurar Jellyfin/Kavita/Komga opcionalmente, use HTTPS e CORS restrito ao domínio do Hubora.
-8. Teste logout, recuperação de sessão, isolamento do Cofre e revogação de dispositivo antes de considerar o acesso privado validado.
+No painel Supabase, manter:
 
-## Bloqueio de segurança antes da publicação
+- confirmação de e-mail habilitada;
+- cadastro por e-mail habilitado;
+- Google OAuth habilitado e com callback da Supabase configurado;
+- Site URL e Redirect URLs para produção e preview corretos;
+- usuários anônimos desabilitados, se esse continuar sendo o requisito de produto.
 
-Se uma chave secreta foi enviada por chat, screenshot, commit ou log, considere-a comprometida. Revogue-a no provedor, crie outra e cadastre a substituta apenas no painel do Netlify. Depois faça um novo deploy para que as Functions recebam o valor novo.
+## Deploy Preview e produção
+
+Antes de enviar:
+
+```bash
+npm ci --no-audit --no-fund
+npm run check
+```
+
+Envie a branch de release e abra Pull Request para `main`. O Netlify deve criar o Deploy Preview automaticamente pela integração GitHub. Teste nessa URL autenticação, dados de duas contas, Functions, PWA, leitores, player e rotas antes de pedir merge.
+
+Somente após aprovação explícita, faça merge em `main`. O Netlify então publica `dist` no domínio de produção.
+
+## Conteúdo e fontes
+
+O leitor/player interno só deve abrir conteúdo com URL/manifesto real e autorizado: YouTube oficial, Internet Archive permitido, domínio público, prévia autorizada, arquivo pessoal ou servidor pessoal configurado. Serviços comerciais e fontes sem incorporação autorizada abrem a página oficial externa. Consulte [PROVIDER_MATRIX.md](../../PROVIDER_MATRIX.md) para o status honesto das fontes.

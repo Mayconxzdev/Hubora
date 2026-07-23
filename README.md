@@ -1,139 +1,68 @@
-# 🌌 Hubora v9.0.0 — Unified Pop Culture Hub & Media Tracker
+# Hubora 9.0.2-rc.1
 
-<div align="center">
+O Hubora é uma plataforma pública e multiusuário para descobrir, organizar e acompanhar filmes, séries, doramas, animes, mangás, quadrinhos, livros, novels e jogos. As nove categorias compartilham uma identidade de obra; o Cofre é um recurso transversal de privacidade, não uma décima categoria.
 
-[![Vite](https://img.shields.io/badge/Vite-v7.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![React](https://img.shields.io/badge/React-v19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-v5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Netlify](https://img.shields.io/badge/Netlify-Serverless-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://www.netlify.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
-[![Vitest](https://img.shields.io/badge/Vitest-Unit_Tested-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+Visitantes podem explorar e manter dados somente no dispositivo. Contas criadas com e-mail/senha ou Google sincronizam biblioteca, listas e progresso entre dispositivos. Cada registro pessoal é protegido no Supabase por RLS com `auth.uid()`; uma conta não pode consultar ou alterar dados de outra.
 
-</div>
+> Estado atual: **em auditoria de release**. Não considere esta versão pronta para produção antes de uma instalação de schema/RLS comprovada, CI e um Deploy Preview aprovado. Nenhuma fonte comercial é tratada como player incorporável sem autorização verificável.
 
----
+## Requisitos
 
-### 📌 Sobre o Projeto
-
-**Hubora** é uma plataforma web de alta performance projetada para centralizar e organizar a experiência de entretenimento de cultura pop. O sistema unifica **9 domínios universais de mídias** em uma única interface cinematográfica, responsiva e focada em privacidade.
-
----
-
-## 🎨 Apresentação das Mídias Universais
-
-```mermaid
-graph TD
-    A[Hubora Unified Platform] --> B[🎬 Audiovisual]
-    A --> C[📚 Leitura]
-    A --> D[🎮 Jogos]
-
-    B --> B1[Filmes & Séries TMDB]
-    B --> B2[Doramas Asiáticos]
-    B --> B3[Animes Jikan/AniList]
-
-    C --> C1[Livros Google Books/OpenLibrary]
-    C --> C2[Novels Light/WebNovels]
-    C --> C3[Mangás MangaDex]
-    C --> C4[Quadrinhos HQ]
-
-    D --> D1[Catálogo IGDB/CheapShark]
-    D --> D2[Gestão Manual de Horas & Status]
-    D --> D3[Links Oficiais HTTPS Steam/Epic/GOG]
-```
-
----
-
-## 💎 Arquitetura & Destaques de Engenharia (Senior Level)
-
-### 🔒 1. Zero-Token Security & Proxy Serverless (Netlify Edge Functions)
-- Nenhuma chave de API de terceiros (TMDB, IGDB, Supabase) é exposta no cliente público.
-- Requisições para metadados e capas são sanitizadas e interceptadas por Serverless Functions em TypeScript com suporte a fallback gracioso (OpenLibrary, MangaDex).
-
-### 📐 2. Contratos Universais de Apresentação (`MediaPresentationRegistry`)
-- Arquitetura fortemente tipada que desacopla os domínios de mídia:
-  - **Audiovisual (Filmes, Séries, Doramas, Animes):** Trailers reais do YouTube com iluminação ambiente (*Ambilight*), elenco e progresso de episódios.
-  - **Leitura (Livros, Mangás, Quadrinhos, Novels):** Acompanhamento preciso por páginas, volumes e edições sem botões redundantes.
-  - **Jogos (PC & Consoles):** Gestão 100% manual por status (*Possuído*, *Instalado*, *Jogando*, *Concluído*), horas jogadas e links de loja oficial via HTTPS.
-
-### 💄 3. Design System Personalizado (Liquid Glass Aesthetics)
-- Componentes construídos com princípios modernos de UI/UX:
-  - Modos Claro e Escuro calibrados (Sem contraste quebrado em fundo claro).
-  - Componentes responsivos otimizados para Desktop (1920x1080), Tablet (768x1024) e Mobile (390x844).
-  - Micro-interações e suporte a acessibilidade WCAG 2.2.
-
----
-
-## 🛠️ Tech Stack
-
-| Camada | Tecnologias Utilizadas |
-| :--- | :--- |
-| **Frontend** | React 19, TypeScript 5.7, Vite 7 |
-| **Estilização** | Vanilla CSS + Tailwind CSS v4, Glassmorphism Tokens, Lucide Icons |
-| **Gerenciamento de Estado** | Zustand (Persistência reativa), TanStack Query v5 (Data Fetching & Cache) |
-| **Serverless & Edge** | Netlify Edge Functions (TypeScript/Node.js) |
-| **Banco de Dados & Auth** | Supabase (Auth & Postgres Remote) + IndexedDB Local Fallback |
-| **Testes & Qualidade** | Vitest (64 testes unitários e de integração), Playwright (E2E) |
-
----
-
-## 🚀 Como Executar o Projeto Localmente
-
-### Pré-requisitos
-- **Node.js** v18 ou superior
-- **npm** v9 ou superior
-
-### Passo a Passo
+- Node.js `>=22.12.0` (o Netlify usa Node 22);
+- npm compatível com o `package-lock.json`;
+- `.env` local criado a partir de `.env.example`.
 
 ```bash
-# 1. Clonar este repositório
-git clone https://github.com/Mayconxzdev/Hubora.git
-
-# 2. Acessar o diretório do projeto
-cd Hubora
-
-# 3. Instalar as dependências
-npm install
-
-# 4. Configurar as variáveis de ambiente (veja .env.example)
+npm ci --no-audit --no-fund
 cp .env.example .env
-
-# 5. Iniciar o servidor de desenvolvimento
 npm run dev
 ```
 
-O projeto estará disponível em `http://localhost:3000`.
+## Configuração
 
----
+As variáveis que a captura do Netlify confirma como cadastradas são `GOOGLE_BOOKS_API_KEY`, `IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`, `SUPABASE_SECRET_KEY`, `SUPABASE_URL`, `TMDB_API_KEY`, `VITE_SUPABASE_PUBLISHABLE_KEY` e `VITE_SUPABASE_URL`.
 
-## 🧪 Suíte de Testes & Qualidade
+O prefixo `VITE_` só é permitido para a URL do projeto e a chave publicável do Supabase: ambas entram no bundle. Segredos, inclusive `SUPABASE_SECRET_KEY`, `IGDB_CLIENT_SECRET`, `TMDB_API_KEY` e `GOOGLE_BOOKS_API_KEY`, ficam somente em Functions. Veja [a matriz completa de variáveis](docs/ENVIRONMENT_VARIABLES.md).
+
+## Supabase
+
+O schema remoto ainda precisa ser instalado. A sequência local a revisar e executar **somente após aprovação explícita para o ambiente remoto** é:
+
+1. `001_hubora_core.sql`
+2. `002_hubora_v6_hardening.sql`
+3. `003_hubora_public_accounts.sql`
+
+A terceira migration cria notificações/assinaturas e estabelece as policies definitivas de propriedade. Não há allowlist por e-mail para usuários comuns. Após aplicá-las, a homologação exige duas contas isoladas, testes de login por e-mail/senha e Google, e prova de que uma conta não lê nem escreve a outra.
+
+## Validação
 
 ```bash
-# Executar suíte de testes unitários (Vitest)
-npm run test
+# regras estáticas de segurança e contrato
+npm run verify:static
 
-# Checagem de tipos estáticos do TypeScript
-npm run typecheck
+# lint, TypeScript, testes e build
+npm run check
 
-# Compilação de Produção (Vite + Service Worker PWA)
-npm run build
+# portão completo, incluindo Playwright quando o ambiente estiver configurado
+npm run verify:release
 ```
 
----
+Não faça merge em `main` quando qualquer comando obrigatório falhar. O fluxo de release previsto está em [docs/DEPLOY_AND_ROLLBACK.md](docs/DEPLOY_AND_ROLLBACK.md).
 
-## 📂 Documentação do Projeto
+## Fontes e reprodução
 
-Toda a documentação técnica estendida, guia de design e arquitetura encontram-se organizados em `docs/`:
+O Hubora diferencia metadados, disponibilidade, trailer oficial, prévia, conteúdo aberto/autorizado, servidor pessoal e link comercial externo. O app só abre player ou leitor interno quando a origem é autorizada e a URL foi validada; caso contrário abre a página oficial apropriada ou informa que não há acesso confirmado. O diretório não prova disponibilidade de uma obra.
 
-- [Arquitetura & Design System](docs/architecture/DESIGN_SYSTEM.md)
-- [Diretrizes de Acessibilidade](docs/architecture/ACCESSIBILITY.md)
-- [Especificação do Produto](docs/architecture/PRODUCT.md)
-- [Guia de Deploy no Netlify](docs/architecture/NETLIFY_DEPLOY.md)
+Consulte [docs/PROVIDER_MATRIX.md](docs/PROVIDER_MATRIX.md) para o inventário e o estado de cada fonte.
 
----
+## Documentação
 
-## 📜 Licença
+- [Produto](PRODUCT.md) e [design](DESIGN.md)
+- [Variáveis de ambiente](docs/ENVIRONMENT_VARIABLES.md)
+- [Matriz de provedores](docs/PROVIDER_MATRIX.md)
+- [Deploy e rollback](docs/DEPLOY_AND_ROLLBACK.md)
+- [Segurança](SECURITY.md)
 
-Distribuído sob a Licença **MIT**. Veja `LICENSE` para mais detalhes.
+## Licença
 
-Desenvolvido por **[Mayconxzdev](https://github.com/Mayconxzdev)** — *Software Engineer*.
+O código está sob GNU Affero General Public License v3 ou posterior. Metadados, imagens, mídias e serviços externos continuam sujeitos às respectivas licenças e termos.

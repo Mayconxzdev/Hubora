@@ -3,7 +3,7 @@ export {};
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<{ url: string; revision?: string }> };
 
-const CACHE_NAME = 'hubora-precache-v7';
+const CACHE_NAME = 'hubora-precache-v9-0-2';
 const SHARE_DB = 'hubora-share-inbox';
 const SHARE_STORE = 'items';
 const MAX_SHARE_FILE_BYTES = 15 * 1024 * 1024;

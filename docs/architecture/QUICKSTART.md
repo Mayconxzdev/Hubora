@@ -10,13 +10,14 @@ npm run dev
 
 Abra `http://localhost:5173`. Sem Supabase, a biblioteca continua local e você pode navegar por toda a interface; não há sincronização entre aparelhos nesse modo.
 
-## Ativar sua conta e sincronização
+## Ativar contas e sincronização
 
-1. Execute as três migrações SQL indicadas no README.
-2. Adicione somente seu e-mail em `private.allowed_emails`.
-3. Ative Google Login ou e-mail/senha no Supabase.
-4. Preencha em `.env.local` `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_REQUIRE_AUTH=true`, `VITE_ALLOW_PUBLIC_SIGNUP=false`, `VITE_ALLOWED_EMAILS` e `VITE_ENFORCE_SERVER_ALLOWLIST=true`.
-5. Entre no PC, adicione algo à biblioteca, depois abra o mesmo domínio no Android e entre com a mesma conta.
+1. Execute as migrations `001`, `002` e `003_hubora_public_accounts.sql` na ordem. No projeto real do Hubora elas já foram aplicadas pelo SQL Editor.
+2. Ative novos cadastros por e-mail/senha e, opcionalmente, Google no Supabase.
+3. Configure a Site URL e redirects para a URL oficial e a origem local usada no desenvolvimento.
+4. Preencha em `.env.local` `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`. Os dois são valores públicos de browser; nunca coloque uma secret key nesse arquivo ou no bundle.
+5. Confirme o modo convidado; depois crie uma conta, adicione algo no PC e abra o mesmo domínio no Android com a mesma conta.
+6. Use uma segunda conta para comprovar que RLS impede acesso cruzado.
 
 ## Conteúdo dentro do Hubora
 

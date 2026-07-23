@@ -35,6 +35,7 @@ export function LibraryStatusModal({ item, isOpen, onClose }: LibraryStatusModal
   const [isFavorite, setIsFavorite] = useState(inLibrary?.isFavorite || false);
   const [isTrackedRelease, setIsTrackedRelease] = useState(inLibrary?.isTrackedRelease || false);
   const [releasePreferences, setReleasePreferences] = useState<ReleasePreferences>(inLibrary?.releasePreferences || DEFAULT_RELEASE_PREFERENCES);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setStatus(inLibrary?.status || 'planning');
@@ -48,25 +49,32 @@ export function LibraryStatusModal({ item, isOpen, onClose }: LibraryStatusModal
 
   const updateProgress = <K extends keyof ProgressState>(key: K, value: ProgressState[K]) => setProgress((current) => ({ ...current, [key]: value }));
 
-  const save = () => {
+  const save = async () => {
+    setIsSaving(true);
     const entryId = inLibrary?.id || createEntryId(item);
-    if (inLibrary) {
-      updateLibraryItem(entryId, { status, progress, rating, priority, isFavorite, isTrackedRelease, releasePreferences });
-      toast.success('Biblioteca atualizada');
-    } else {
-      addToLibrary(item, status);
-      updateLibraryItem(entryId, { progress, rating, priority, isFavorite, isTrackedRelease, releasePreferences });
-      toast.success('Adicionado à biblioteca');
+    try {
+      if (inLibrary) {
+        await updateLibraryItem(entryId, { status, progress, rating, priority, isFavorite, isTrackedRelease, releasePreferences });
+        toast.success('Biblioteca atualizada');
+      } else {
+        await addToLibrary(item, status);
+        await updateLibraryItem(entryId, { progress, rating, priority, isFavorite, isTrackedRelease, releasePreferences });
+        toast.success('Adicionado à biblioteca');
+      }
+      if (user) void notificationService.syncSubscription({ userId: user.uid, entryId, item, enabled: isTrackedRelease, preferences: releasePreferences }).catch(() => toast.warning('O progresso foi salvo, mas o acompanhamento remoto será repetido na próxima sincronização.'));
+      onClose();
+    } finally {
+      setIsSaving(false);
     }
-    if (user) void notificationService.syncSubscription({ userId: user.uid, entryId, item, enabled: isTrackedRelease, preferences: releasePreferences }).catch(() => toast.warning('O progresso foi salvo, mas o acompanhamento remoto será repetido na próxima sincronização.'));
-    onClose();
   };
 
-  const remove = () => {
+  const remove = async () => {
     if (!inLibrary) return;
-    removeFromLibrary(inLibrary.id);
+    setIsSaving(true);
+    await removeFromLibrary(inLibrary.id);
     toast.success('Removido da biblioteca');
     onClose();
+    setIsSaving(false);
   };
 
   const progressFields = () => {
@@ -114,8 +122,8 @@ export function LibraryStatusModal({ item, isOpen, onClose }: LibraryStatusModal
         </DialogBody>
 
         <DialogFooter className="justify-between">
-          {inLibrary ? <Button variant="ghost" className="text-red-500 hover:bg-red-500/8 hover:text-red-500" onClick={remove}><Trash2 size={17} /> Remover</Button> : <span />}
-          <div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancelar</Button><Button onClick={save}>Salvar alterações</Button></div>
+          {inLibrary ? <Button variant="ghost" className="text-red-500 hover:bg-red-500/8 hover:text-red-500" onClick={() => void remove()} disabled={isSaving}><Trash2 size={17} /> Remover</Button> : <span />}
+          <div className="flex gap-2"><Button variant="outline" onClick={onClose} disabled={isSaving}>Cancelar</Button><Button onClick={() => void save()} disabled={isSaving}>{isSaving ? 'Salvando...' : 'Salvar alterações'}</Button></div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

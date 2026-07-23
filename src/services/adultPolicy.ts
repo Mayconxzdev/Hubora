@@ -31,10 +31,25 @@ export function filterMediaForProfile(items: MediaItem[], profile: UserProfile |
   return items.filter((item) => canDisplayMedia(item, profile, vaultUnlocked));
 }
 
+/**
+ * Provider-level adult flags are broader than Hubora's mature classification.
+ * Keep provider queries safe unless an adult has deliberately enabled and
+ * unlocked the Vault and explicitly disabled the safe-search protection.
+ */
+export function canQueryExplicitProviderContent(
+  profile: UserProfile | null | undefined,
+  vaultUnlocked: boolean,
+): boolean {
+  if (!profile || profile.preferences.adultFilterEnabled !== false) return false;
+  return getAdultMode(profile) === 'vault'
+    && Boolean(profile.preferences.adultVaultEnabled)
+    && vaultUnlocked;
+}
+
 export function defaultEntryPrivacy(item: MediaItem): Pick<UserMediaEntry, 'visibility' | 'adultPrivate'> {
   const adult = classifyAdult(item) !== 'safe';
   return {
-    visibility: adult ? 'private' : 'private',
+    visibility: 'private',
     adultPrivate: adult,
   };
 }

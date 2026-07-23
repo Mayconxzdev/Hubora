@@ -26,7 +26,7 @@ export function levelForXp(xp: number): number {
   return 1;
 }
 
-function defaultProfile(authUser: AuthUser): UserProfile {
+export function createDefaultProfile(authUser: AuthUser): UserProfile {
   return {
     uid: authUser.uid,
     name: authUser.displayName || 'Viajante',
@@ -39,6 +39,7 @@ function defaultProfile(authUser: AuthUser): UserProfile {
       adultContent: false,
       adultMode: 'off',
       adultVaultEnabled: false,
+      adultFilterEnabled: true,
       adultConfirmed: false,
       adultVaultPinMode: 'session',
       adultLibraryPublicByDefault: false,
@@ -177,9 +178,9 @@ interface AppState {
   replaceCustomLists: (lists: CustomList[]) => Promise<void>;
   mergeRemoteLibrary: (library: Record<string, UserMediaEntry>, deletions?: RemoteDeletion[]) => void;
   mergeRemoteCustomLists: (lists: CustomList[], deletions?: RemoteDeletion[]) => void;
-  addToLibrary: (media: MediaItem, status: LibraryStatus) => void;
-  removeFromLibrary: (mediaId: string | number) => void;
-  updateLibraryItem: (mediaId: string | number, updates: Partial<UserMediaEntry>) => void;
+  addToLibrary: (media: MediaItem, status: LibraryStatus) => Promise<void>;
+  removeFromLibrary: (mediaId: string | number) => Promise<void>;
+  updateLibraryItem: (mediaId: string | number, updates: Partial<UserMediaEntry>) => Promise<void>;
   toggleFavorite: (mediaId: string | number) => void;
   updateUser: (updates: Partial<UserProfile>) => void;
   toggleTheme: () => void;
@@ -241,7 +242,7 @@ export const useStore = create<AppState>()(
           return;
         }
 
-        const fallback = defaultProfile(authUser);
+        const fallback = createDefaultProfile(authUser);
         const local = await localRepository.getProfile(authUser.uid);
         set({ user: local ? { ...fallback, ...local } : fallback });
 
@@ -318,26 +319,28 @@ export const useStore = create<AppState>()(
         void localRepository.applyRemoteLists(Object.values(merged), deletedIds);
       },
 
-      addToLibrary: (media, status) => {
+      addToLibrary: async (media, status) => {
         const state = get();
         const entry = createEntryFromMedia(media, status);
         if (state.library[entry.id]) return;
         set({ library: { ...state.library, [entry.id]: entry } });
-        void localRepository.putLibraryEntry(entry).then(() => get().syncNow());
+        await localRepository.putLibraryEntry(entry);
+        void get().syncNow();
         get().gainXP(15);
       },
 
-      removeFromLibrary: (mediaId) => {
+      removeFromLibrary: async (mediaId) => {
         const state = get();
         const key = entryKey(state.library, mediaId);
         if (!key) return;
         const next = { ...state.library };
         delete next[key];
         set({ library: next });
-        void localRepository.deleteLibraryEntry(key).then(() => get().syncNow());
+        await localRepository.deleteLibraryEntry(key);
+        void get().syncNow();
       },
 
-      updateLibraryItem: (mediaId, updates) => {
+      updateLibraryItem: async (mediaId, updates) => {
         const state = get();
         const key = entryKey(state.library, mediaId);
         if (!key) return;
@@ -363,7 +366,8 @@ export const useStore = create<AppState>()(
             value: updates.rating ?? updates.status ?? progressValue(updates.progress),
           }));
         }
-        void Promise.all(writes).then(() => get().syncNow());
+        await Promise.all(writes);
+        void get().syncNow();
 
         const xp = xpForUpdate(oldItem, updates);
         if (xp) get().gainXP(xp);

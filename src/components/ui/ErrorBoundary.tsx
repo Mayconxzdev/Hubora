@@ -30,39 +30,40 @@ export class ErrorBoundary extends React.Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-          <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-8 animate-pulse">
-            <AlertTriangle className="text-red-500" size={48} />
+        <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center px-4 text-center">
+          <div className="mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-red-500/25 bg-red-500/10">
+            <AlertTriangle className="text-red-400" size={30} />
           </div>
-          <h1 className="text-4xl font-black text-white mb-4 tracking-tighter">Ops! Algo deu errado.</h1>
-          <p className="text-slate-400 max-w-md mb-12 leading-relaxed">
-            Ocorreu um erro inesperado ao carregar esta página. Nossa equipe já foi notificada.
+          <h1 className="mb-3 text-3xl font-black tracking-[-0.04em] text-[var(--hub-text-strong)]">Não foi possível abrir esta área</h1>
+          <p className="mb-8 max-w-md leading-relaxed text-[var(--hub-muted)]">
+            Seus dados salvos não foram apagados. Recarregue a página ou volte ao início para continuar usando o Hubora.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <button
               onClick={() => window.location.reload()}
-              className="flex items-center gap-2 bg-[var(--hub-brand)] hover:bg-[var(--hub-brand-strong)] text-white px-8 py-4 rounded-2xl font-bold transition-all duration-300 shadow-lg shadow-[rgba(217,154,40,0.18)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--hub-brand)] px-6 py-3 font-bold text-[var(--hub-brand-contrast)] transition hover:bg-[var(--hub-brand-strong)] focus-visible:outline-none"
             >
               <RefreshCw size={20} />
-              Tentar Novamente
+              Recarregar página
             </button>
             <Link
               to="/"
-              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-8 py-4 rounded-2xl font-bold transition-all duration-300 border border-white/10"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-1)] px-6 py-3 font-bold text-[var(--hub-text-strong)] transition hover:bg-[var(--hub-surface-2)] focus-visible:outline-none"
             >
               <Home size={20} />
-              Voltar ao Início
+              Voltar ao início
             </Link>
           </div>
 
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-12 p-6 bg-slate-900 rounded-2xl border border-white/5 text-left max-w-2xl overflow-auto">
+          {import.meta.env.DEV && (
+            <details className="mt-10 max-w-2xl overflow-auto rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-1)] p-5 text-left">
+              <summary className="cursor-pointer text-sm font-bold text-[var(--hub-text-strong)]">Detalhes técnicos para desenvolvimento</summary>
               <p className="text-red-400 font-mono text-sm mb-2">{this.state.error?.name}: {this.state.error?.message}</p>
-              <pre className="text-slate-500 font-mono text-xs whitespace-pre-wrap">
+              <pre className="whitespace-pre-wrap font-mono text-xs text-[var(--hub-subtle)]">
                 {this.state.error?.stack}
               </pre>
-            </div>
+            </details>
           )}
         </div>
       );

@@ -3,20 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, ExternalLink, Gamepad2, MonitorPlay, Play, Search, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import type { MediaAccess, MediaItem } from '@/types';
-import { listProviderConfigs, resolveSafeStremioStreams, getUniversalVideoStreams } from '@/services/providerProtocol';
-import { mangaDexApi } from '@/services/api';
+import { listProviderConfigs, resolveSafeStremioStreams } from '@/services/providerProtocol';
+import { fetchMangaChapters, resolveMangaDexId, type MangaChapter } from '@/services/mangaService';
 import { toast } from 'sonner';
+import { accessDestination, verifiedAccessFor } from '@/services/mediaAccess';
 
 export function WhereToWatch({ item }: { item: MediaItem }) {
   const navigate = useNavigate();
   const readable = ['book', 'novel', 'comic', 'manga'].includes(item.mediaType);
-  const video = ['movie', 'tv', 'anime'].includes(item.mediaType);
+  const video = ['movie', 'tv', 'series', 'drama', 'anime'].includes(item.mediaType);
   const title = readable ? 'Ler ou obter' : item.mediaType === 'game' ? 'Jogar ou obter' : 'Assistir';
 
   const [dynamicStreams, setDynamicStreams] = useState<MediaAccess[]>([]);
   const [loadingStreams, setLoadingStreams] = useState(false);
 
-  const [mangaChapters, setMangaChapters] = useState<any[]>([]);
+  const [mangaChapters, setMangaChapters] = useState<MangaChapter[]>([]);
   const [mangaId, setMangaId] = useState<string | null>(null);
   const [loadingManga, setLoadingManga] = useState(false);
 
@@ -29,19 +30,19 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
       setLoadingStreams(true);
       const streamsList: MediaAccess[] = [];
 
-      // 1. Resolvedores universais (PlayIMDb/Vidsrc)
       const imdbId = item.externalIds?.imdb;
-      if (imdbId) {
-        streamsList.push(...getUniversalVideoStreams(imdbId, item.title, item.mediaType));
-      }
 
-      // 2. Add-ons Stremio do usuário
+      // Somente add-ons instalados e habilitados explicitamente pelo usuário.
       try {
         const providers = await listProviderConfigs();
         const activeProviders = providers.filter((p) => p.enabled && p.capabilities.includes('stream'));
 
-        const stremioType = item.mediaType === 'anime' ? 'series' : item.mediaType === 'tv' ? 'series' : 'movie';
+        const stremioType = item.mediaType === 'movie' ? 'movie' : 'series';
         const stremioId = imdbId || item.sourceId;
+        if (!stremioId) {
+          if (active) setLoadingStreams(false);
+          return;
+        }
 
         const promises = activeProviders.map(async (provider) => {
           try {
@@ -76,16 +77,13 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
     const loadManga = async () => {
       setLoadingManga(true);
       try {
-        const idDex = await mangaDexApi.searchManga(item.title);
-        if (!active || !idDex) {
-          setLoadingManga(false);
-          return;
-        }
+        const [idDex, chapters] = await Promise.all([
+          resolveMangaDexId(item),
+          fetchMangaChapters(item),
+        ]);
+        if (!active) return;
         setMangaId(idDex);
-        const chs = await mangaDexApi.getChapters(idDex);
-        if (active) {
-          setMangaChapters(chs);
-        }
+        setMangaChapters(chapters);
       } catch (err) {
         console.warn('Erro no MangaDex:', err);
       } finally {
@@ -98,40 +96,21 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
   }, [item]);
 
   const openAccess = (access: MediaAccess) => {
-    const official = access.url || item.providerUrl || '';
-    if (access.kind === 'book-preview' && access.embedId) {
-      navigate(`/reader?kind=google-books&volumeId=${encodeURIComponent(access.embedId)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(official)}`);
+    const destination = accessDestination(access, item);
+    if (destination.kind === 'internal') {
+      navigate(destination.path);
       return;
     }
-    if (access.kind === 'embed' && access.url) {
-      if (readable) navigate(`/reader?kind=html&url=${encodeURIComponent(access.url)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(official)}`);
-      else navigate(`/player?embed=${encodeURIComponent(access.url)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(official)}`);
+    if (destination.kind === 'external') {
+      window.open(destination.url, '_blank', 'noopener,noreferrer');
       return;
     }
-    if (['epub', 'pdf', 'html'].includes(access.kind) && access.url) {
-      navigate(`/reader?kind=${access.kind}&url=${encodeURIComponent(access.url)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(official)}`);
-      return;
-    }
-    if (['video', 'hls', 'audio'].includes(access.kind) && access.url) {
-      navigate(`/player?kind=${access.kind}&url=${encodeURIComponent(access.url)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(official)}`);
-      return;
-    }
-    if (access.embedId && access.provider.toLowerCase().includes('youtube')) {
-      navigate(`/player?youtube=${encodeURIComponent(access.embedId)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(official)}`);
-      return;
-    }
-    if (access.url) {
-      if (/^(steam:|com\.epicgames\.launcher:|goggalaxy:|xbox:|shortcut:|file:|([a-zA-Z]:\\))/i.test(access.url)) {
-        toast.error('Este acesso exige um aplicativo local e não pode ser aberto pelo Hubora na web.');
-      } else {
-        window.open(access.url, '_blank', 'noopener,noreferrer');
-      }
-    }
+    toast.error(destination.reason);
   };
 
-  const access = item.access || [];
-  const googlePreview: MediaAccess[] = readable && item.googleVolumeId && item.embeddable && !access.some((entry) => entry.kind === 'book-preview') ? [{ id: `google-${item.googleVolumeId}`, label: item.publicDomain ? 'Ler completo' : 'Abrir prévia', kind: 'book-preview', embedId: item.googleVolumeId, url: item.providerUrl, provider: 'Google Books', free: Boolean(item.publicDomain) }] : [];
-  const direct = [...googlePreview, ...access, ...dynamicStreams];
+  const direct = Array.from(
+    new Map([...verifiedAccessFor(item), ...dynamicStreams].filter((entry) => entry.health !== 'offline').map((entry) => [entry.id, entry])).values(),
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -142,7 +121,7 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
 
       {loadingStreams && (
         <div className="flex items-center gap-2 text-xs font-bold text-[var(--hub-brand)] animate-pulse">
-          <LoaderCircle size={14} className="animate-spin" /> Buscando streams adicionais em segundo plano...
+          <LoaderCircle size={14} className="animate-spin" /> Consultando os provedores configurados...
         </div>
       )}
 
@@ -182,10 +161,10 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
               {mangaChapters.map((ch) => (
                 <button
                   key={ch.id}
-                  onClick={() => navigate(`/reader?kind=manga&chapterId=${ch.id}&mangaId=${mangaId}&title=${encodeURIComponent(`${item.title} - ${ch.title}`)}`)}
+                  onClick={() => navigate(`/reader?kind=manga&chapterId=${ch.id}&mangaId=${mangaId}&title=${encodeURIComponent([item.title, ch.title].filter(Boolean).join(' - '))}`)}
                   className="px-3 py-2 text-left rounded-xl border border-white/5 bg-slate-900/60 hover:bg-slate-900 hover:border-[var(--hub-brand)] text-xs text-slate-300 font-bold transition truncate"
                 >
-                  Vol. {ch.volume || '0'} Cap. {ch.chapter}
+                  {ch.chapter ? `Capítulo ${ch.chapter}` : ch.title || 'Capítulo sem numeração informada'}
                 </button>
               ))}
             </div>
@@ -268,49 +247,101 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
           <MonitorPlay size={15} /> Ver diretório
         </Button>
         {video && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              window.open(
-                `https://www.justwatch.com/br/busca?q=${encodeURIComponent(item.title)}`,
-                '_blank',
-                'noopener,noreferrer'
-              )
-            }
-          >
+          <Button size="sm" variant="outline" onClick={() => window.open(`https://www.justwatch.com/br/busca?q=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
             <Search size={15} /> Onde assistir
           </Button>
         )}
-        {readable && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              window.open(
-                `https://books.google.com/books?q=${encodeURIComponent(item.title)}`,
-                '_blank',
-                'noopener,noreferrer'
-              )
-            }
-          >
-            <BookOpen size={15} /> Google Books
-          </Button>
+        {/* Anime: Crunchyroll + AniList */}
+        {item.mediaType === 'anime' && (
+          <>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://www.crunchyroll.com/pt-br/search?q=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <MonitorPlay size={15} /> Crunchyroll
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://anilist.co/search/anime?search=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <ExternalLink size={15} /> AniList
+            </Button>
+          </>
         )}
+        {/* Doramas: Viki + Kocowa */}
+        {item.mediaType === 'drama' && (
+          <>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://www.viki.com/search?q=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <MonitorPlay size={15} /> Viki
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://www.kocowa.com/search?q=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <MonitorPlay size={15} /> Kocowa
+            </Button>
+          </>
+        )}
+        {/* Mangá: MangaDex + MANGA Plus + WEBTOON */}
+        {item.mediaType === 'manga' && (
+          <>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://mangadex.org/search?q=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <BookOpen size={15} /> MangaDex
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://mangaplus.shueisha.co.jp/search_result?search=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <BookOpen size={15} /> MANGA Plus
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://www.webtoons.com/en/search?keyword=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <BookOpen size={15} /> WEBTOON
+            </Button>
+          </>
+        )}
+        {/* Livros: Google Books + Biblioteca Mundial + Standard Ebooks */}
+        {(item.mediaType === 'book' || item.mediaType === 'novel') && (
+          <>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://books.google.com/books?q=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <BookOpen size={15} /> Google Books
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://www.bibliotecamundial.org/pt/search/?q=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <BookOpen size={15} /> Biblioteca Mundial
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://standardebooks.org/ebooks?query=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <BookOpen size={15} /> Standard Ebooks
+            </Button>
+          </>
+        )}
+        {/* Novels: Royal Road + Wattpad + NovelUpdates */}
+        {item.mediaType === 'novel' && (
+          <>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://www.royalroad.com/fictions/search?title=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <ExternalLink size={15} /> Royal Road
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://www.wattpad.com/search/${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <ExternalLink size={15} /> Wattpad
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://www.novelupdates.com/?s=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <ExternalLink size={15} /> NovelUpdates
+            </Button>
+          </>
+        )}
+        {/* Comics: GlobalComix + Digital Comic Museum + Comic Book Plus */}
+        {item.mediaType === 'comic' && (
+          <>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://globalcomix.com/en/search/comics?q=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <BookOpen size={15} /> GlobalComix
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://digitalcomicmuseum.com/index.php?search=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <BookOpen size={15} /> Digital Comic Museum
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://comicbookplus.com/?cid=1&search=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <BookOpen size={15} /> Comic Book Plus
+            </Button>
+          </>
+        )}
+        {/* Games: Steam + itch.io + FreeToGame */}
         {item.mediaType === 'game' && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              window.open(
-                `https://store.steampowered.com/search/?term=${encodeURIComponent(item.title)}`,
-                '_blank',
-                'noopener,noreferrer'
-              )
-            }
-          >
-            <Gamepad2 size={15} /> Steam
-          </Button>
+          <>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://store.steampowered.com/search/?term=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <Gamepad2 size={15} /> Steam
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://itch.io/search?q=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <Gamepad2 size={15} /> itch.io
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => window.open(`https://www.freetogame.com/games?search=${encodeURIComponent(item.title)}`, '_blank', 'noopener,noreferrer')}>
+              <Gamepad2 size={15} /> FreeToGame
+            </Button>
+          </>
         )}
         <Button
           size="sm"
@@ -319,7 +350,7 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
             window.open(
               `https://www.google.com/search?q=${encodeURIComponent(
                 `${item.title} ${
-                  readable ? 'ler legalmente' : item.mediaType === 'game' ? 'jogo' : 'onde assistir'
+                  readable ? 'leitura oficial' : item.mediaType === 'game' ? 'loja oficial' : 'onde assistir oficial'
                 }`
               )}`,
               '_blank',

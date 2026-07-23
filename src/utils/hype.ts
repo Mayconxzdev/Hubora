@@ -49,7 +49,7 @@ export function calculateHypeScore(item: MediaItem, trendingRank?: number, isNew
   score = Math.min(Math.round(score), 100);
   
   if (reason === 'Em alta no radar de tendências.') {
-      if (score > 85) reason = 'Top Hype 🔥';
+      if (score > 85) reason = 'No topo das tendências';
       else if (score > 70 && !reason.includes('Estreia')) reason = 'Popular agora';
       else if (score > 50 && score <= 70) reason = 'Subindo no radar';
   }

@@ -32,6 +32,8 @@ export function Sources() {
   const [manifestUrl, setManifestUrl] = useState('');
   const [providers, setProviders] = useState<ProviderConfig[]>([]);
   const [providerItems, setProviderItems] = useState<Array<{ item: MediaItem; provider: ProviderConfig }>>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   const refresh = () => void listProviderConfigs().then(setProviders);
   useEffect(refresh, []);
@@ -40,6 +42,8 @@ export function Sources() {
     const normalized = value.trim();
     if (normalized.length < 2) return;
     setLoading(true);
+    setHasSearched(false);
+    setSearchError('');
     try {
       const freePromise = fetch(`/api/free-catalog?q=${encodeURIComponent(normalized)}`).then(async (response) => {
         const data = await response.json() as { items?: FreeCatalogItem[]; error?: string };
@@ -51,8 +55,11 @@ export function Sources() {
       const [freeItems, providerSettled] = await Promise.all([freePromise, providerPromise]);
       setItems(freeItems);
       setProviderItems(providerSettled.flatMap((result) => result.status === 'fulfilled' ? result.value : []));
+      setHasSearched(true);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Não foi possível pesquisar.');
+      const message = error instanceof Error ? error.message : 'Não foi possível pesquisar.';
+      setSearchError(message);
+      toast.error(message);
     } finally { setLoading(false); }
   };
 
@@ -157,8 +164,11 @@ export function Sources() {
 
     <section className="hub-panel p-5 sm:p-6">
       <div className="flex items-start gap-3"><div className="rounded-2xl bg-[var(--hub-brand-soft)] p-3 text-[var(--hub-brand)]"><BookOpen size={22}/></div><div><h2 className="text-xl font-black text-[var(--hub-text-strong)]">Ler ou assistir em fontes abertas</h2><p className="mt-1 text-sm text-[var(--hub-muted)]">A busca reúne Google Books, Open Library, Project Gutenberg e vídeos disponibilizados pelo Internet Archive. A origem controla disponibilidade, território e licença.</p></div></div>
-      <form onSubmit={searchFree} className="mt-5 flex gap-2"><div className="relative flex-1"><Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--hub-subtle)]" size={18}/><Input className="pl-11" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Título, autor ou assunto..." /></div><Button type="submit" disabled={loading || query.trim().length < 2}>{loading ? 'Buscando...' : 'Buscar'}</Button></form>
+      <form onSubmit={searchFree} className="mt-5 flex gap-2"><label className="relative flex-1"><span className="sr-only">Buscar conteúdo aberto</span><Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--hub-subtle)]" size={18}/><Input className="pl-11" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Título, autor ou assunto..." /></label><Button type="submit" disabled={loading || query.trim().length < 2}>{loading ? 'Buscando...' : 'Buscar'}</Button></form>
     </section>
+
+    {searchError && <div role="alert" className="hub-panel border-red-500/25 bg-red-500/8 p-4 text-sm text-red-300">{searchError} Tente novamente quando a fonte estiver disponível.</div>}
+    {hasSearched && grouped.length === 0 && providerItems.length === 0 && !searchError && <div className="hub-empty-state"><div><Search className="mx-auto mb-3 text-[var(--hub-brand)]" size={28}/><p className="font-bold text-[var(--hub-text-strong)]">Nenhuma fonte aberta encontrada</p><p className="mt-1 text-sm">Tente outro título, autor ou uma grafia mais curta.</p></div></div>}
 
     {grouped.map(([source, sourceItems]) => <section key={source} className="hub-section"><div className="hub-section-heading"><div><div className="hub-section-eyebrow"><LibraryBig size={14}/> {source}</div><h2 className="hub-section-title">{sourceItems.length} resultado(s)</h2></div></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{sourceItems.map((item) => <article key={item.id} className="hub-panel flex min-h-48 overflow-hidden"><div className="w-28 shrink-0 bg-[var(--hub-surface-3)] sm:w-36">{item.image ? <img src={item.image} alt="" className="h-full w-full object-cover" loading="lazy"/> : <div className="grid h-full place-items-center">{item.mediaType === 'movie' ? <Film size={30}/> : <BookOpen size={30}/>}</div>}</div><div className="min-w-0 flex-1 p-4"><p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[var(--hub-brand)]">{item.year || source}</p><h3 className="mt-1 line-clamp-2 font-black text-[var(--hub-text-strong)]">{item.title}</h3><p className="mt-1 line-clamp-1 text-xs text-[var(--hub-subtle)]">{item.authors.join(', ') || 'Autor não informado'}</p><p className="mt-3 line-clamp-2 text-xs leading-relaxed text-[var(--hub-muted)]">{item.description || 'Sem descrição.'}</p><div className="mt-4 flex flex-wrap gap-2">{item.access.slice(0, 2).map((access, index) => <Button key={`${access.kind}-${index}`} size="sm" variant={index === 0 ? 'default' : 'outline'} onClick={() => openAccess(item, access)}>{access.kind === 'official-link' ? <ExternalLink size={15}/> : item.mediaType === 'movie' ? <Film size={15}/> : <BookOpen size={15}/>} {access.label}</Button>)}<Button size="sm" variant="ghost" onClick={() => addFreeItem(item)}><Plus size={15}/> Biblioteca</Button></div></div></article>)}</div></section>)}
 
@@ -172,7 +182,7 @@ export function Sources() {
       </summary>
       <div className="mt-6 border-t border-[var(--hub-border)] pt-6">
         <div className="flex items-start gap-3"><div className="rounded-xl bg-[var(--hub-brand-soft)] p-3 text-[var(--hub-brand)]"><Link2 size={20}/></div><div><h2 className="font-black text-[var(--hub-text-strong)]">Adicionar provedor confiável</h2><p className="mt-1 text-sm text-[var(--hub-muted)]">Aceita manifestos Hubora e compatíveis com Stremio, catálogos, capítulos, arquivos e streams diretos autorizados. Torrent, magnet e arquivo .torrent são recusados.</p></div></div>
-        <div className="mt-4 flex gap-2"><Input value={manifestUrl} onChange={(event) => setManifestUrl(event.target.value)} placeholder="https://servidor/manifest.json"/><Button onClick={() => void addProvider()} disabled={!manifestUrl.trim()}>Adicionar</Button></div>
+        <div className="mt-4 flex gap-2"><label className="flex-1"><span className="sr-only">URL do manifesto</span><Input value={manifestUrl} onChange={(event) => setManifestUrl(event.target.value)} placeholder="https://servidor/manifest.json"/></label><Button onClick={() => void addProvider()} disabled={!manifestUrl.trim()}>Adicionar</Button></div>
         {providers.length > 0 && <div className="mt-4 grid gap-2">{providers.map((provider) => <div key={provider.id} className="flex items-center justify-between rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] p-3"><div><strong className="text-sm text-[var(--hub-text-strong)]">{provider.name}</strong><p className="mt-1 text-xs text-[var(--hub-muted)]">{provider.capabilities.join(' • ')}</p></div><Button size="sm" variant="ghost" onClick={() => void removeProviderConfig(provider.id).then(refresh)}><Trash2 size={16}/> Remover</Button></div>)}</div>}
         <div className="mt-6"><p className="mb-3 text-xs font-black uppercase tracking-wider text-[var(--hub-subtle)]">Fontes de catálogo ativas</p><div className="grid gap-2 md:grid-cols-2">{BUILTIN_PROVIDERS.map((provider) => <div key={provider.id} className="flex items-start gap-3 rounded-xl border border-[var(--hub-border)] p-3"><CheckCircle2 className="mt-0.5 shrink-0 text-emerald-500" size={17}/><div><strong className="text-sm text-[var(--hub-text-strong)]">{provider.name}</strong><p className="mt-1 text-xs text-[var(--hub-muted)]">{provider.description}</p></div></div>)}</div></div>
       </div>

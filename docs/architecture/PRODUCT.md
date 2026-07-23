@@ -4,14 +4,14 @@ Status do documento: `VERIFIED` como decisão de produto; os recursos descritos 
 
 ## Propósito
 
-Hubora é uma plataforma pessoal e privada, em português do Brasil, para descobrir, decidir, acompanhar, assistir, ler e organizar entretenimento em uma única experiência. Ele não promete possuir o conteúdo: reúne identidade, metadados, progresso e acessos autorizados, deixando explícito quando algo abre internamente, exige um serviço externo ou ainda não foi verificado.
+Hubora é uma plataforma pessoal acessível por link, em português do Brasil, para descobrir, decidir, acompanhar, assistir, ler e organizar entretenimento em uma única experiência. Quem possui o endereço pode usar como convidado, criar conta ou entrar com Google. Ele não promete possuir o conteúdo: reúne identidade, metadados, progresso e acessos autorizados, deixando explícito quando algo abre internamente, exige um serviço externo ou ainda não foi verificado.
 
 ## Usuário e ambiente
 
-- Proprietário inicial: uma pessoa, usando computador e celular.
-- Persistência desejada: local-first com sincronização privada posterior pelo Supabase.
+- Proprietário inicial: uma pessoa, usando computador e celular, com possibilidade de compartilhar o link.
+- Persistência desejada: local-first para convidado e sincronização isolada por conta no Supabase.
 - Hospedagem desejada: Netlify, após autorização e configuração remota explícitas.
-- Expansão futura: familiares convidados, com papéis e isolamento de dados.
+- Acesso atual: qualquer pessoa com o link pode usar; cada conta continua isolada por RLS.
 - Região, idioma e prioridade editorial: Brasil e PT-BR.
 - Não existe requisito de TV, NAS ou biblioteca local obrigatória.
 

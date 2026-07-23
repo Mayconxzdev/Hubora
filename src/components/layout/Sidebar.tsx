@@ -1,62 +1,115 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BookOpen,
-  Boxes,
-  Cable,
-  ChevronDown,
-  Clapperboard,
-  Compass,
-  Drama,
-  Gamepad2,
-  Layers3,
-  Library,
-  LogIn,
-  LogOut,
-  Moon,
-  PanelsTopLeft,
-  Search,
-  Settings,
-  Sparkles,
-  ScrollText,
-  Sun,
-  Tv,
-  User,
-  Zap,
   Home,
+  Clapperboard,
+  Tv,
+  Sparkles,
+  Flame,
+  BookOpen,
+  Layers,
+  Book,
+  FileText,
+  Gamepad2,
+  Bookmark,
+  Heart,
+  Calendar,
+  History,
+  ShieldCheck,
+  Server,
+  Cable,
+  Settings,
+  User,
+  Compass,
+  Radio,
+  TrendingUp,
+  Award,
+  Users,
+  Moon,
+  Sun,
+  LogOut,
+  LogIn,
+  ChevronDown,
+  Boxes,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store/useStore';
 import { authService } from '@/services/auth';
 import { toast } from 'sonner';
+import { Notifications } from '@/components/ui/Notifications';
+import { GlobalSearch } from '@/components/ui/GlobalSearch';
 
 interface SidebarProps {
   pinned: boolean;
   onPinnedChange: (pinned: boolean) => void;
 }
 
-const MAIN_NAV = [
-  { icon: Home, label: 'Início', path: '/' },
-  { icon: Compass, label: 'Descobrir', path: '/discover' },
-  { icon: Library, label: 'Minha lista', path: '/library' },
-] as const;
+type NavItem = {
+  icon: React.ElementType;
+  label: string;
+  path: string;
+};
 
-const CATEGORIES = [
-  { icon: Clapperboard, label: 'Filmes', path: '/movies' },
-  { icon: Tv, label: 'Séries', path: '/series' },
-  { icon: Zap, label: 'Animes', path: '/anime' },
-  { icon: Layers3, label: 'Mangás', path: '/manga' },
-  { icon: Drama, label: 'Doramas', path: '/doramas' },
-  { icon: BookOpen, label: 'Livros', path: '/books' },
-  { icon: ScrollText, label: 'Novels', path: '/novels' },
-  { icon: PanelsTopLeft, label: 'Quadrinhos', path: '/comics' },
-  { icon: Gamepad2, label: 'Jogos', path: '/games' },
-] as const;
+type NavGroup = {
+  title: string;
+  items: NavItem[];
+};
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    title: 'BIBLIOTECA',
+    items: [
+      { icon: Home, label: 'Início', path: '/' },
+      { icon: Clapperboard, label: 'Filmes', path: '/movies' },
+      { icon: Tv, label: 'Séries', path: '/series' },
+      { icon: Sparkles, label: 'Doramas', path: '/doramas' },
+      { icon: Flame, label: 'Animes', path: '/anime' },
+      { icon: BookOpen, label: 'Mangás', path: '/manga' },
+      { icon: Layers, label: 'Quadrinhos', path: '/comics' },
+      { icon: Book, label: 'Livros', path: '/books' },
+      { icon: FileText, label: 'Novels', path: '/novels' },
+      { icon: Gamepad2, label: 'Jogos', path: '/games' },
+    ],
+  },
+  {
+    title: 'MINHA COLEÇÃO',
+    items: [
+      { icon: Bookmark, label: 'Minha lista', path: '/library' },
+      { icon: Calendar, label: 'Diário', path: '/diary' },
+      { icon: ShieldCheck, label: 'Cofre Pessoal', path: '/vault' },
+      { icon: Server, label: 'Mídia Pessoal', path: '/sources' },
+    ],
+  },
+  {
+    title: 'EXPLORAR',
+    items: [
+      { icon: Compass, label: 'Descobrir', path: '/discover' },
+      { icon: Radio, label: 'Radar', path: '/radar' },
+      { icon: Calendar, label: 'Guia', path: '/guide' },
+      { icon: TrendingUp, label: 'Lançamentos', path: '/releases' },
+    ],
+  },
+  {
+    title: 'MINHA JORNADA',
+    items: [
+      { icon: Award, label: 'Insights', path: '/insights' },
+      { icon: Users, label: 'Conexões', path: '/connections' },
+    ],
+  },
+  {
+    title: 'SISTEMA',
+    items: [
+      { icon: Cable, label: 'Provedores', path: '/providers' },
+      { icon: Settings, label: 'Configurações', path: '/settings' },
+    ],
+  },
+];
 
 const PAGE_LABELS: Array<[RegExp, string]> = [
   [/^\/$/, 'Início'],
   [/^\/discover/, 'Descobrir'],
-  [/^\/library/, 'Minha lista'],
+  [/^\/library/, 'Minha Biblioteca'],
   [/^\/movies/, 'Filmes'],
   [/^\/series/, 'Séries'],
   [/^\/anime/, 'Animes'],
@@ -67,20 +120,23 @@ const PAGE_LABELS: Array<[RegExp, string]> = [
   [/^\/comics/, 'Quadrinhos'],
   [/^\/games/, 'Jogos'],
   [/^\/radar/, 'Radar'],
-  [/^\/sources/, 'Conteúdo gratuito'],
-  [/^\/providers/, 'Fontes e provedores'],
+  [/^\/sources/, 'Conteúdo Gratuito & Mídia Pessoal'],
+  [/^\/providers/, 'Fontes e Provedores'],
   [/^\/releases/, 'Lançamentos'],
-  [/^\/diary/, 'Histórico'],
+  [/^\/diary/, 'Diário'],
   [/^\/settings/, 'Configurações'],
   [/^\/profile/, 'Perfil'],
   [/^\/details/, 'Detalhes'],
+  [/^\/vault/, 'Cofre Pessoal'],
 ];
 
 function Brand({ showName = true }: { showName?: boolean }) {
   return (
-    <Link to="/" className="hub-brand" aria-label="Hubora — início">
-      <span className="hub-brand-mark"><Boxes size={20} strokeWidth={2.4} /></span>
-      {showName && <span className="hub-brand-name">Hubora</span>}
+    <Link to="/" className="flex items-center gap-2.5 px-2 py-1.5" aria-label="Hubora — início">
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--hub-brand)] text-white shadow-lg shadow-[var(--hub-brand-soft)]">
+        <Boxes size={20} strokeWidth={2.4} />
+      </span>
+      {showName && <span className="text-lg font-black tracking-tight text-white">Hubora</span>}
     </Link>
   );
 }
@@ -91,54 +147,87 @@ function isActivePath(current: string, path: string) {
 
 export function Sidebar({ pinned, onPinnedChange }: SidebarProps) {
   const location = useLocation();
+  const { user } = useStore();
   const [expanded, setExpanded] = useState(pinned);
 
   useEffect(() => setExpanded(pinned), [pinned]);
 
+  const avatar = (user?.name || user?.email || 'H').slice(0, 1).toUpperCase();
+
   return (
-    <aside className={cn('hub-navigation-rail', expanded && 'is-expanded', pinned && 'is-pinned')}>
-      <div className="hub-rail-brand-row">
+    <aside className={cn('hub-navigation-rail overflow-y-auto scrollbar-hide', expanded && 'is-expanded', pinned && 'is-pinned')}>
+      <div className="hub-rail-brand-row flex items-center justify-between">
         <Brand showName={expanded} />
-      </div>
-
-      <nav className="hub-rail-nav" aria-label="Navegação principal">
-        {MAIN_NAV.map((item) => {
-          const active = isActivePath(location.pathname, item.path);
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn('hub-rail-link', active && 'is-active', !expanded && 'is-compact')}
-              aria-current={active ? 'page' : undefined}
-              aria-label={item.label}
-              title={!expanded ? item.label : undefined}
-            >
-              <span className="hub-rail-link-icon"><item.icon size={19} strokeWidth={active ? 2.5 : 2} /></span>
-              {expanded && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
-
-        <div className="hub-rail-divider" />
         <button
-          className={cn('hub-rail-link w-full', !expanded && 'is-compact')}
           onClick={() => {
             const next = !expanded;
             setExpanded(next);
             onPinnedChange(next);
           }}
+          className="hidden md:flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-surface-2)] text-[var(--hub-muted)] hover:text-white transition-colors"
           aria-label={expanded ? 'Recolher menu' : 'Expandir menu'}
-          title={!expanded ? 'Expandir menu' : undefined}
+          title={expanded ? 'Recolher menu' : 'Expandir menu'}
         >
-          <span className="hub-rail-link-icon"><ChevronDown size={19} className={cn('transition-transform', expanded && 'rotate-180')} /></span>
-          {expanded && <span>Recolher</span>}
+          <ChevronRight size={14} className={cn('transition-transform duration-200', expanded && 'rotate-180')} />
         </button>
+      </div>
+
+      <nav className="hub-rail-nav space-y-6 pt-2" aria-label="Navegação principal">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.title} className="space-y-1">
+            {expanded && (
+              <div className="px-3 pb-1 text-[0.65rem] font-black uppercase tracking-wider text-[var(--hub-muted)] opacity-70">
+                {group.title}
+              </div>
+            )}
+            {group.items.map((item) => {
+              const active = isActivePath(location.pathname, item.path);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150',
+                    active
+                      ? 'bg-[var(--hub-brand-soft)] text-white border border-[rgba(109,74,255,0.4)] shadow-sm'
+                      : 'text-[var(--hub-muted)] hover:bg-[var(--hub-surface-2)] hover:text-white',
+                    !expanded && 'justify-center px-0'
+                  )}
+                  aria-current={active ? 'page' : undefined}
+                  aria-label={item.label}
+                  title={!expanded ? item.label : undefined}
+                >
+                  <span className={cn('flex-shrink-0', active && 'text-[var(--hub-brand)]')}>
+                    <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+                  </span>
+                  {expanded && <span className="truncate">{item.label}</span>}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
-      <div className="mt-auto">
-        <Link to="/settings" className={cn('hub-rail-link', isActivePath(location.pathname, '/settings') && 'is-active', !expanded && 'is-compact')} aria-label="Configurações" title={!expanded ? 'Configurações' : undefined}>
-          <span className="hub-rail-link-icon"><Settings size={19} /></span>
-          {expanded && <span>Configurações</span>}
+      {/* User Profile Widget at Bottom of Sidebar */}
+      <div className="mt-auto pt-4 border-t border-[var(--hub-border)]">
+        <Link
+          to="/profile"
+          className={cn(
+            'flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--hub-surface-2)] transition-colors',
+            !expanded && 'justify-center'
+          )}
+          title="Ver perfil"
+        >
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--hub-brand)] text-xs font-black text-white">
+            {avatar}
+          </div>
+          {expanded && (
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-xs font-bold text-white">{user?.name || 'Usuário Hubora'}</div>
+              <div className="truncate text-[0.7rem] text-[var(--hub-muted)]">{user?.email || 'Minha Central'}</div>
+            </div>
+          )}
         </Link>
       </div>
     </aside>
@@ -150,113 +239,110 @@ export function TopHeader() {
   const location = useLocation();
   const { user, guestTheme, toggleTheme, syncState, syncPending } = useStore();
   const theme = user ? user.preferences?.theme || 'dark' : guestTheme;
-  const [searchQuery, setSearchQuery] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const categoryRef = useRef<HTMLDivElement>(null);
-  const pageLabel = useMemo(() => PAGE_LABELS.find(([matcher]) => matcher.test(location.pathname))?.[1] || 'Hubora', [location.pathname]);
+  const pageLabel = useMemo(
+    () => PAGE_LABELS.find(([matcher]) => matcher.test(location.pathname))?.[1] || 'Hubora',
+    [location.pathname]
+  );
 
   useEffect(() => {
-    setCategoriesOpen(false);
     setProfileOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
     const close = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (!profileRef.current?.contains(target)) setProfileOpen(false);
-      if (!categoryRef.current?.contains(target)) setCategoriesOpen(false);
-    };
-    const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setProfileOpen(false);
-        setCategoriesOpen(false);
-      }
+      if (!profileRef.current?.contains(event.target as Node)) setProfileOpen(false);
     };
     document.addEventListener('pointerdown', close);
-    document.addEventListener('keydown', escape);
-    return () => {
-      document.removeEventListener('pointerdown', close);
-      document.removeEventListener('keydown', escape);
-    };
+    return () => document.removeEventListener('pointerdown', close);
   }, []);
-
-  const submit = (event: React.FormEvent) => {
-    event.preventDefault();
-    const query = searchQuery.trim();
-    if (!query) return;
-    navigate(`/discover?q=${encodeURIComponent(query)}`);
-    setSearchQuery('');
-  };
 
   const logout = async () => {
     try {
       await authService.logout();
-      toast.success('Sessão encerrada');
+      toast.success('Sessão encerrada com sucesso');
       navigate('/');
     } catch {
       toast.error('Não foi possível sair agora.');
     }
   };
 
-  const avatar = (user?.name || user?.email || 'V').slice(0, 1).toUpperCase();
+  const avatar = (user?.name || user?.email || 'H').slice(0, 1).toUpperCase();
 
   return (
     <header className="hub-top-header">
-      <div className="hub-top-header-inner">
-        <div className="md:hidden"><Brand /></div>
-        <div className="hidden min-w-24 md:block">
-          <p className="truncate text-sm font-extrabold text-[var(--hub-text-strong)]">{pageLabel}</p>
+      <div className="hub-top-header-inner gap-4">
+        <div className="md:hidden">
+          <Brand />
+        </div>
+        <div className="hidden min-w-28 md:block">
+          <p className="truncate text-sm font-extrabold text-white">{pageLabel}</p>
         </div>
 
-        <form onSubmit={submit} className="hub-global-search">
-          <Search size={18} aria-hidden="true" />
-          <input
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Buscar filmes, animes, livros, jogos..."
-            aria-label="Buscar em todo o Hubora"
-          />
-          <kbd className="hidden lg:inline-flex">/</kbd>
-        </form>
+        {/* Global Search Component */}
+        <div className="flex-1 max-w-2xl">
+          <GlobalSearch />
+        </div>
 
-        <div className="hub-header-actions">
-          <div ref={categoryRef} className="relative hidden sm:block">
-            <button className="hub-header-button" onClick={() => setCategoriesOpen((value) => !value)} aria-expanded={categoriesOpen}>
-              <Sparkles size={17} /><span className="hidden xl:inline">Categorias</span><ChevronDown size={14} />
-            </button>
-            {categoriesOpen && (
-              <div className="hub-category-menu">
-                <p className="hub-menu-label">Explorar por tipo</p>
-                <div className="hub-category-grid">
-                  {CATEGORIES.map((item) => <Link key={item.path} to={item.path}><item.icon size={18} /><span>{item.label}</span></Link>)}
-                </div>
-                <Link className="hub-menu-wide-link" to="/providers"><Cable size={17} /> Fontes e provedores</Link>
-                <Link className="hub-menu-wide-link" to="/sources"><BookOpen size={17} /> Ler e assistir grátis</Link>
-              </div>
-            )}
-          </div>
+        {/* Top Header Controls */}
+        <div className="hub-header-actions flex items-center gap-2">
+          <Notifications />
 
-          <button className="hub-icon-button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}>
+          <button
+            className="hub-icon-button"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
+            title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
+          >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
           <div ref={profileRef} className="relative">
-            <button className="hub-avatar-button" onClick={() => setProfileOpen((value) => !value)} aria-expanded={profileOpen} aria-label="Abrir menu pessoal">{avatar}</button>
+            <button
+              className="hub-avatar-button"
+              onClick={() => setProfileOpen((value) => !value)}
+              aria-expanded={profileOpen}
+              aria-label="Abrir menu pessoal"
+            >
+              {avatar}
+            </button>
             {profileOpen && (
               <div className="hub-profile-menu">
                 <div className="hub-profile-summary">
                   <span className="hub-avatar-button">{avatar}</span>
-                  <div className="min-w-0"><strong>{user?.name || 'Hubora pessoal'}</strong><small>{user?.email || 'Dados salvos neste aparelho'}</small></div>
+                  <div className="min-w-0">
+                    <strong>{user?.name || 'Hubora Pessoal'}</strong>
+                    <small>{user?.email || 'Dados salvos localmente'}</small>
+                  </div>
                 </div>
                 <div className="hub-menu-divider" />
-                <Link to="/profile"><User size={17} /> Perfil</Link>
-                <Link to="/providers"><Cable size={17} /> Fontes e provedores</Link>
-                <Link to="/settings"><Settings size={17} /> Configurações</Link>
-                <small className="hub-sync-label">{syncPending > 0 ? `${syncPending} alterações aguardando` : syncState === 'syncing' ? 'Sincronizando...' : 'Tudo salvo'}</small>
+                <Link to="/profile">
+                  <User size={17} /> Perfil
+                </Link>
+                <Link to="/providers">
+                  <Cable size={17} /> Fontes e Provedores
+                </Link>
+                <Link to="/settings">
+                  <Settings size={17} /> Configurações
+                </Link>
+                <small className="hub-sync-label">
+                  {syncPending > 0
+                    ? `${syncPending} alterações aguardando`
+                    : syncState === 'syncing'
+                    ? 'Sincronizando...'
+                    : 'Tudo salvo'}
+                </small>
                 <div className="hub-menu-divider" />
-                {user ? <button onClick={() => void logout()}><LogOut size={17} /> Sair</button> : <Link to="/login"><LogIn size={17} /> Entrar para sincronizar</Link>}
+                {user ? (
+                  <button onClick={() => void logout()}>
+                    <LogOut size={17} /> Sair
+                  </button>
+                ) : (
+                  <Link to="/login">
+                    <LogIn size={17} /> Entrar para sincronizar
+                  </Link>
+                )}
               </div>
             )}
           </div>
@@ -271,15 +357,21 @@ export function MobileNav() {
   const items = [
     { icon: Home, label: 'Início', path: '/' },
     { icon: Compass, label: 'Descobrir', path: '/discover' },
-    { icon: Library, label: 'Minha lista', path: '/library' },
-    { icon: Search, label: 'Buscar', path: '/discover?focus=search' },
+    { icon: Bookmark, label: 'Biblioteca', path: '/library' },
+    { icon: Clapperboard, label: 'Filmes', path: '/movies' },
+    { icon: Gamepad2, label: 'Jogos', path: '/games' },
   ];
 
   return (
     <nav className="hub-mobile-nav" aria-label="Navegação móvel">
       {items.map((item) => {
-        const active = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path.split('?')[0]);
-        return <Link key={item.label} to={item.path} className={cn(active && 'is-active')}><item.icon size={20} /><span>{item.label}</span></Link>;
+        const active = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
+        return (
+          <Link key={item.label} to={item.path} className={cn(active && 'is-active')}>
+            <item.icon size={20} />
+            <span>{item.label}</span>
+          </Link>
+        );
       })}
     </nav>
   );

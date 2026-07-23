@@ -11,6 +11,13 @@ describe('coleção real de vídeos nos detalhes', () => {
     expect(netlify).toContain('Referrer-Policy = "strict-origin-when-cross-origin"');
   });
 
+  it('mantém a allowlist TMDB igual no servidor local e no Netlify', () => {
+    const server = readFileSync(resolve(process.cwd(), 'server.ts'), 'utf8');
+    const netlifyFunction = readFileSync(resolve(process.cwd(), 'netlify/functions/tmdb.mts'), 'utf8');
+    expect(server).toContain('watch\\/providers|external_ids');
+    expect(netlifyFunction).toContain('watch\\/providers|external_ids');
+  });
+
   it('mantém teasers e trailers oficiais, remove duplicados e prioriza pt-BR', () => {
     const videos = normalizeTmdbVideos([
       { id: 'en', key: 'english01', name: 'Official Trailer', site: 'YouTube', type: 'Trailer', official: true, iso_639_1: 'en' },

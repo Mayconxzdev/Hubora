@@ -113,12 +113,16 @@ export function parseHuboraBackup(input: unknown): HuboraBackup {
   // Compatibility with the original backup shape, which stored library as a map.
   if (input && typeof input === 'object' && !('format' in input)) {
     const legacy = input as Record<string, unknown>;
+    const legacyLibrary = legacy.library;
+    if (!legacyLibrary || typeof legacyLibrary !== 'object' || Array.isArray(legacyLibrary)) {
+      throw new Error('O arquivo não contém uma biblioteca legada do Hubora.');
+    }
     input = {
       format: 'hubora-backup',
       version: 3,
       exportedAt: typeof legacy.exportedAt === 'string' ? legacy.exportedAt : new Date().toISOString(),
       user: legacy.user ?? null,
-      library: legacy.library && typeof legacy.library === 'object' ? Object.values(legacy.library) : [],
+      library: Object.values(legacyLibrary),
       customLists: legacy.customLists && typeof legacy.customLists === 'object' ? Object.values(legacy.customLists) : [],
       consumptionEvents: Array.isArray(legacy.consumptionEvents) ? legacy.consumptionEvents : [],
       goals: Array.isArray(legacy.goals) ? legacy.goals : [],

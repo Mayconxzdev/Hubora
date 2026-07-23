@@ -1,4 +1,5 @@
 import { MediaType } from '@/types';
+import { verifiedAccessFor } from '@/services/mediaAccess';
 
 export interface MediaTerminology {
   primaryActionLabel: string;
@@ -51,7 +52,7 @@ const MovieContract: MediaPresentationContract = {
       id: 'watch-movie',
       label: 'Assistir Filme',
       iconName: 'PlayCircle',
-      isAvailable: (item) => !!(item.watchProviders?.length || item.trailerUrl),
+      isAvailable: (item) => verifiedAccessFor(item).length > 0,
     },
   ],
   allowedTabs: [
@@ -85,7 +86,7 @@ const SeriesContract: MediaPresentationContract = {
       id: 'start-series',
       label: 'Começar Episódio 1',
       iconName: 'PlayCircle',
-      isAvailable: () => true,
+      isAvailable: (item) => verifiedAccessFor(item).length > 0,
     },
   ],
   allowedTabs: [
@@ -119,7 +120,7 @@ const DramaContract: MediaPresentationContract = {
       id: 'watch-drama',
       label: 'Assistir Dorama',
       iconName: 'PlayCircle',
-      isAvailable: () => true,
+      isAvailable: (item) => verifiedAccessFor(item).length > 0,
     },
   ],
   allowedTabs: [
@@ -153,7 +154,7 @@ const AnimeContract: MediaPresentationContract = {
       id: 'watch-anime',
       label: 'Assistir Episódio',
       iconName: 'PlayCircle',
-      isAvailable: () => true,
+      isAvailable: (item) => verifiedAccessFor(item).length > 0,
     },
   ],
   allowedTabs: [
@@ -188,7 +189,7 @@ const BookContract: MediaPresentationContract = {
       id: 'read-book',
       label: 'Abrir Leitor',
       iconName: 'BookOpen',
-      isAvailable: (item) => !!(item.sourceId || item.externalIds?.openLibrary || item.externalIds?.googleBooks),
+      isAvailable: (item) => verifiedAccessFor(item).length > 0,
     },
   ],
   allowedTabs: [
@@ -221,7 +222,7 @@ const NovelContract: MediaPresentationContract = {
       id: 'read-novel',
       label: 'Ler Capítulo 1',
       iconName: 'BookOpen',
-      isAvailable: () => true,
+      isAvailable: (item) => verifiedAccessFor(item).length > 0,
     },
   ],
   allowedTabs: [
@@ -255,7 +256,7 @@ const MangaContract: MediaPresentationContract = {
       id: 'read-manga',
       label: 'Ler Capítulo 1',
       iconName: 'BookOpen',
-      isAvailable: () => true,
+      isAvailable: (item) => verifiedAccessFor(item).length > 0,
     },
   ],
   allowedTabs: [
@@ -289,7 +290,7 @@ const ComicContract: MediaPresentationContract = {
       id: 'read-comic',
       label: 'Abrir HQ',
       iconName: 'BookOpen',
-      isAvailable: () => true,
+      isAvailable: (item) => verifiedAccessFor(item).length > 0,
     },
   ],
   allowedTabs: [

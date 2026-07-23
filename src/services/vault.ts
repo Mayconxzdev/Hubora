@@ -49,7 +49,7 @@ function constantTimeEqual(left: Uint8Array, right: Uint8Array): boolean {
 
 function readFailures(): FailureRecord {
   try {
-    const parsed = JSON.parse(sessionStorage.getItem(FAILURE_KEY) || '{}') as Partial<FailureRecord>;
+    const parsed = JSON.parse(localStorage.getItem(FAILURE_KEY) || '{}') as Partial<FailureRecord>;
     return { attempts: Number(parsed.attempts || 0), blockedUntil: Number(parsed.blockedUntil || 0) };
   } catch {
     return { attempts: 0, blockedUntil: 0 };
@@ -57,7 +57,7 @@ function readFailures(): FailureRecord {
 }
 
 function writeFailures(record: FailureRecord): void {
-  sessionStorage.setItem(FAILURE_KEY, JSON.stringify(record));
+  localStorage.setItem(FAILURE_KEY, JSON.stringify(record));
 }
 
 function registerFailure(): void {
@@ -68,7 +68,7 @@ function registerFailure(): void {
 }
 
 function clearFailures(): void {
-  sessionStorage.removeItem(FAILURE_KEY);
+  localStorage.removeItem(FAILURE_KEY);
 }
 
 export function getVaultLockoutRemaining(): number {

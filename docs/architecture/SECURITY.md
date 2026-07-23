@@ -13,7 +13,9 @@ Não publique vulnerabilidades, chaves ou dados pessoais em issues abertas. Envi
 
 ## Banco e autenticação
 
-- Aplique as migrações `001`, `002` e `003` na ordem e mantenha a allowlist em `private.allowed_emails`.
+- Aplique as migrations `001` a `005` na ordem. A `005` mantém cada tabela pessoal limitada a `auth.uid()` e retira a allowlist do acesso normal.
+- O endereço compartilhável não é um segredo nem uma fronteira de autorização. Qualquer pessoa com o link pode usar localmente ou criar conta.
+- A allowlist privada e a RPC administrativa existem apenas por compatibilidade/provisionamento E2E e permanecem inacessíveis a `anon` e `authenticated`.
 - Não desative Row Level Security nas tabelas expostas ao cliente.
 - Use a chave publicável no navegador; nunca use chave secreta no navegador. Prefira `SUPABASE_SECRET_KEY` no ambiente de Functions.
 - Revise políticas com dois usuários de teste antes de abrir o ambiente ao público.

@@ -130,19 +130,24 @@ export const adaptTMDBMovie = (movie: TMDBMovie): MediaItem => ({
   ageRatingSystem: movie.adult ? 'TMDB' : undefined,
 });
 
-export const adaptTMDBTV = (tv: TMDBTV): MediaItem => ({
+export const adaptTMDBTV = (tv: TMDBTV): MediaItem => {
+  const isAnimation = tv.genre_ids?.includes(16);
+  const isEastAsianDrama = !isAnimation && ['ko', 'zh', 'th', 'ja'].includes(tv.original_language || '');
+  const mediaType: MediaItem['mediaType'] = isEastAsianDrama ? 'drama' : 'tv';
+
+  return {
   id: `tmdb-tv-${tv.id}`,
   tmdbId: tv.id,
   source: 'tmdb',
   sourceId: tv.id,
   externalIds: { tmdb: String(tv.id) },
-  providerIdentities: [{ provider: 'tmdb', providerId: String(tv.id), mediaType: 'tv', verifiedAt: Date.now() }],
+  providerIdentities: [{ provider: 'tmdb', providerId: String(tv.id), mediaType, verifiedAt: Date.now() }],
   title: tv.name,
   originalTitle: tv.original_name,
   posterPath: tv.poster_path ? `${TMDB_IMAGE_BASE}${tv.poster_path}` : undefined,
   backdropPath: tv.backdrop_path ? `${TMDB_BACKDROP_BASE}${tv.backdrop_path}` : undefined,
   overview: tv.overview,
-  mediaType: 'tv',
+  mediaType,
   releaseDate: tv.first_air_date,
   voteAverage: tv.vote_average,
   genres: tv.genre_ids?.map((id: number) => String(id)),
@@ -157,7 +162,8 @@ export const adaptTMDBTV = (tv: TMDBTV): MediaItem => ({
     seasonNumber: tv.next_episode_to_air.season_number,
     name: tv.next_episode_to_air.name
   } : undefined
-});
+  };
+};
 
 export const adaptJikanAnime = (anime: JikanAnime): MediaItem => {
   const video = normalizeJikanVideo(anime.trailer);

@@ -1,0 +1,1711 @@
+Especificação mestre do Hubora
+
+O Hubora é uma plataforma pessoal, privada e centralizada para reunir toda a sua vida de entretenimento e leitura. Ele deve permitir descobrir, pesquisar, assistir, ler, organizar, acompanhar, avaliar, receber atualizações, relacionar adaptações e instalar fontes ou provedores, sem obrigar você a usar um aplicativo diferente para cada tipo de conteúdo.
+
+Ele não é apenas um catálogo, um clone do Stremio ou uma lista de links. O Hubora deve saber:
+
+qual é a obra;
+quais versões e adaptações existem;
+onde ela pode ser encontrada;
+qual fonte está funcionando;
+se pode abrir dentro do Hubora;
+onde você parou;
+o que combina com o momento;
+qual é a próxima coisa que faz sentido assistir, ler ou jogar.
+
+A definição mais direta é:
+
+O Hubora é o seu sistema operacional pessoal de entretenimento e leitura.
+
+1. Para quem é o Hubora
+
+Na primeira etapa, o Hubora é feito principalmente para você:
+
+aplicação privada;
+somente contas autorizadas;
+biblioteca pessoal;
+histórico pessoal;
+recomendações pessoais;
+sincronização entre computador e celular;
+nenhuma rede social obrigatória;
+nenhum cadastro público liberado automaticamente.
+
+A arquitetura deve permitir futuramente convidar familiares por e-mail, cada um com biblioteca, progresso, histórico e recomendações separados.
+
+Dispositivos
+
+Escopo atual:
+
+computador;
+notebook;
+celular;
+navegador;
+PWA no Windows;
+PWA no Android.
+
+Não faz parte do escopo atual:
+
+aplicativo específico para Smart TV;
+modo TV;
+Companion local;
+varredura automática de jogos;
+audiolivros.
+2. Categorias definitivas
+
+Considerando todas as decisões mais recentes, o Hubora possui nove categorias de conteúdo:
+
+Filmes
+Séries
+Doramas
+Animes
+Mangás
+Quadrinhos
+Livros
+Novels
+Jogos
+
+Além delas, existe o Cofre, que é um contexto privado transversal, não uma mídia.
+
+Não serão categorias independentes
+música;
+podcasts;
+audiolivros;
+cursos;
+esportes;
+shows;
+concertos;
+documentários;
+YouTube;
+programas genéricos de televisão.
+
+Documentário entra como gênero de filme ou série. YouTube entra como fonte de trailer, gameplay, episódio ou vídeo oficial. A especificação original já estabelecia que YouTube não deveria virar uma categoria própria.
+
+3. O problema que o Hubora resolve
+
+O Hubora deve resolver estes problemas simultaneamente:
+
+não saber o que assistir, ler ou jogar;
+não saber onde encontrar;
+ter listas espalhadas;
+esquecer onde parou;
+abrir vários sites procurando uma fonte;
+receber recomendações ruins;
+perder tempo diante de muitas opções;
+não perceber que uma obra possui livro, filme, série, mangá ou jogo;
+não saber a ordem de uma franquia;
+não saber se uma opção é gratuita;
+perder o histórico quando uma fonte desaparece;
+depender do site em que o conteúdo foi encontrado.
+
+O progresso deve pertencer à obra e ao usuário, não à fonte.
+
+Exemplo:
+
+Você estava no capítulo 87 de um mangá no NexusToons.
+O domínio ficou indisponível.
+O Hubora encontra o mesmo capítulo em outra fonte e mantém seu progresso.
+
+4. Promessa central
+
+O Hubora deve oferecer:
+
+Descoberta
+
+Encontrar obras por:
+
+título;
+título original;
+nome alternativo;
+autor;
+ator;
+diretor;
+personagem;
+estúdio;
+editora;
+desenvolvedora;
+franquia;
+gênero;
+tema;
+país;
+idioma;
+ano;
+plataforma;
+descrição lembrada;
+imagem;
+capa;
+screenshot;
+frame de anime;
+URL;
+identificador externo.
+Consumo
+
+Permitir:
+
+assistir dentro do Hubora quando houver player compatível;
+ler dentro do Hubora quando houver EPUB, PDF, imagens ou texto;
+abrir a fonte externa correta quando o conteúdo não puder ser incorporado;
+abrir lojas e launchers para jogos;
+usar Stremio ou Stremio Service quando um add-on depender dele;
+continuar de onde parou.
+Organização
+
+Centralizar:
+
+biblioteca;
+favoritos;
+listas;
+diário;
+avaliações;
+notas;
+progresso;
+histórico;
+calendário;
+próximos lançamentos;
+notificações;
+downloads offline;
+provedores;
+recomendações.
+5. Como deve funcionar a experiência
+Página inicial
+
+A Home não deve ser uma parede interminável de capas. Ela deve ser contextual e mudar conforme sua situação.
+
+Estrutura:
+
+Continuar
+Hubora Agora
+Próximos lançamentos
+Novos trailers
+Disponível gratuitamente
+Próximos episódios e capítulos
+Recomendações explicadas
+Retomar uma franquia
+Atividade recente
+Biblioteca
+Acesso às categorias
+
+A ordem deve se adaptar. Quando houver algo em andamento, “Continuar” aparece primeiro. Quando a biblioteca estiver vazia, aparece onboarding e descoberta.
+
+Hubora Agora
+
+O Hubora deve conseguir perguntar:
+
+quanto tempo você tem;
+seu humor;
+seu nível de energia;
+se está sozinho ou acompanhado;
+se quer continuar algo;
+se quer começar algo novo;
+se aceita qualquer mídia;
+se quer apenas gratuito;
+se precisa funcionar offline;
+se prefere dublado, legendado ou leitura;
+se está no computador ou celular.
+
+Depois deve retornar:
+
+uma escolha principal;
+duas alternativas;
+uma explicação curta;
+duração estimada;
+fonte disponível;
+ação imediata.
+
+Exemplo:
+
+Escolha principal: continuar A Metamorfose
+Você possui 35 minutos, está em 62%, o EPUB já está baixado e funciona offline.
+
+Alternativas:
+
+episódio de anime de 24 minutos;
+jogo curto que está na sua biblioteca.
+
+As recomendações devem usar histórico, avaliações, abandonos, rejeições, tempo, disponibilidade e preferências, não somente aleatoriedade.
+
+6. Busca universal
+
+A busca deve aceitar:
+
+Interestelar;
+Interstellar;
+tt0816692;
+URL do IMDb;
+TMDB ID;
+AniList ID;
+MyAnimeList ID;
+ISBN;
+Steam App ID;
+URL de uma fonte;
+“filme em que astronautas procuram outro planeta”;
+“anime da menina rosa que lê pensamentos”;
+“livro do homem que vira inseto”;
+screenshot;
+capa;
+frame;
+pesquisa por voz.
+
+Ela deve:
+
+identificar a obra;
+reunir IDs equivalentes;
+remover duplicatas;
+agrupar adaptações;
+consultar fontes compatíveis;
+apresentar a melhor correspondência;
+deixar o usuário corrigir uma identificação errada.
+
+A busca global, os filtros, a deduplicação, os fallbacks e a identificação visual já fazem parte da especificação consolidada.
+
+7. Página universal da obra
+
+Cada obra deve possuir uma página única no Hubora, mesmo aparecendo em diferentes fontes.
+
+Estrutura:
+
+capa e imagem principal;
+título em português;
+título original;
+ano;
+tipo;
+duração ou extensão;
+descrição;
+ação principal;
+progresso;
+trailers e vídeos;
+onde consumir;
+temporadas, episódios, volumes ou capítulos;
+autores, atores, artistas ou desenvolvedoras;
+franquia;
+adaptações;
+relações;
+sua atividade;
+fontes;
+última atualização.
+
+Abas:
+
+Visão geral
+Vídeos
+Episódios ou capítulos
+Relações
+Fontes
+Sua atividade
+Detalhes
+
+A interface normal deve mostrar uma ação principal e uma fonte recomendada. Informações técnicas aparecem apenas ao abrir Trocar fonte, Fontes ou Diagnóstico.
+
+8. Identidade universal e adaptações
+
+O Hubora não deve considerar cada resultado de cada API uma obra diferente.
+
+Modelo conceitual:
+
+Work — obra conceitual;
+MediaManifestation — filme, livro, anime, jogo etc.;
+Edition — edição, tradução ou versão;
+Season;
+Episode;
+Volume;
+Chapter;
+Franchise;
+Relationship;
+ExternalIdentity;
+Provider;
+AccessOption;
+LibraryEntry;
+ProgressEvent.
+
+Exemplo:
+
+The Witcher
+├── Livros
+│   ├── O Último Desejo
+│   ├── A Espada do Destino
+│   └── romances
+├── Jogos
+│   ├── The Witcher
+│   ├── The Witcher 2
+│   └── The Witcher 3
+├── Série
+├── Animações
+└── Relações e ordem recomendada
+
+Relações suportadas:
+
+adaptação de;
+baseado em;
+continuação;
+prequela;
+spin-off;
+reboot;
+remake;
+remaster;
+universo alternativo;
+versão regional;
+obra original;
+história paralela.
+
+A especificação exige que uma obra não seja duplicada por fonte e que edições, episódios e capítulos mantenham identidades próprias.
+
+9. Filmes
+O que a categoria deve fazer
+catálogo brasileiro;
+tendências;
+lançamentos;
+pesquisa;
+trailer;
+teasers;
+clipes;
+bastidores;
+elenco;
+direção;
+duração;
+classificação;
+gêneros;
+coleção;
+franquia;
+onde assistir;
+fonte gratuita primeiro;
+player interno;
+progresso;
+avaliação;
+diário;
+relacionados.
+Fontes de metadados
+TMDB
+IMDb
+TVDB
+TVmaze
+OMDb
+Watchmode
+JustWatch
+Wikidata
+Fontes gratuitas e oficiais
+Tela Brasil
+Mercado Play
+Pluto TV
+NetMovies
+Plex Free Movies & TV
+ViX
+Itaú Cultural Play
+Sesc Digital
+Libreflix
+YouTube
+Internet Archive
+Wikimedia Commons
+PeerTube
+Runtime
+Rakuten TV Free
+Samsung TV Plus
+LG Channels
+Serviços externos
+Netflix
+Prime Video
+Disney+
+Max
+Apple TV+
+Globoplay
+Paramount+
+Universal+
+MUBI
+Telecine
+Looke
+Reserva Imovision
+Belas Artes à La Carte
+Biblioteca pessoal
+Jellyfin
+Emby
+Plex Media Server
+Kodi
+Universal Media Server
+arquivos MP4
+MKV
+WebM
+HLS
+DASH
+NAS
+Stremio e add-ons
+Stremio
+Stremio Service
+Stremio Addon SDK
+Cinemeta
+Torrentio
+MediaFusion
+Comet
+Jackettio
+Annatar
+AIOStreams
+WebStreamr
+StreamBridge
+Nuvio
+VidLink
+VidSrc
+PlayIMDb
+StreamIMDb
+Castle
+OpenSubtitles
+Local Files
+YouTube add-on
+TMDB add-ons
+Trakt add-ons
+Provedores e agregadores já levantados
+Rede Canais
+Xilften
+PlayIMDb
+StreamIMDb
+FilmesXP
+Box Filmes
+Cine Vision
+Comando Play
+ComandoFlix
+Filmize
+GoFilmes
+Hypeflix
+LoveFlix
+Max Séries
+Max Series
+Meflix
+Mega Filmes HD
+Mega Series
+Megacine
+Megaflix
+MegaFlix
+MegaSeriesHD
+NetCine
+ObaFlix
+OneFlix HD
+Pobreflix
+Quero Filmes HD
+QueroSeries
+Séries Online Max
+Séries Online TV
+Super Series
+SuperCine
+Superflix
+SuperFlix
+SuperTela
+The Night Séries
+TopFlix
+UltraCine
+Vizer
+Vizer HD
+Week Series
+YouCine Web
+BitCine
+Ucinema
+Uflix
+FilmTV
+FluxTV
+AnikotoTV
+StreamDuck
+
+Esses provedores não devem ser codificados diretamente dentro da tela. Cada um deve ser um adaptador independente, com busca, identificação, resolução, erros e mudança de domínio.
+
+10. Séries
+
+Além dos recursos de filmes, deve possuir:
+
+temporadas;
+episódios;
+especiais;
+próximo episódio;
+datas;
+duração média;
+emissora;
+plataforma;
+versões;
+progresso por episódio;
+“em dia”;
+“aguardando temporada”;
+reprodução automática opcional;
+troca de fonte sem perder posição.
+
+Utiliza as mesmas fontes gerais de filmes, acrescentando dados mais fortes de:
+
+TVDB;
+TVmaze;
+TMDB TV;
+Trakt;
+serviços regionais;
+add-ons compatíveis com episódios.
+11. Doramas
+Recursos próprios
+país;
+título coreano, chinês, japonês, tailandês ou original;
+título internacional;
+episódios;
+data de lançamento;
+emissora;
+elenco;
+legendado;
+dublado;
+calendário;
+progresso;
+relação com webtoon, novel ou mangá.
+Fontes
+Viki
+Kocowa
+iQIYI
+WeTV
+Tencent Video
+Youku
+Netflix
+Prime Video
+Disney+
+Max
+Apple TV+
+YouTube
+Mercado Play
+Pluto TV
+Plex
+Globoplay
+AsianCrush
+GagaOOLala
+Fansubs e comunidades levantadas
+Drama Fansubs
+Their Doramas
+Kingdom Fansubs
+Fighting Fansub
+Phoenix Fansub
+Mahal Dramas
+AsianTeam
+Céu Asiático
+Unnie Fansubs
+Meteor Dramas
+Siwon Fansubs
+Mianeyo Fansub
+DoramasFlix
+SuperTela
+Vizer
+Xilften
+Rede Canais
+12. Animes
+Recursos
+temporadas;
+cour;
+episódios;
+especiais;
+OVAs;
+filmes;
+estúdio;
+arcos;
+abertura;
+encerramento;
+trailers;
+dublagem;
+idioma;
+calendário;
+relação com mangá;
+relação com light novel;
+cronologia.
+Metadados
+AniList
+MyAnimeList
+Jikan
+AniDB
+Kitsu
+AniChart
+LiveChart
+trace.moe
+TMDB
+IMDb
+TVDB
+Wikidata
+Anime News Network Encyclopedia
+Fontes oficiais
+Crunchyroll
+Netflix
+Prime Video
+Disney+
+Max
+HIDIVE
+RetroCrush
+Viki
+YouTube
+Adult Swim
+Tubi
+Plex
+Pluto TV
+Fontes comunitárias levantadas
+AnimeFire
+Better Anime
+HiAnime
+AniWatch
+9anime
+AniWave
+AnimePahe
+AnimeKai
+Miruro
+GoGoAnime
+Animes Online
+AnimeFlix
+AnikotoTV
+StreamDuck
+Xilften
+Rede Canais
+Stremio
+Torrentio
+MediaFusion
+Comet
+13. Livros
+
+O Hubora deve conseguir encontrar, importar e ler livros completos quando a fonte oferecer um arquivo compatível.
+
+Exemplo obrigatório: Biblioteca Mundial
+
+Para A Metamorfose:
+
+pesquisar título e autor;
+encontrar a página correta;
+identificar PDF, EPUB e Mobi;
+preferir EPUB;
+validar arquivo;
+importar;
+guardar offline;
+abrir no leitor;
+salvar posição;
+permitir destaques e notas;
+fechar;
+reabrir no mesmo ponto;
+sincronizar o progresso;
+permitir remover o download.
+Fontes gratuitas e abertas
+Biblioteca Mundial
+Project Gutenberg
+Standard Ebooks
+Portal Domínio Público
+MEC Livros
+BNDigital
+Wikisource
+SciELO Livros
+DOAB
+Internet Archive
+Open Library
+Google Books
+ManyBooks
+Europeana
+HathiTrust
+Feedbooks Public Domain
+Global Grey
+Sacred Texts
+The Online Books Page
+Bartleby
+Wikibooks
+Biblioteca Digital da Câmara
+Biblioteca Digital do Senado
+repositórios universitários
+bibliotecas digitais estaduais
+bibliotecas digitais municipais
+Empréstimo
+Open Library
+Internet Archive Lending Library
+BibliON
+MEC Livros
+Hoopla
+Libby/OverDrive
+bibliotecas públicas digitais
+bibliotecas universitárias
+HathiTrust
+Plataformas externas
+Kindle
+Kindle Unlimited
+Google Play Livros
+Apple Books
+Kobo
+Everand
+BookWalker
+Barnes & Noble Nook
+Biblioteca pessoal
+Kavita
+Komga
+Calibre
+Calibre-Web
+KOReader
+OPDS
+arquivos EPUB
+PDF
+TXT
+HTML
+DOCX convertido
+ODT convertido
+NAS
+armazenamento offline do Hubora
+14. Leitor de livros
+EPUB
+sumário;
+capítulos;
+posição exata;
+EPUB CFI ou equivalente;
+percentual;
+busca;
+seleção;
+marcações;
+notas;
+destaques;
+fonte;
+tamanho;
+margens;
+espaçamento;
+paginação;
+rolagem;
+tema claro;
+sépia;
+escuro;
+estimativa de tempo;
+offline;
+sincronização.
+PDF
+miniaturas;
+páginas;
+zoom;
+busca;
+rotação;
+ajuste à largura;
+seleção;
+posição;
+retomada;
+offline;
+OCR opcional.
+Ferramentas
+Readium Web
+EPUB.js
+PDF.js
+Internet Archive BookReader
+IndexedDB
+OPFS
+
+A especificação já prevê leitores próprios para EPUB, PDF e mangá, com retomada e sincronização.
+
+15. Novels e light novels
+
+Novels devem ser uma categoria própria, não apenas livros com outro rótulo.
+
+Inclui:
+
+light novels;
+webnovels;
+fanfics;
+ficção serializada;
+obras originais;
+traduções;
+histórias publicadas em capítulos.
+Recursos
+catálogo;
+busca;
+autores;
+volumes;
+capítulos;
+fonte atual;
+outras fontes;
+capítulo novo;
+histórico;
+progresso;
+leitor;
+notas;
+destaques;
+tradução de trecho;
+offline;
+troca de fonte;
+notificações.
+Fontes em português
+Central Novel
+Novel Mania
+NexusToons
+NoxToons
+Manga Livre
+blogs de tradutores
+blogs de autores
+comunidades brasileiras
+sites próprios de autores
+Plataformas internacionais
+Royal Road
+Scribble Hub
+Wattpad
+WebNovel
+Tapas Novels
+Inkitt
+GoodNovel
+AO3
+FanFiction.net
+FictionPress
+NovelUpdates
+SpaceBattles
+Sufficient Velocity
+Questionable Questing
+Re:Library
+r/HFY
+NovelBin
+NovelFire
+Novellive
+MoonQuill
+NovelPia
+ReamStories
+Neobooks
+Novelizing
+WuxiaWorld
+WebFictionGuide
+Editoras e lojas
+J-Novel Club
+BookWalker
+Yen Press
+Seven Seas
+Kodansha
+Square Enix Books
+VIZ
+One Peace Books
+TokyoPop
+SuBLime
+Kindle
+Kobo
+Google Play Livros
+Apple Books
+16. Mangás, manhwas, manhuas e webtoons
+Recursos
+volumes;
+capítulos;
+idioma;
+tradução;
+grupo;
+autor;
+artista;
+status;
+publicação;
+direção de leitura;
+capítulo atual;
+página;
+cache;
+offline;
+troca de fonte;
+relação com anime ou novel.
+Metadados
+AniList
+MyAnimeList
+Jikan
+Kitsu
+MangaDex
+MangaUpdates
+Wikidata
+Google Books
+Open Library
+ISBN
+ComicVine
+Anime-Planet
+Plataformas oficiais
+MANGA Plus
+MANGA Plus Creators
+WEBTOON
+Tapas
+GlobalComix
+Comikey
+INKR Comics
+Manga UP!
+VIZ Manga
+Shonen Jump
+K Manga
+Azuki
+Mangamo
+Tappytoon
+Manta
+Lezhin Comics
+NetComics
+Renta!
+Alpha Manga
+Lalatoon
+Toomics
+Day Comics
+MangaPlaza
+WebComics
+Pocket Comics
+MangaToon
+NamiComi
+Dark Horse Digital
+MangaDraft
+Kimchi Manga
+BookWalker
+Fontes comunitárias
+MangaDex
+NexusToons
+NoxToons
+NoxManga
+Manga Livre
+SlimeRead
+Sussy Toons
+Comick
+Bato
+Batoto
+WeebCentral
+MangaFire
+MangaFreak
+Dynasty Scans
+Flower Manga
+Remangas
+Leitor de Mangá
+MangaK
+MangaHost
+Union Mangás
+MangaSee
+MangaLife
+MangaPark
+MangaReader
+MangaHere
+MangaFox
+Grupos e scans levantados
+Asura Scans
+Flame Comics
+Valir Scans
+Vortex Scans
+Scylla Scans
+Lua Comics
+Kaizen Scans
+Gourmet Scans
+Fairy Scans
+Luna Toons
+Paradise Scans
+Reset Scans
+Siren Scans
+Akai Comics
+Utoons
+Nyrax Manga
+Rinko Comics
+Madokami
+MangusManga
+Meitoon
+EZManga
+Necro Scans
+Servidores pessoais
+Komga
+Kavita
+Suwayomi Server
+Mihon
+Tachiyomi forks
+KOReader
+YACReader
+Calibre-Web
+OPDS
+CBZ
+CBR
+PDF
+EPUB
+ZIP de imagens
+pastas
+NAS
+17. Leitor de mangás e quadrinhos
+
+Modos:
+
+vertical contínuo;
+webtoon;
+página única;
+página dupla;
+esquerda para direita;
+direita para esquerda;
+ajuste à largura;
+ajuste à altura;
+zoom.
+
+Recursos:
+
+próximo capítulo;
+capítulo anterior;
+pré-carregamento;
+cache;
+offline;
+progresso por capítulo e página;
+idioma;
+grupo;
+volume;
+duplicatas;
+tratamento de capítulo removido;
+troca de fonte.
+18. Quadrinhos ocidentais
+Metadados
+Grand Comics Database
+ComicVine
+Metron
+Google Books
+Open Library
+Wikidata
+ISBN
+ComicInfo.xml
+Marvel Developer API
+League of Comic Geeks
+Fontes gratuitas e abertas
+Digital Comic Museum
+Comic Book Plus
+Internet Archive
+Wikimedia Commons
+Europeana
+GlobalComix gratuito
+webcomics dos autores
+arquivos CBZ
+CBR
+PDF
+EPUB
+Plataformas oficiais
+GlobalComix
+Marvel Unlimited
+DC Universe Infinite
+Dark Horse Digital
+Comixology
+Kindle
+Hoopla
+WEBTOON
+Tapas
+INKR
+Izneo
+DriveThruComics
+Panel Syndicate
+Image Comics
+Marvel
+DC
+Dark Horse
+IDW
+Boom! Studios
+Dynamite
+Valiant
+Recursos específicos
+série;
+volume;
+edição;
+roteirista;
+desenhista;
+arte-finalista;
+colorista;
+editora;
+variante;
+universo;
+evento;
+arco;
+ordem de leitura;
+adaptações.
+19. Jogos
+
+O Hubora não detectará automaticamente jogos instalados, porque o Companion foi removido.
+
+O usuário deve cadastrar manualmente:
+
+possuído;
+instalado;
+não instalado;
+jogando;
+pausado;
+concluído;
+abandonado;
+wishlist;
+plataforma;
+edição;
+progresso;
+horas jogadas;
+dificuldade;
+campanha;
+notas.
+Metadados
+IGDB
+RAWG
+Steam Store
+Steam Web API
+CheapShark
+FreeToGame
+Giant Bomb
+MobyGames
+Wikidata
+HowLongToBeat
+IsThereAnyDeal
+ProtonDB
+PCGamingWiki
+SteamDB
+Lojas
+Steam
+Epic Games Store
+GOG
+Xbox/Microsoft Store
+PlayStation Store
+Nintendo eShop
+EA
+Ubisoft Store
+Battle.net
+Riot Games
+Rockstar Games
+Amazon Games
+itch.io
+Game Jolt
+Humble Store
+Green Man Gaming
+Fanatical
+Nuuvem
+Launchers externos
+Steam Client
+Epic Games Launcher
+GOG Galaxy
+Xbox App
+EA App
+Ubisoft Connect
+Battle.net
+Riot Client
+Rockstar Games Launcher
+Amazon Games
+itch.io App
+Heroic Games Launcher
+Playnite
+LaunchBox
+Lutris
+GameHub
+Jogos web
+itch.io HTML5
+Game Jolt HTML5
+Newgrounds
+CrazyGames
+Poki
+Armor Games
+Kongregate
+jogos WebAssembly
+jogos open source
+js-dos
+EmulatorJS
+Emularity
+Internet Archive Software Library
+homebrew
+freeware
+demos web
+20. Player de vídeo
+
+O player deve aceitar:
+
+HTML5 Video;
+MP4;
+WebM;
+HLS;
+MPEG-DASH;
+YouTube;
+PeerTube;
+Internet Archive;
+Jellyfin;
+fontes compatíveis;
+Stremio Service opcional.
+
+Recursos:
+
+qualidade;
+áudio;
+legenda;
+legenda externa;
+velocidade;
+tela cheia;
+Picture-in-Picture;
+progresso;
+retomada;
+próximo episódio;
+autoplay opcional;
+economia de dados;
+troca de fonte sem perder posição;
+fallback;
+erros compreensíveis.
+
+Trailers devem permanecer dentro da página, com preferência por português do Brasil, depois inglês e idioma original.
+
+Ferramentas:
+
+Video.js
+HLS.js
+Shaka Player
+YouTube IFrame
+PeerTube Embed
+HTML5 Video
+FFmpeg em servidores externos compatíveis
+21. Sistema de provedores e add-ons
+
+Esta é uma das partes mais importantes do Hubora.
+
+O Hubora deve copiar do Stremio a ideia de provedores separados, mas ampliar o protocolo para todas as categorias.
+
+O protocolo deve aceitar:
+
+manifest;
+catalog;
+search;
+metadata;
+identifiers;
+availability;
+trailer;
+video;
+stream;
+subtitles;
+seasons;
+episodes;
+editions;
+volumes;
+chapters;
+pages;
+document;
+price;
+schedule;
+reviews;
+relations;
+progress;
+health.
+
+O protocolo Stremio cobre principalmente catálogo, metadados, streams e legendas. O Hubora precisa de um protocolo maior para livros, novels, mangás, quadrinhos e jogos.
+
+Instalação de add-ons
+
+Deve permitir:
+
+catálogo interno;
+instalação por URL;
+validação de manifesto;
+habilitar;
+desabilitar;
+remover;
+atualizar;
+prioridade;
+categorias;
+configuração;
+saúde;
+diagnóstico;
+sincronização entre dispositivos.
+Stremio
+
+Fluxo:
+
+Add-on instalado
+    ↓
+Manifesto validado
+    ↓
+ID e categoria são compatíveis?
+    ↓
+Stream direto e web-ready?
+    ├── sim → Player do Hubora
+    └── não
+          ↓
+Stremio Service configurado?
+    ├── sim → usar serviço
+    └── não
+          ↓
+Abrir no aplicativo Stremio por deep link
+
+Essa escada por capacidade já foi definida na especificação.
+
+22. Saúde das fontes
+
+Cada fonte deve ter:
+
+nome;
+categoria;
+domínio;
+versão;
+idioma;
+região;
+autenticação;
+capacidades;
+última verificação;
+latência;
+erros;
+falhas consecutivas;
+sucesso de busca;
+sucesso de resolução;
+sucesso de reprodução ou leitura;
+fallback;
+evidência.
+
+Na interface normal, o usuário não deve ver uma lista enorme de fontes quebradas. O Hubora deve:
+
+testar;
+escolher a melhor;
+mostrar a principal;
+permitir trocar;
+tentar outra automaticamente quando falhar.
+23. Biblioteca e progresso
+
+O progresso deve ser automático quando possível e manual quando necessário.
+
+Filmes
+posição;
+duração;
+fonte;
+áudio;
+legenda;
+versão;
+reassistidas.
+Séries, doramas e animes
+temporada;
+episódio;
+posição;
+especiais;
+próximo episódio;
+em dia;
+aguardando temporada.
+Mangás e quadrinhos
+volume;
+capítulo;
+página;
+edição;
+arco;
+ordem;
+releitura.
+Livros
+edição;
+capítulo;
+página;
+percentual;
+CFI;
+tempo de leitura.
+Novels
+fonte;
+volume;
+capítulo;
+posição;
+idioma;
+atualização.
+Jogos
+estado;
+plataforma;
+edição;
+horas;
+campanha;
+dificuldade;
+progresso manual.
+
+O sistema deve registrar eventos, não apenas sobrescrever um número, permitindo desfazer, corrigir e resolver conflitos.
+
+24. Diário, avaliações e estatísticas
+
+Cada obra pode ter:
+
+gostei;
+não gostei;
+nota de 0,5 a 5 estrelas;
+avaliação privada;
+tags;
+comentário;
+spoiler;
+data;
+sessão;
+fonte;
+dispositivo;
+versão ou edição.
+
+Estatísticas:
+
+tempo por categoria;
+itens concluídos;
+gêneros;
+autores;
+atores;
+estúdios;
+desenvolvedoras;
+mês;
+ano;
+sequência de dias;
+metas;
+retrospectiva anual.
+25. Calendário e notificações
+
+Notificações para:
+
+episódio novo;
+temporada nova;
+capítulo novo;
+volume novo;
+trailer;
+lançamento;
+DLC;
+alteração de data;
+obra gratuita;
+fonte que voltou;
+fonte que falhou;
+continuação;
+adaptação;
+conflito de sincronização;
+backup;
+atividade de segurança.
+
+Canais:
+
+central interna;
+push PWA;
+e-mail configurável;
+resumo semanal.
+26. Cofre
+
+O Cofre é uma área privada que pode conter diferentes tipos de conteúdo.
+
+Quando desativado:
+
+não aparece no menu;
+não aparece na busca;
+não aparece na Home;
+não aparece nas recomendações;
+não aparece no histórico geral;
+não gera notificações comuns.
+
+Quando ativado:
+
+busca própria;
+biblioteca própria;
+histórico próprio;
+recomendações isoladas;
+configurações próprias;
+sincronização própria;
+RLS própria.
+
+O arquivo consolidado determina que o Cofre dependa da sessão da conta, sem PIN obrigatório, embora reconheça o risco residual.
+
+27. Conta e sincronização
+
+Tecnologias:
+
+Supabase Auth;
+Supabase Postgres;
+Supabase Realtime;
+Row Level Security;
+IndexedDB/Dexie;
+OPFS;
+Netlify Functions.
+
+Login:
+
+e-mail;
+senha;
+Google;
+GitHub;
+recuperação;
+confirmação de e-mail;
+sessões;
+dispositivos;
+revogação.
+
+Sincronizar:
+
+biblioteca;
+progresso;
+avaliações;
+listas;
+diário;
+preferências;
+provedores;
+configurações;
+downloads registrados;
+ordem da Home.
+
+Não sincronizar em texto simples:
+
+senhas;
+tokens;
+segredos;
+chaves privadas.
+28. Offline e PWA
+
+Offline:
+
+shell;
+biblioteca;
+listas;
+progresso;
+diário;
+preferências;
+metadados recentes;
+capas limitadas;
+EPUB;
+PDF;
+CBZ;
+capítulos autorizados;
+fila de sincronização.
+
+Não baixar automaticamente:
+
+filmes inteiros;
+episódios;
+streams temporários;
+catálogos completos.
+
+Controles:
+
+espaço utilizado;
+fila;
+pausa;
+retomar;
+remover;
+manter;
+tamanho;
+checksum;
+Wi-Fi;
+limpeza;
+conflito.
+
+A especificação determina funcionamento offline amplo, mas sem transformar Netlify ou Supabase em armazenamento de mídia longa.
+
+29. Arquitetura técnica
+Frontend
+React
+TypeScript
+Vite
+PWA
+IndexedDB
+Dexie
+OPFS
+Service Worker
+Workbox
+design system próprio
+Backend
+Netlify Functions para APIs leves;
+Supabase Auth;
+Supabase Postgres;
+Supabase Realtime;
+políticas RLS;
+jobs pequenos.
+
+Netlify não deve ser proxy permanente de filmes ou arquivos grandes. Supabase não deve ser usado como acervo ilimitado de mídia.
+
+Protocolos
+Hubora Provider Protocol
+Stremio Addon Protocol
+OPDS
+WebPub
+OAI-PMH
+MediaWiki API
+IIIF
+RSS
+Atom
+JSON Feed
+HLS
+DASH
+deep links
+30. Design
+
+Direção visual:
+
+estrutura cinematográfica da proposta A;
+tema claro inspirado na proposta B;
+densidade técnica da proposta C apenas em Fontes, Saúde e Diagnóstico;
+tema claro e escuro com a mesma arquitetura;
+conteúdo como foco;
+sidebar recolhível;
+interface limpa;
+informações avançadas progressivas.
+
+Evitar:
+
+copiar Netflix;
+glassmorphism geral;
+neon excessivo;
+gradiente em texto;
+botões falsos;
+cards para tudo;
+cards dentro de cards;
+dados fictícios;
+porcentagens inventadas;
+provedores inventados.
+
+A especificação define essa combinação visual híbrida como a recomendada.
+
+31. Estado atual conhecido
+
+Pelo último relatório trazido:
+
+Já existe como fundação
+aplicação React/TypeScript/Vite;
+PWA;
+Netlify Functions;
+Supabase preparado;
+Novels como categoria própria;
+rota /novels;
+Open Library como fallback;
+consulta de disponibilidade no Internet Archive;
+múltiplos vídeos em detalhes;
+trailer real de anime via Jikan/YouTube;
+uso de youtube-nocookie.com;
+remoção do Companion;
+remoção da trilha Spotify;
+testes atuais passando no ambiente original.
+Ainda falta completar
+TMDB real com chave;
+catálogo e disponibilidade brasileiros;
+temporadas e episódios reais;
+todas as fontes de filme;
+player completo;
+Biblioteca Mundial integrada;
+Gutenberg;
+Wikisource;
+EPUB completo;
+PDF.js;
+CBZ/CBR;
+MangaDex completo;
+NexusToons;
+Manga Livre;
+NoxToons;
+Central Novel;
+Novel Mania;
+capítulos de novels;
+quadrinhos;
+jogos manuais completos;
+Supabase remoto;
+autenticação real;
+sincronização entre dispositivos;
+RLS comprovada;
+deploy Netlify;
+PWA offline comprovada;
+tema claro completo;
+revisão visual de todas as rotas;
+Firefox;
+WebKit/Safari;
+acessibilidade;
+performance;
+evidência end-to-end das nove categorias.
+
+Classificação atual correta:
+
+ALPHA
+
+32. O que significa “pronto”
+
+Uma IA não pode declarar o Hubora pronto porque:
+
+compilou;
+abriu a Home;
+criou um botão;
+cadastrou o nome de uma fonte;
+criou um mock;
+escreveu no README;
+adicionou testes superficiais.
+
+O Hubora só estará realmente pronto quando houver comprovação de:
+
+typecheck;
+lint;
+testes unitários;
+testes de contrato;
+integração;
+E2E;
+build;
+computador;
+celular;
+claro;
+escuro;
+acessibilidade;
+login;
+OAuth;
+Supabase;
+sincronização;
+PWA;
+offline;
+notificações;
+nove categorias;
+busca;
+detalhes;
+trailers;
+player;
+leitores;
+biblioteca;
+progresso;
+diário;
+recomendações;
+fontes;
+Cofre;
+backup;
+segurança;
+deploy;
+documentação;
+evidências visuais.
+
+Essa definição de pronto está explicitamente prevista na especificação original.

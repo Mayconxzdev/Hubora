@@ -35,8 +35,13 @@ export const authService = {
 
   registerWithEmail: async (email: string, password: string) => {
     const client = requireClient();
-    const { error } = await client.auth.signUp({ email, password });
+    const { data, error } = await client.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/login?confirmed=1` },
+    });
     if (error) throw error;
+    return { requiresEmailConfirmation: !data.session };
   },
 
   resetPassword: async (email: string) => {

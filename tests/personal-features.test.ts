@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { canDisplayMedia, classifyAdult, getAdultMode } from '@/services/adultPolicy';
+import { canDisplayMedia, canQueryExplicitProviderContent, classifyAdult, getAdultMode } from '@/services/adultPolicy';
 import { pickFromBacklog } from '@/services/roulette';
-import { calculateWrapped } from '@/services/wrapped';
+import { calculateWrapped, wrappedSvg } from '@/services/wrapped';
 import type { ConsumptionEvent, MediaItem, UserMediaEntry, UserProfile } from '@/types';
 
 const media = (overrides: Partial<MediaItem> = {}): MediaItem => ({ id: '1', title: 'Obra', mediaType: 'movie', genres: ['Drama'], ...overrides });
@@ -31,6 +31,17 @@ describe('política adulta', () => {
     unconfirmed.preferences.adultConfirmed = false;
     expect(getAdultMode(unconfirmed)).toBe('off');
   });
+
+  it('mantém consultas explícitas bloqueadas por padrão e exige uma decisão deliberada', () => {
+    expect(canQueryExplicitProviderContent(null, true)).toBe(false);
+    const enabled = profile('vault');
+    expect(canQueryExplicitProviderContent(enabled, true)).toBe(false);
+    enabled.preferences.adultFilterEnabled = false;
+    expect(canQueryExplicitProviderContent(enabled, false)).toBe(false);
+    expect(canQueryExplicitProviderContent(enabled, true)).toBe(true);
+    enabled.preferences.adultMode = 'off';
+    expect(canQueryExplicitProviderContent(enabled, true)).toBe(false);
+  });
 });
 
 describe('Backlog Roulette', () => {
@@ -57,5 +68,21 @@ describe('Hubora Wrapped', () => {
     expect(wrapped.completed).toBe(1);
     expect(wrapped.totalMinutes).toBe(180);
     expect(wrapped.longestStreak).toBe(2);
+  });
+
+  it('remove itens do Cofre da retrospectiva compartilhável e usa a identidade visual atual', () => {
+    const year = 2026;
+    const visible = entry({ id: 'visible', title: 'Obra pública', status: 'completed', lastUpdated: new Date(`${year}-03-01`).getTime() });
+    const adult = entry({ id: 'adult', title: 'Título privado', status: 'completed', adultPrivate: true, lastUpdated: new Date(`${year}-03-02`).getTime() });
+
+    const shareable = calculateWrapped([visible, adult], [], year);
+    const privateStats = calculateWrapped([visible, adult], [], year, { includeAdultPrivate: true });
+    const svg = wrappedSvg(shareable, 'Pessoa');
+
+    expect(shareable.completed).toBe(1);
+    expect(privateStats.completed).toBe(2);
+    expect(svg).not.toContain('Título privado');
+    expect(svg).toContain('#8473ff');
+    expect(svg).not.toContain('#d99a28');
   });
 });

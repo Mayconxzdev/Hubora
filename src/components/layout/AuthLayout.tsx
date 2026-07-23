@@ -1,46 +1,64 @@
-import { ReactNode } from 'react';
-import { BookOpen, Clapperboard, Gamepad2, Sparkles, Tv } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { BookmarkCheck, Boxes, Cloud, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CATEGORY_NAVIGATION } from '@/config/navigation';
 
-const mediaTypes = [
-  { icon: Clapperboard, label: 'Filmes' },
-  { icon: Tv, label: 'Séries' },
-  { icon: BookOpen, label: 'Leituras' },
-  { icon: Gamepad2, label: 'Jogos' },
-];
+const capabilities = [
+  { icon: Search, title: 'Encontre', description: 'Pesquise obras, cenas e fontes em nove categorias.' },
+  { icon: BookmarkCheck, title: 'Acompanhe', description: 'Guarde status, avaliação, progresso e histórico.' },
+  { icon: Cloud, title: 'Sincronize se quiser', description: 'Conta é opcional; convidado continua no próprio aparelho.' },
+] as const;
 
 export function AuthLayout({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
-    <div className="grid min-h-[calc(100vh-var(--hub-header-height)-3rem)] overflow-hidden rounded-[1.7rem] border border-[var(--hub-border)] bg-[var(--hub-surface-1)] shadow-[var(--hub-shadow-lg)] lg:grid-cols-[minmax(0,1.08fr)_minmax(25rem,0.92fr)]">
-      <div className="relative hidden overflow-hidden bg-black p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_8%,rgba(217,154,40,0.38),transparent_34%),radial-gradient(circle_at_90%_82%,rgba(229,191,120,0.14),transparent_34%),linear-gradient(145deg,#030303,#11100d_56%,#030303)]" />
-        <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.045)_1px,transparent_1px)] [background-size:64px_64px]" />
-        <div className="relative">
-          <span className="hub-chip border-white/14 bg-white/8 text-white"><Sparkles size={14} className="text-[var(--hub-brand)]" /> Seu universo de entretenimento</span>
-          <h2 className="mt-7 max-w-2xl text-5xl font-black leading-[0.94] tracking-[-0.065em] xl:text-6xl">Tudo o que você assiste, lê e joga. Em uma só jornada.</h2>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/62">Biblioteca, progresso, diário, lançamentos e descobertas com foco no conteúdo — sem menus confusos ou excesso de informação.</p>
+    <div className="mx-auto grid min-h-[calc(100vh-var(--hub-header-height)-3rem)] w-full max-w-7xl overflow-hidden rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-1)] lg:grid-cols-[minmax(0,1.05fr)_minmax(25rem,0.95fr)]">
+      <section className="relative hidden border-r border-[var(--hub-border)] bg-black p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14" aria-label="O que você pode fazer no Hubora">
+        <div>
+          <Link to="/" className="inline-flex min-h-11 items-center gap-3 rounded-xl" aria-label="Hubora — voltar ao início">
+            <span className="grid size-11 place-items-center rounded-xl bg-white text-black"><Boxes size={21} strokeWidth={2.4} /></span>
+            <span className="text-lg font-extrabold tracking-[-0.03em]">Hubora</span>
+          </Link>
+
+          <h2 className="mt-14 max-w-2xl text-5xl font-black leading-[0.98] tracking-[-0.04em] xl:text-6xl">
+            Seu universo cultural, organizado para a próxima escolha.
+          </h2>
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70 xl:text-lg">
+            Descubra, entenda, acompanhe, leia e assista por fontes reais — sem perder o ponto onde parou.
+          </p>
+
+          <div className="mt-10 grid gap-5 sm:grid-cols-3">
+            {capabilities.map(({ icon: Icon, title: capabilityTitle, description: capabilityDescription }) => (
+              <div key={capabilityTitle} className="min-w-0">
+                <Icon size={20} className="text-[var(--hub-brand)]" aria-hidden="true" />
+                <h3 className="mt-3 text-sm font-bold">{capabilityTitle}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-white/58">{capabilityDescription}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="relative grid grid-cols-2 gap-3 xl:grid-cols-4">
-          {mediaTypes.map(({ icon: Icon, label }) => (
-            <div key={label} className="rounded-[1.15rem] border border-white/10 bg-white/[0.065] p-4 backdrop-blur-xl">
-              <Icon size={20} className="text-[var(--hub-brand)]" />
-              <p className="mt-3 text-sm font-bold">{label}</p>
-            </div>
+
+        <nav className="mt-12 flex flex-wrap gap-2" aria-label="Categorias disponíveis">
+          {CATEGORY_NAVIGATION.map(({ label, path, icon: Icon }) => (
+            <Link key={path} to={path} className="inline-flex min-h-9 items-center gap-2 rounded-full border border-white/12 px-3 text-xs font-semibold text-white/70 transition-colors hover:border-white/24 hover:text-white">
+              <Icon size={14} aria-hidden="true" /> {label}
+            </Link>
           ))}
-        </div>
-      </div>
-      <div className="flex items-center justify-center p-5 sm:p-10 lg:p-12">
+        </nav>
+      </section>
+
+      <main id="hub-auth-content" tabIndex={-1} className="flex items-center justify-center p-5 sm:p-10 lg:p-12">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <div className="mb-6 flex items-center gap-3 lg:hidden">
-              <div className="grid size-11 place-items-center rounded-2xl bg-[var(--hub-brand)] font-black text-[var(--hub-brand-contrast)]">H</div>
-              <span className="text-xl font-black tracking-[-0.04em] text-[var(--hub-text-strong)]">Hubora</span>
-            </div>
-            <h1 className="text-3xl font-black tracking-[-0.05em] text-[var(--hub-text-strong)] sm:text-4xl">{title}</h1>
-            <p className="mt-3 leading-relaxed text-[var(--hub-muted)]">{description}</p>
+            <Link to="/" className="mb-8 inline-flex min-h-11 items-center gap-3 rounded-xl lg:hidden" aria-label="Hubora — voltar ao início">
+              <span className="grid size-11 place-items-center rounded-xl bg-[var(--hub-text-strong)] text-[var(--hub-bg)]"><Boxes size={20} strokeWidth={2.4} /></span>
+              <span className="text-xl font-black tracking-[-0.03em] text-[var(--hub-text-strong)]">Hubora</span>
+            </Link>
+            <h1 className="text-3xl font-black leading-tight tracking-[-0.04em] text-[var(--hub-text-strong)] sm:text-4xl">{title}</h1>
+            <p className="mt-3 max-w-[65ch] leading-relaxed text-[var(--hub-muted)]">{description}</p>
           </div>
           {children}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

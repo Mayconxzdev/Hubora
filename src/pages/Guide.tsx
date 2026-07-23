@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { buildFranchiseOrder, type FranchiseOrder } from '@/services/franchise';
 import { api } from '@/services/api';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Search, Map, ArrowRight, Film, Tv, BookOpen, CheckCircle, Circle } from 'lucide-react';
+import { Search, Map, Film, Tv, BookOpen, CheckCircle, Circle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { FranchiseItemCard } from '@/components/guide/FranchiseItemCard';
@@ -64,7 +64,7 @@ export function Guide() {
       if (saved) {
         try {
           setCheckedItems(new Set(JSON.parse(saved)));
-        } catch (e) {
+        } catch {
           setCheckedItems(new Set());
         }
       } else {
@@ -106,7 +106,7 @@ export function Guide() {
   };
 
   return (
-    <div className="relative min-h-screen pb-20">
+    <div className="hub-page relative mx-auto w-full max-w-5xl">
       {/* Dynamic Background */}
       <AnimatePresence>
         {bgImage && (
@@ -121,38 +121,31 @@ export function Guide() {
               className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
               style={{ backgroundImage: `url(${bgImage})` }}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950/80 to-slate-950" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-black" />
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 max-w-4xl mx-auto space-y-10 pt-12 px-4">
-        <div className="text-center space-y-4">
-          <h1 className="text-5xl font-black text-white flex items-center justify-center gap-4 drop-shadow-2xl tracking-tight">
-            <Map className="text-cyan-400" size={40} />
-            {t('guide.title')}
-          </h1>
-          <p className="text-slate-300 text-xl drop-shadow-md max-w-2xl mx-auto">
-            {t('guide.subtitle')}
-          </p>
-        </div>
+      <div className="relative z-10 space-y-10">
+        <header className="hub-page-header items-start">
+          <div>
+            <div className="hub-section-eyebrow"><Map size={14} /> Ordem sugerida</div>
+            <h1 className="hub-page-title">{t('guide.title')}</h1>
+            <p className="hub-page-subtitle">{t('guide.subtitle')}</p>
+          </div>
+        </header>
 
-      <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto">
-        <div className="relative group">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={24} />
+      <form onSubmit={handleSearch} className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row">
+        <div className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-[var(--hub-subtle)]" size={21} />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('guide.search.placeholder')}
-            className="pl-14 h-16 text-xl bg-slate-900/60 backdrop-blur-xl border-white/10 rounded-3xl focus:ring-cyan-500/50 focus:border-cyan-500/50 shadow-2xl transition-all"
+            className="hub-field-with-leading-icon min-h-14 rounded-xl text-base sm:text-lg"
           />
-          <Button 
-            type="submit" 
-            className="absolute right-2 top-2 bottom-2 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 px-8 text-lg font-bold shadow-lg shadow-cyan-900/50 transition-all hover:scale-105"
-          >
-            {t('guide.search.btn')}
-          </Button>
         </div>
+        <Button type="submit" size="lg">{t('guide.search.btn')}</Button>
       </form>
 
       <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
@@ -164,7 +157,7 @@ export function Guide() {
               setSubmittedQuery(franchise);
               setSearchParams({ q: franchise });
             }}
-            className="px-5 py-2.5 bg-slate-900/50 backdrop-blur-md hover:bg-cyan-900/50 text-slate-300 hover:text-white rounded-full text-sm font-bold transition-all border border-white/10 hover:border-cyan-500/50 shadow-lg hover:shadow-cyan-900/50 hover:-translate-y-0.5"
+            className="min-h-11 rounded-full border border-[var(--hub-border)] bg-[var(--hub-surface-1)] px-5 py-2.5 text-sm font-bold text-[var(--hub-muted)] transition-colors hover:border-[var(--hub-border-strong)] hover:bg-[var(--hub-surface-2)] hover:text-[var(--hub-text-strong)]"
           >
             {franchise}
           </button>
@@ -173,25 +166,24 @@ export function Guide() {
 
       {isLoading && (
         <div className="space-y-8">
-          <div className="bg-slate-900/80 border border-cyan-500/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/20 to-transparent" />
+          <div className="hub-panel relative overflow-hidden p-6 sm:p-8">
             <div className="relative z-10">
-              <div className="h-10 bg-slate-800 rounded-lg w-1/2 mx-auto mb-4 animate-pulse" />
-              <div className="h-4 bg-slate-800 rounded-lg w-3/4 mx-auto mb-6 animate-pulse" />
-              <div className="h-4 bg-slate-800 rounded-lg w-2/3 mx-auto mb-10 animate-pulse" />
+              <div className="mx-auto mb-4 h-10 w-1/2 animate-pulse rounded-lg bg-[var(--hub-surface-3)]" />
+              <div className="mx-auto mb-6 h-4 w-3/4 animate-pulse rounded-lg bg-[var(--hub-surface-3)]" />
+              <div className="mx-auto mb-10 h-4 w-2/3 animate-pulse rounded-lg bg-[var(--hub-surface-3)]" />
             </div>
             <div className="relative z-10 space-y-8">
               {Array(5).fill(0).map((_, index) => (
                 <div key={`skeleton-${index}`} className={`flex flex-col md:flex-row gap-8 items-center ${index % 2 === 0 ? '' : 'md:flex-row-reverse'}`}>
                   <div className="w-48 shrink-0 relative">
-                    <div className="w-full aspect-[2/3] bg-slate-800 rounded-2xl animate-pulse" />
+                    <div className="aspect-[2/3] w-full animate-pulse rounded-xl bg-[var(--hub-surface-3)]" />
                   </div>
                   <div className="flex-1 w-full">
-                    <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700">
-                      <div className="h-6 bg-slate-700 rounded-lg w-3/4 mb-4 animate-pulse" />
-                      <div className="h-4 bg-slate-700 rounded-lg w-1/4 mb-4 animate-pulse" />
-                      <div className="h-4 bg-slate-700 rounded-lg w-full mb-2 animate-pulse" />
-                      <div className="h-4 bg-slate-700 rounded-lg w-5/6 animate-pulse" />
+                    <div className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] p-6">
+                      <div className="mb-4 h-6 w-3/4 animate-pulse rounded-lg bg-[var(--hub-surface-3)]" />
+                      <div className="mb-4 h-4 w-1/4 animate-pulse rounded-lg bg-[var(--hub-surface-3)]" />
+                      <div className="mb-2 h-4 w-full animate-pulse rounded-lg bg-[var(--hub-surface-3)]" />
+                      <div className="h-4 w-5/6 animate-pulse rounded-lg bg-[var(--hub-surface-3)]" />
                     </div>
                   </div>
                 </div>
@@ -202,7 +194,7 @@ export function Guide() {
       )}
 
       {isError && (
-        <div className="text-center py-20 text-red-400 bg-red-900/10 rounded-2xl border border-red-900/20">
+        <div role="alert" className="hub-panel border-red-500/25 bg-red-500/8 py-20 text-center text-red-400">
           <p>{t('guide.error')}</p>
         </div>
       )}
@@ -213,27 +205,26 @@ export function Guide() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8"
         >
-          <div className="bg-slate-900/80 border border-cyan-500/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/20 to-transparent" />
+          <div className="hub-panel relative overflow-hidden p-6 sm:p-8">
             <div className="relative z-10">
-              <h2 className="text-4xl font-black text-white mb-4 text-center">
+              <h2 className="mb-4 text-center text-3xl font-black tracking-[-0.03em] text-[var(--hub-text-strong)] sm:text-4xl">
                 {franchise.franchiseName}
               </h2>
-              <p className="text-slate-300 text-center max-w-2xl mx-auto mb-6 leading-relaxed">
+              <p className="mx-auto mb-6 max-w-2xl text-center leading-relaxed text-[var(--hub-muted)]">
                 {franchise.description}
               </p>
               
               {/* Progress Bar */}
               <div className="max-w-md mx-auto mb-10">
-                <div className="flex justify-between text-sm text-cyan-400 font-medium mb-2">
+                <div className="mb-2 flex justify-between text-sm font-medium text-[var(--hub-brand)]">
                   <span>Progresso</span>
                   <span>{checkedItems.size} de {franchise.items.length} ({Math.round((checkedItems.size / franchise.items.length) * 100)}%)</span>
                 </div>
-                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                <div className="h-2 w-full overflow-hidden rounded-full border border-[var(--hub-border)] bg-[var(--hub-surface-3)]">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${(checkedItems.size / franchise.items.length) * 100}%` }}
-                    className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full"
+                    className="h-full rounded-full bg-[var(--hub-brand)]"
                   />
                 </div>
               </div>
@@ -252,30 +243,30 @@ export function Guide() {
                   className={`flex flex-col md:flex-row gap-8 items-center ${index % 2 === 0 ? '' : 'md:flex-row-reverse'}`}
                 >
                   {/* Poster */}
-                  <div className={`w-48 shrink-0 relative ${isNext ? 'ring-4 ring-cyan-500/50 rounded-2xl ring-offset-4 ring-offset-slate-900 animate-pulse' : ''}`}>
-                    {isNext && <div className="absolute -top-3 -right-3 bg-cyan-500 text-slate-900 text-xs font-bold px-2 py-1 rounded-full z-10 shadow-lg">PRÓXIMO</div>}
+                  <div className={`relative w-48 shrink-0 ${isNext ? 'rounded-xl ring-2 ring-[var(--hub-brand)] ring-offset-4 ring-offset-[var(--hub-bg)]' : ''}`}>
+                    {isNext && <div className="absolute -right-3 -top-3 z-10 rounded-full bg-[var(--hub-brand)] px-2 py-1 text-xs font-bold text-[var(--hub-brand-contrast)]">PRÓXIMO</div>}
                     <FranchiseItemCard title={item.title} type={item.type as 'movie' | 'tv' | 'anime' | 'manga' | 'special' | 'ova'} searchQuery={item.searchQuery} year={item.year} />
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 w-full">
-                    <div className={`bg-slate-800/80 p-6 rounded-2xl border transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 ${checkedItems.has(item.title) ? 'border-green-500/50 opacity-70' : isNext ? 'border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'border-slate-700 hover:border-cyan-500/50'}`}>
+                    <div className={`rounded-xl border bg-[var(--hub-surface-2)] p-6 transition-colors ${checkedItems.has(item.title) ? 'border-[color-mix(in_srgb,var(--hub-success)_48%,var(--hub-border))] opacity-70' : isNext ? 'border-[var(--hub-brand)]' : 'border-[var(--hub-border)] hover:border-[var(--hub-border-strong)]'}`}>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <h3 className={`text-xl font-bold text-white flex items-center gap-2 ${checkedItems.has(item.title) ? 'line-through text-slate-400' : ''}`}>
+                          <h3 className={`flex flex-wrap items-center gap-2 text-xl font-bold text-[var(--hub-text-strong)] ${checkedItems.has(item.title) ? 'line-through text-[var(--hub-muted)]' : ''}`}>
                             {item.title}
-                            <span className="text-xs font-normal text-slate-400 border border-slate-600 px-2 py-1 rounded-full uppercase flex items-center gap-1 no-underline bg-slate-900">
+                            <span className="flex items-center gap-1 rounded-full border border-[var(--hub-border)] bg-[var(--hub-surface-1)] px-2 py-1 text-xs font-normal uppercase text-[var(--hub-muted)] no-underline">
                               {getIcon(item.type)} {item.type}
                             </span>
                           </h3>
-                          {item.year && <p className="text-sm text-cyan-400 font-medium mt-1">{item.year}</p>}
-                          <p className="text-sm text-slate-300 mt-3 italic leading-relaxed">
+                          {item.year && <p className="mt-1 text-sm font-medium text-[var(--hub-brand)]">{item.year}</p>}
+                          <p className="mt-3 text-sm italic leading-relaxed text-[var(--hub-muted)]">
                             "{item.reason}"
                           </p>
                         </div>
                         <button 
                           onClick={() => toggleCheck(item.title)}
-                          className={`mt-1 shrink-0 transition-colors ${checkedItems.has(item.title) ? 'text-green-500' : 'text-slate-500 hover:text-cyan-400'}`}
+                          className={`mt-1 shrink-0 rounded-full transition-colors focus-visible:outline-none ${checkedItems.has(item.title) ? 'text-[var(--hub-success)]' : 'text-[var(--hub-subtle)] hover:text-[var(--hub-brand)]'}`}
                           title={checkedItems.has(item.title) ? t('guide.mark.unseen') : t('guide.mark.seen')}
                         >
                           {checkedItems.has(item.title) ? <CheckCircle size={28} /> : <Circle size={28} />}

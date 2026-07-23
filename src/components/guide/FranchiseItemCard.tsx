@@ -2,6 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
+import { Clapperboard } from 'lucide-react';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface FranchiseItemCardProps {
   title: string;
@@ -42,44 +45,37 @@ export function FranchiseItemCard({ title, type, searchQuery, year }: FranchiseI
 
   if (isLoading) {
     return (
-      <div className="w-full aspect-[2/3] bg-slate-800 rounded-2xl animate-pulse" />
+      <Skeleton className="aspect-[2/3] w-full rounded-2xl" />
     );
   }
 
   if (!media) {
     return (
-      <div className="w-full aspect-[2/3] bg-slate-800 rounded-2xl flex items-center justify-center text-slate-500 text-xs text-center p-2">
-        {title}
+      <div className="hub-panel grid aspect-[2/3] w-full place-items-center p-4 text-center">
+        <div><Clapperboard className="mx-auto text-[var(--hub-subtle)]" size={24} aria-hidden="true"/><span className="mt-3 block text-xs font-bold text-[var(--hub-muted)]">{title}</span><small className="mt-1 block text-[var(--hub-subtle)]">Dados indisponíveis</small></div>
       </div>
     );
   }
 
   return (
-    <Link to={`/details/${media.id}`} className="group block w-full relative">
-      <div className="aspect-[2/3] rounded-2xl overflow-hidden mb-2 bg-slate-900 shadow-lg group-hover:shadow-cyan-500/30 transition-all duration-500 border border-slate-800 group-hover:border-cyan-500/50 relative">
+    <Link to={`/details/${media.id}`} className="group relative block w-full" aria-label={`Ver detalhes de ${media.title}`}>
+      <div className="relative mb-2 aspect-[2/3] overflow-hidden rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] shadow-[var(--hub-shadow-card)] transition duration-200 group-hover:-translate-y-1 group-hover:border-[var(--hub-border-strong)]">
         {media.posterPath ? (
           <>
-            <img 
+            <OptimizedImage
               src={media.posterPath} 
               alt={media.title} 
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" 
-              referrerPolicy="no-referrer" 
+              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-4">
-              <span className="text-white font-medium text-sm text-center bg-cyan-500/80 backdrop-blur-md py-1.5 px-3 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                Ver Detalhes
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 via-black/42 to-transparent p-4 pt-12 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
+              <span className="block rounded-full bg-white px-3 py-2 text-center text-xs font-black text-black">
+                Ver detalhes
               </span>
             </div>
           </>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 text-xs text-center p-4 bg-gradient-to-br from-slate-800 to-slate-900">
-            <span className="mb-2 opacity-50 text-2xl">🎬</span>
-            <span className="font-medium">{media.title}</span>
-            <div className="absolute inset-0 bg-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
-              <span className="text-cyan-400 font-medium text-sm bg-slate-900/80 py-1 px-3 rounded-full">
-                Ver Detalhes
-              </span>
-            </div>
+          <div className="grid h-full w-full place-items-center bg-[radial-gradient(circle_at_50%_28%,var(--hub-brand-soft),transparent_55%),var(--hub-surface-2)] p-4 text-center">
+            <div><Clapperboard className="mx-auto text-[var(--hub-subtle)]" size={28} aria-hidden="true"/><span className="mt-3 block text-xs font-bold text-[var(--hub-muted)]">{media.title}</span><small className="mt-1 block text-[var(--hub-subtle)]">Capa indisponível</small></div>
           </div>
         )}
       </div>

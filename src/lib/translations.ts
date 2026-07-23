@@ -36,7 +36,7 @@ export const translations = {
     'settings.logout.desc': 'Você precisará fazer login novamente para acessar sua biblioteca.',
     'settings.save': 'Salvar Alterações',
     'settings.saved': 'Configurações salvas com sucesso!',
-    'settings.version': 'Hubora V2 • Versão Alpha 0.1.0',
+    'settings.version': 'Hubora 9.0.2-rc.1 • Candidato a lançamento',
 
     // Discover
     'discover.title': 'Descobrir',
@@ -472,7 +472,7 @@ export const translations = {
     'settings.logout.desc': 'You will need to log in again to access your library.',
     'settings.save': 'Save Changes',
     'settings.saved': 'Settings saved successfully!',
-    'settings.version': 'Hubora V2 • Alpha Version 0.1.0',
+    'settings.version': 'Hubora 9.0.2-rc.1 • Release candidate',
 
     // Discover
     'discover.title': 'Discover',

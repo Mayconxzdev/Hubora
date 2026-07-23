@@ -11,53 +11,6 @@
   --color-accent: var(--hub-surface-2);
   --color-accent-foreground: var(--hub-text);
   --color-card: var(--hub-surface-1);
-  --color-card-foreground: var(--hub-text);
-  --color-border: var(--hub-border);
-  --color-input: var(--hub-surface-2);
-  --font-sans: "Inter", "SF Pro Display", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-:root {
-  color-scheme: dark;
-  --hub-bg: #000000;
-  --hub-bg-elevated: #050505;
-  --hub-surface-1: #0a0a0a;
-  --hub-surface-2: #121212;
-  --hub-surface-3: #1a1a1a;
-  --hub-surface-glass: rgba(13, 13, 14, 0.82);
-  --hub-text: #f4f1eb;
-  --hub-text-strong: #fffdf8;
-  --hub-muted: #aaa49a;
-  --hub-subtle: #746f67;
-  --hub-border: rgba(255, 255, 255, 0.105);
-  --hub-border-strong: rgba(255, 255, 255, 0.18);
-  --hub-brand: #d99a28;
-  --hub-brand-strong: #b97912;
-  --hub-brand-soft: rgba(217, 154, 40, 0.14);
-  --hub-brand-contrast: #160e04;
-  --hub-accent: #e5bf78;
-  --hub-success: #31c48d;
-  --hub-warning: #f7b84b;
-  --hub-danger: #f05252;
-  --hub-overlay: rgba(0, 0, 0, 0.78);
-  --hub-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.18);
-  --hub-shadow-md: 0 20px 48px rgba(0, 0, 0, 0.34);
-  --hub-shadow-lg: 0 32px 96px rgba(0, 0, 0, 0.48);
-  --hub-radius-sm: 0.8rem;
-  --hub-radius-md: 1.15rem;
-  --hub-radius-lg: 1.65rem;
-  --hub-radius-xl: 2.1rem;
-  --hub-header-height: 4.35rem;
-  --hub-nav-compact: 4.75rem;
-  --hub-nav-expanded: 16.5rem;
-  --hub-nav-offset: var(--hub-nav-compact);
-  --hub-content-max: 106rem;
-  --hub-ease: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-html.light {
-  color-scheme: light;
-  --hub-bg: #ffffff;
   --hub-bg-elevated: #fbfbfc;
   --hub-surface-1: #ffffff;
   --hub-surface-2: #f4f4f6;
@@ -265,7 +218,7 @@ html.light .hub-shell::before {
   color: var(--hub-text-strong);
   font-size: clamp(2rem, 4vw, 4rem);
   font-weight: 820;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.04em;
   line-height: 0.98;
 }
 
@@ -388,6 +341,29 @@ html.light .hub-shell::before {
 .hub-field,
 .hub-textarea {
   padding: 0.75rem 0.95rem;
+}
+
+.hub-skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 1000;
+  translate: 0 -180%;
+  border-radius: 0.75rem;
+  background: var(--hub-text-strong);
+  color: var(--hub-bg);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  transition: translate 160ms ease-out;
+}
+
+.hub-skip-link:focus-visible {
+  translate: 0;
+}
+
+.hub-field.hub-field-with-leading-icon {
+  padding-left: 2.75rem;
 }
 
 .hub-select {
@@ -552,7 +528,7 @@ html.light .hub-progress {
   color: white;
   font-size: clamp(2.2rem, 5vw, 5rem);
   font-weight: 850;
-  letter-spacing: -0.068em;
+  letter-spacing: -0.04em;
   line-height: 0.92;
   text-wrap: balance;
 }
@@ -1595,20 +1571,21 @@ html.light .hub-quick-pick-button {
   --hub-surface-glass: rgba(7, 7, 7, 0.9);
   --hub-text: #e8e8ea;
   --hub-text-strong: #ffffff;
-  --hub-muted: #a1a1aa;
-  --hub-subtle: #686872;
+  --hub-muted: #b8b8c0;
+  --hub-subtle: #92929c;
   --hub-border: rgba(255, 255, 255, 0.09);
   --hub-border-strong: rgba(255, 255, 255, 0.17);
   --hub-brand: #8c7cff;
   --hub-brand-strong: #725cff;
   --hub-brand-soft: rgba(140, 124, 255, 0.14);
-  --hub-brand-contrast: #ffffff;
+  --hub-brand-contrast: #090812;
   --hub-accent: #a99eff;
   --hub-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.46);
   --hub-shadow-md: 0 18px 48px rgba(0, 0, 0, 0.42);
   --hub-shadow-lg: 0 30px 90px rgba(0, 0, 0, 0.58);
   --hub-nav-compact: 4.5rem;
   --hub-nav-expanded: 14.5rem;
+  --hub-nav-offset: var(--hub-nav-compact);
   --hub-content-max: 100rem;
 }
 
@@ -1621,8 +1598,8 @@ html.light {
   --hub-surface-glass: rgba(255, 255, 255, 0.92);
   --hub-text: #242429;
   --hub-text-strong: #050507;
-  --hub-muted: #666670;
-  --hub-subtle: #85858f;
+  --hub-muted: #54545d;
+  --hub-subtle: #686872;
   --hub-border: rgba(5, 5, 7, 0.09);
   --hub-border-strong: rgba(5, 5, 7, 0.17);
   --hub-brand: #5d45e8;
@@ -1654,7 +1631,7 @@ body {
 .hub-page-title {
   font-size: clamp(2rem, 3.6vw, 3.4rem);
   font-weight: 820;
-  letter-spacing: -0.052em;
+  letter-spacing: -0.04em;
 }
 
 .hub-page-subtitle {
@@ -1712,7 +1689,7 @@ html.light .hub-navigation-rail.is-expanded {
 .hub-brand-name {
   font-size: 1.15rem;
   font-weight: 850;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
 }
 
 .hub-brand-mark {
@@ -1996,7 +1973,7 @@ html.light .hub-brand-mark {
 
 .hub-hero-title {
   font-size: clamp(2.3rem, 5vw, 4.8rem);
-  letter-spacing: -0.065em;
+  letter-spacing: -0.04em;
 }
 
 .hub-home-welcome {
@@ -2023,7 +2000,7 @@ html.light .hub-brand-mark {
   color: var(--hub-text-strong);
   font-size: clamp(2.6rem, 6vw, 5.4rem);
   font-weight: 860;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.04em;
   line-height: 0.92;
 }
 
@@ -2254,7 +2231,7 @@ html.light .hub-brand-mark {
   color: #fff;
   font-size: clamp(2.7rem, 6.2vw, 5.5rem);
   font-weight: 870;
-  letter-spacing: -.072em;
+  letter-spacing: -.04em;
   line-height: .93;
 }
 
@@ -2500,7 +2477,7 @@ html.light .hub-brand-mark {
   color: #fff;
   font-size: clamp(1.8rem, 3.5vw, 3rem);
   font-weight: 900;
-  letter-spacing: -.05em;
+  letter-spacing: -.04em;
   line-height: 1.05;
 }
 
@@ -2514,8 +2491,8 @@ html.light .hub-brand-mark {
 .hub-recommendation-reason {
   margin-top: 1.15rem;
   padding: 1rem 1.15rem;
-  border-left: 2px solid var(--hub-brand);
-  border-radius: 0 1rem 1rem 0;
+  border: 1px solid color-mix(in srgb, var(--hub-brand) 42%, var(--hub-border));
+  border-radius: 1rem;
   background: rgba(255, 255, 255, 0.02);
 }
 

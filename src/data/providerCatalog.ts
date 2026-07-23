@@ -30,6 +30,8 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   entry({ id: 'hidive', name: 'HIDIVE', description: 'Catálogo oficial de anime conforme o país.', homepage: 'https://www.hidive.com', categories: ['anime'], mode: 'external-page', auth: 'account', capabilities: ['catalog', 'availability'], free: false, official: true }),
   entry({ id: 'retrocrush', name: 'RetroCrush', description: 'Animes clássicos gratuitos ou por assinatura conforme a região.', homepage: 'https://www.retrocrush.tv', categories: ['anime'], mode: 'external-page', auth: 'account', capabilities: ['catalog', 'availability'], free: 'partial', official: true }),
   entry({ id: 'tmdb', name: 'TMDB', description: 'Identidade, imagens, elenco e disponibilidade regional de filmes e séries.', homepage: 'https://www.themoviedb.org', categories: ['movies', 'series', 'anime', 'doramas'], mode: 'metadata', auth: 'api-key', capabilities: ['catalog', 'search', 'details', 'availability', 'health'], free: true, official: true, featured: true }),
+  entry({ id: 'tvmaze', name: 'TVmaze', description: 'Complemento público para séries, temporadas, episódios, elenco e agenda.', homepage: 'https://www.tvmaze.com/api', categories: ['series', 'doramas'], mode: 'metadata', auth: 'none', capabilities: ['search', 'details'], free: true, official: true }),
+  entry({ id: 'trace-moe', name: 'trace.moe', description: 'Identificação de anime a partir de uma imagem ou frame enviado pelo usuário.', homepage: 'https://trace.moe', categories: ['anime'], mode: 'metadata', auth: 'none', capabilities: ['search', 'details'], free: true, official: true }),
   entry({ id: 'imdb', name: 'IMDb', description: 'Identificador universal, elenco, avaliações e vídeos promocionais.', homepage: 'https://www.imdb.com', categories: ['movies', 'series', 'anime', 'doramas', 'games'], mode: 'metadata', auth: 'none', capabilities: ['search', 'details'], free: true, official: true }),
   entry({ id: 'tvdb', name: 'TheTVDB', description: 'Temporadas, episódios, artes e IDs externos.', homepage: 'https://thetvdb.com', categories: ['series', 'anime', 'doramas'], mode: 'metadata', auth: 'api-key', capabilities: ['search', 'details'], free: 'partial', official: true }),
   entry({ id: 'omdb', name: 'OMDb', description: 'Metadados consultados principalmente por IMDb ID.', homepage: 'https://www.omdbapi.com', categories: ['movies', 'series'], mode: 'metadata', auth: 'api-key', capabilities: ['search', 'details'], free: 'partial', official: true }),
@@ -45,7 +47,7 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
 
   entry({ id: 'biblioteca-mundial', name: 'Biblioteca Mundial', description: 'Livros em PDF, EPUB ou MOBI quando a página disponibiliza o arquivo.', homepage: 'https://bibliotecamundial.com.br', categories: ['books'], mode: 'external-page', auth: 'none', capabilities: ['catalog', 'search', 'reader', 'download'], free: true, official: false, featured: true, note: 'O Hubora registra formato e origem; disponibilidade depende da página da obra.' }),
   entry({ id: 'project-gutenberg', name: 'Project Gutenberg', description: 'Ebooks de domínio público com catálogo e OPDS.', homepage: 'https://www.gutenberg.org', categories: ['books'], mode: 'downloadable-file', auth: 'none', capabilities: ['catalog', 'search', 'details', 'reader', 'download'], free: true, official: true, featured: true }),
-  entry({ id: 'standard-ebooks', name: 'Standard Ebooks', description: 'Ebooks de domínio público revisados e com feeds OPDS.', homepage: 'https://standardebooks.org', categories: ['books'], mode: 'downloadable-file', auth: 'none', capabilities: ['catalog', 'search', 'reader', 'download'], free: true, official: true }),
+  entry({ id: 'standard-ebooks', name: 'Standard Ebooks', description: 'Ebooks de domínio público revisados; o Hubora abre o catálogo oficial. Feeds completos dependem de autorização da origem.', homepage: 'https://standardebooks.org/ebooks', categories: ['books'], mode: 'external-page', auth: 'none', capabilities: ['catalog', 'search', 'availability'], free: true, official: true }),
   entry({ id: 'dominio-publico', name: 'Portal Domínio Público', description: 'Acervo público brasileiro com arquivos para leitura.', homepage: 'http://www.dominiopublico.gov.br', categories: ['books'], mode: 'downloadable-file', auth: 'none', capabilities: ['catalog', 'search', 'reader', 'download'], free: true, official: true }),
   entry({ id: 'bndigital', name: 'BNDigital', description: 'Acervo digital da Biblioteca Nacional com direitos indicados por item.', homepage: 'https://bndigital.bn.gov.br', categories: ['books', 'comics'], mode: 'external-page', auth: 'none', capabilities: ['catalog', 'search', 'reader'], free: true, official: true }),
   entry({ id: 'wikisource', name: 'Wikisource', description: 'Textos livres que podem ser lidos como HTML dentro do Hubora.', homepage: 'https://pt.wikisource.org', categories: ['books'], mode: 'embedded-player', auth: 'none', capabilities: ['catalog', 'search', 'reader'], free: true, official: true }),
@@ -115,10 +117,10 @@ export const PROVIDER_CATEGORIES: Array<{ id: 'all' | ProviderCategory; label: s
 
 export const MODE_LABELS: Record<ProviderCatalogEntry['mode'], string> = {
   metadata: 'Metadados',
-  'downloadable-file': 'Arquivo nativo',
+  'downloadable-file': 'Arquivo oferecido pela fonte',
   'embedded-player': 'Player incorporado',
   'personal-server': 'Servidor pessoal',
   'external-resolver': 'Resolvedor',
-  'external-page': 'Página integrada',
+  'external-page': 'Link externo',
   manifest: 'Manifesto',
 };

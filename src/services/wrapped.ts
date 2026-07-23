@@ -66,21 +66,20 @@ export function calculateWrapped(
 export function wrappedSvg(stats: WrappedStats, displayName = 'Minha jornada'): string {
   const safe = (text: string) => text.replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[character] || character);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
-  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#030303"/><stop offset="0.55" stop-color="#171109"/><stop offset="1" stop-color="#3a2306"/></linearGradient></defs>
-  <rect width="1080" height="1350" rx="64" fill="url(#bg)"/>
-  <circle cx="900" cy="190" r="260" fill="#d99a28" opacity=".16"/>
-  <text x="80" y="110" fill="#e5bf78" font-size="32" font-family="Arial" font-weight="700">HUBORA WRAPPED ${stats.year}</text>
-  <text x="80" y="190" fill="#fffdf8" font-size="58" font-family="Arial" font-weight="800">${safe(displayName)}</text>
-  <text x="80" y="330" fill="#fffdf8" font-size="170" font-family="Arial" font-weight="900">${stats.completed}</text>
-  <text x="80" y="390" fill="#c8c2b8" font-size="34" font-family="Arial">obras concluídas</text>
-  <text x="80" y="540" fill="#fffdf8" font-size="84" font-family="Arial" font-weight="800">${Math.round(stats.totalMinutes / 60)}h</text>
-  <text x="80" y="590" fill="#c8c2b8" font-size="30" font-family="Arial">registradas na sua jornada</text>
+  <rect width="1080" height="1350" rx="48" fill="#050505"/>
+  <circle cx="900" cy="190" r="260" fill="#8473ff" opacity=".18"/>
+  <text x="80" y="110" fill="#a99cff" font-size="32" font-family="Inter,Arial,sans-serif" font-weight="700">HUBORA WRAPPED ${stats.year}</text>
+  <text x="80" y="190" fill="#f7f7f8" font-size="58" font-family="Inter,Arial,sans-serif" font-weight="800">${safe(displayName)}</text>
+  <text x="80" y="330" fill="#f7f7f8" font-size="170" font-family="Inter,Arial,sans-serif" font-weight="900">${stats.completed}</text>
+  <text x="80" y="390" fill="#aaaab2" font-size="34" font-family="Inter,Arial,sans-serif">obras concluídas</text>
+  <text x="80" y="540" fill="#f7f7f8" font-size="84" font-family="Inter,Arial,sans-serif" font-weight="800">${Math.round(stats.totalMinutes / 60)}h</text>
+  <text x="80" y="590" fill="#aaaab2" font-size="30" font-family="Inter,Arial,sans-serif">registradas na sua jornada</text>
   <rect x="80" y="690" width="920" height="210" rx="38" fill="#ffffff" opacity=".07"/>
-  <text x="120" y="755" fill="#e5bf78" font-size="28" font-family="Arial" font-weight="700">SEU PERFIL DE CONSUMO</text>
-  <text x="120" y="825" fill="#fffdf8" font-size="42" font-family="Arial" font-weight="800">${safe(stats.favoriteGenre)}</text>
-  <text x="120" y="870" fill="#c8c2b8" font-size="26" font-family="Arial">gênero mais presente • streak de ${stats.longestStreak} dias</text>
-  <text x="80" y="1030" fill="#e5bf78" font-size="28" font-family="Arial" font-weight="700">TOP MEMÓRIAS</text>
-  ${stats.topTitles.map((title, index) => `<text x="80" y="${1095 + index * 62}" fill="#fffdf8" font-size="34" font-family="Arial">${index + 1}. ${safe(title.slice(0, 42))}</text>`).join('')}
-  <text x="80" y="1280" fill="#8f887d" font-size="24" font-family="Arial">Gerado localmente. Seus dados não saíram do aparelho.</text>
+  <text x="120" y="755" fill="#a99cff" font-size="28" font-family="Inter,Arial,sans-serif" font-weight="700">SEU PERFIL DE CONSUMO</text>
+  <text x="120" y="825" fill="#f7f7f8" font-size="42" font-family="Inter,Arial,sans-serif" font-weight="800">${safe(stats.favoriteGenre)}</text>
+  <text x="120" y="870" fill="#aaaab2" font-size="26" font-family="Inter,Arial,sans-serif">gênero mais presente • streak de ${stats.longestStreak} dias</text>
+  <text x="80" y="1030" fill="#a99cff" font-size="28" font-family="Inter,Arial,sans-serif" font-weight="700">TOP MEMÓRIAS</text>
+  ${stats.topTitles.map((title, index) => `<text x="80" y="${1095 + index * 62}" fill="#f7f7f8" font-size="34" font-family="Inter,Arial,sans-serif">${index + 1}. ${safe(title.slice(0, 42))}</text>`).join('')}
+  <text x="80" y="1280" fill="#777781" font-size="24" font-family="Inter,Arial,sans-serif">Gerado localmente. Seus dados não saíram do aparelho.</text>
   </svg>`;
 }

@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/Input';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
 import { AuthLayout } from '@/components/layout/AuthLayout';
-import { LockKeyhole, Mail, ShieldCheck, UserCheck, Sparkles } from 'lucide-react';
+import { CheckCircle2, LockKeyhole, LogIn, Mail, ShieldCheck, UserCheck } from 'lucide-react';
+import { accessConfiguration } from '@/config/access';
 
 export function Login() {
   const [params] = useSearchParams();
@@ -16,6 +17,7 @@ export function Login() {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const navigate = useNavigate();
   const emailFallback = import.meta.env.VITE_ENABLE_EMAIL_LOGIN !== 'false';
+  const { allowGuestMode, allowPublicSignup } = accessConfiguration();
 
   useEffect(() => {
     if (params.get('denied') === '1') {
@@ -43,7 +45,7 @@ export function Login() {
     try {
       localStorage.removeItem('hubora_guest_mode');
       await authService.loginWithGoogle();
-    } catch (err: any) {
+    } catch {
       setError('O login com Google não está habilitado no projeto Supabase atual. Você pode navegar como Visitante ou criar uma conta por e-mail.');
       toast.error('Google OAuth não habilitado no Supabase.');
       setLoadingGoogle(false);
@@ -66,38 +68,47 @@ export function Login() {
         title="Entrar no Hubora"
         description="Acesse sua biblioteca pessoal ou experimente instantaneamente sem cadastro."
       >
+        {params.get('confirmed') === '1' && (
+          <div role="status" className="mb-5 flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--hub-success)_42%,var(--hub-border))] bg-[color-mix(in_srgb,var(--hub-success)_10%,var(--hub-surface-1))] p-4 text-sm leading-relaxed text-[var(--hub-text)]">
+            <CheckCircle2 className="mt-0.5 shrink-0 text-[var(--hub-success)]" size={19} aria-hidden="true" />
+            <p><strong className="text-[var(--hub-text-strong)]">E-mail confirmado.</strong> Agora você pode entrar e sincronizar sua biblioteca.</p>
+          </div>
+        )}
         {error && (
           <p className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs font-semibold leading-relaxed text-red-400">
             {error}
           </p>
         )}
 
-        {/* Botão de Entrada como Visitante sem Cadastro */}
-        <Button
-          onClick={handleGuestMode}
-          size="lg"
-          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black gap-2 rounded-2xl shadow-lg shadow-emerald-600/20 mb-3"
-        >
-          <UserCheck size={18} />
-          Entrar como Visitante (Sem Cadastro)
-        </Button>
+        {allowGuestMode && (
+          <Button
+            onClick={handleGuestMode}
+            size="lg"
+            variant="outline"
+            className="mb-3 w-full"
+          >
+            <UserCheck size={18} />
+            Entrar como Visitante (Sem Cadastro)
+          </Button>
+        )}
 
         {/* Continuar com Google */}
         <Button
           onClick={handleGoogleLogin}
           size="lg"
-          variant="outline"
-          className="w-full gap-2 rounded-2xl border-white/10 hover:bg-white/5"
+          className="w-full"
           disabled={loadingGoogle}
         >
-          <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-xs font-black text-black">G</span>
+          <LogIn size={18} aria-hidden="true" />
           {loadingGoogle ? 'Abrindo Google...' : 'Continuar com Google'}
         </Button>
 
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] p-4">
           <ShieldCheck className="mt-0.5 shrink-0 text-[var(--hub-brand)]" size={19} />
           <p className="text-xs leading-relaxed text-[var(--hub-muted)]">
-            No <strong>Modo Visitante</strong>, sua biblioteca e progresso ficam guardados de forma 100% privada no seu próprio dispositivo.
+            {allowGuestMode
+              ? <>No <strong>Modo Visitante</strong>, sua biblioteca e progresso ficam guardados de forma 100% privada no seu próprio dispositivo.</>
+              : <>Esta é uma instalação privada. Entre com uma conta previamente autorizada.</>}
           </p>
         </div>
 
@@ -122,7 +133,7 @@ export function Login() {
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    className="pl-11 rounded-xl"
+                    className="hub-field-with-leading-icon rounded-xl"
                     placeholder="voce@email.com"
                     required
                   />
@@ -144,7 +155,7 @@ export function Login() {
                     type="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    className="pl-11 rounded-xl"
+                    className="hub-field-with-leading-icon rounded-xl"
                     placeholder="Sua senha"
                     required
                   />
@@ -157,10 +168,9 @@ export function Login() {
             </form>
 
             <div className="mt-6 text-center text-xs text-[var(--hub-muted)]">
-              Ainda não tem conta?{' '}
-              <Link to="/register" className="font-bold text-[var(--hub-brand)] hover:underline">
-                Criar conta no Hubora
-              </Link>
+              {allowPublicSignup
+                ? <>Ainda não tem conta?{' '}<Link to="/register" className="font-bold text-[var(--hub-brand)] hover:underline">Criar conta no Hubora</Link></>
+                : 'O cadastro público está desativado nesta instalação.'}
             </div>
           </>
         )}

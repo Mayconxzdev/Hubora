@@ -21,9 +21,10 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className={cn('hub-shell bg-background text-foreground', navPinned && 'hub-nav-is-pinned')}>
+      <a className="hub-skip-link" href="#hub-main-content">Pular para o conteúdo</a>
       <Sidebar pinned={navPinned} onPinnedChange={setNavPinned} />
       <TopHeader />
-      <main className="hub-main min-h-[calc(100vh-var(--hub-header-height))]">
+      <main id="hub-main-content" tabIndex={-1} className="hub-main min-h-[calc(100vh-var(--hub-header-height))]">
         <div className="hub-content">{children}</div>
         <Footer />
       </main>

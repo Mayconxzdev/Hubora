@@ -53,4 +53,11 @@ describe('PIN do Cofre', () => {
     expect(getVaultLockoutRemaining()).toBeGreaterThan(0);
     expect(await verifyVaultPin('2580')).toBe(false);
   }, 20_000);
+
+  it('rejeita PINs fora do contrato de 4 a 8 números', async () => {
+    await expect(setVaultPin('123')).rejects.toThrow('4 a 8');
+    await expect(setVaultPin('123456789')).rejects.toThrow('4 a 8');
+    await expect(setVaultPin('12ab')).rejects.toThrow('4 a 8');
+    expect(hasVaultPin()).toBe(false);
+  });
 });

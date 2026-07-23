@@ -40,12 +40,26 @@ const FILTERS: Array<{ id: FilterType; label: string; icon: React.ElementType }>
   { id: 'all', label: 'Tudo', icon: Filter },
   { id: 'movie', label: 'Filmes', icon: Clapperboard },
   { id: 'tv', label: 'Séries', icon: Tv },
+  { id: 'drama', label: 'Doramas', icon: Sparkles },
   { id: 'anime', label: 'Animes', icon: Zap },
   { id: 'manga', label: 'Mangás', icon: Layers3 },
   { id: 'comic', label: 'Quadrinhos', icon: PanelsTopLeft },
   { id: 'book', label: 'Livros', icon: BookOpen },
+  { id: 'novel', label: 'Novels', icon: BookOpen },
   { id: 'game', label: 'Jogos', icon: Gamepad2 },
 ];
+
+const CATEGORY_FILTERS: Record<string, FilterType> = {
+  movies: 'movie',
+  series: 'tv',
+  doramas: 'drama',
+  anime: 'anime',
+  manga: 'manga',
+  novels: 'novel',
+  books: 'book',
+  comics: 'comic',
+  games: 'game',
+};
 
 const SURPRISE_QUERIES = ['mistério', 'aventura espacial', 'fantasia épica', 'drama histórico', 'ficção científica', 'suspense'];
 
@@ -55,10 +69,12 @@ export function Discover() {
   const initialQuery = searchParams.get('q') || '';
   const initialScene = searchParams.get('scene');
   const initialVibe = searchParams.get('vibe');
+  const requestedCategory = searchParams.get('category') || '';
+  const requestedFilter = CATEGORY_FILTERS[requestedCategory] || 'all';
   const [activeTab, setActiveTab] = useState<Tab>(initialScene ? 'scene' : initialVibe ? 'vibe' : 'quick');
   const [query, setQuery] = useState(initialQuery);
   const [submittedQuery, setSubmittedQuery] = useState(initialQuery);
-  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [filterType, setFilterType] = useState<FilterType>(requestedFilter);
   const [isRouting, setIsRouting] = useState(false);
 
   useEffect(() => {
@@ -70,9 +86,9 @@ export function Discover() {
       setQuery(initialQuery);
       setSubmittedQuery(initialQuery);
       setActiveTab('quick');
-      setFilterType('all');
+      setFilterType(requestedFilter);
     }
-  }, [initialQuery, submittedQuery]);
+  }, [initialQuery, requestedFilter, submittedQuery]);
 
   const handleUnifiedSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -95,9 +111,12 @@ export function Discover() {
     setIsRouting(false);
   };
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  const { data, isLoading, isError, fetchStatus, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['search', submittedQuery],
-    queryFn: ({ pageParam = 1 }) => api.searchMulti(submittedQuery, pageParam),
+    queryFn: ({ pageParam = 1 }) => {
+      if (!navigator.onLine) throw new Error('offline');
+      return api.searchMulti(submittedQuery, pageParam);
+    },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => lastPage.length > 0 ? allPages.length + 1 : undefined,
     enabled: Boolean(submittedQuery),
@@ -115,6 +134,17 @@ export function Discover() {
   }, [data]);
 
   const filteredResults = filterType === 'all' ? results : results.filter((item) => item.mediaType === filterType);
+
+  const selectFilter = (filter: FilterType) => {
+    setFilterType(filter);
+    const params = new URLSearchParams(searchParams);
+    if (filter === 'all') params.delete('category');
+    else {
+      const category = Object.entries(CATEGORY_FILTERS).find(([, value]) => value === filter)?.[0];
+      if (category) params.set('category', category);
+    }
+    setSearchParams(params, { replace: true });
+  };
 
   const surprise = () => {
     const randomQuery = SURPRISE_QUERIES[Math.floor(Math.random() * SURPRISE_QUERIES.length)];
@@ -143,6 +173,7 @@ export function Discover() {
           <Search className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-[var(--hub-subtle)]" size={21} />
           <Input
             ref={searchInputRef}
+            aria-label="Busca em Descobrir"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Busque um título ou descreva o que procura..."
@@ -187,7 +218,7 @@ export function Discover() {
                 </div>
                 <div className="flex max-w-full gap-2 overflow-x-auto pb-1 scrollbar-hide" aria-label="Filtrar tipo de mídia">
                   {FILTERS.map(({ id, label, icon: Icon }) => (
-                    <button key={id} className="hub-chip shrink-0" data-active={filterType === id} onClick={() => setFilterType(id)}>
+                    <button key={id} className="hub-chip shrink-0" aria-pressed={filterType === id} data-active={filterType === id} onClick={() => selectFilter(id)}>
                       <Icon size={14} /> {label}
                     </button>
                   ))}
@@ -199,6 +230,8 @@ export function Discover() {
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
                 {Array.from({ length: 12 }).map((_, index) => <MediaCard key={index} isLoading />)}
               </div>
+            ) : isError || fetchStatus === 'paused' ? (
+              <div role="alert" className="hub-empty-state"><div><p className="font-bold text-[var(--hub-text-strong)]">Não foi possível consultar os catálogos</p><p className="mt-1 text-sm">{fetchStatus === 'paused' ? 'Você está sem conexão. A busca poderá continuar quando a rede voltar.' : 'Sua biblioteca continua disponível. Tente a busca novamente.'}</p><Button variant="outline" className="mt-4" onClick={() => void refetch()}>Tentar novamente</Button></div></div>
             ) : filteredResults.length ? (
               <>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">

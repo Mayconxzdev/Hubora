@@ -259,6 +259,7 @@ export interface UserProfile {
     adultContent: boolean;
     adultMode?: AdultContentMode;
     adultVaultEnabled?: boolean;
+    adultFilterEnabled?: boolean;
     adultVaultPinMode?: 'never' | 'session' | 'always';
     adultLibraryPublicByDefault?: boolean;
     birthYear?: number;

@@ -1,7 +1,7 @@
 {
   "name": "hubora",
   "private": true,
-  "version": "9.0.0",
+  "version": "9.0.2-rc.1",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -16,8 +16,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "serve:e2e": "tsx scripts/create-e2e-media.mts && npm run build && tsx scripts/start-e2e-server.mts",
+    "provision:e2e": "tsx scripts/provision-e2e-user.mts",
+    "verify:supabase": "tsx scripts/verify-supabase-e2e.mts",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm run test && npm run build"
+    "check": "npm run verify:static && npm run lint && npm run typecheck && npm run test && npm run build",
+    "verify:static": "node scripts/static-release-audit.mjs",
+    "verify:release": "npm run check && npm run test:e2e"
   },
   "dependencies": {
     "@netlify/functions": "^5.3.0",
@@ -61,6 +66,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
     "@testing-library/react": "^16.3.2",

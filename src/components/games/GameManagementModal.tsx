@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Gamepad2, Check, Clock, ExternalLink, ShieldCheck, Star } from 'lucide-react';
+import { Gamepad2, Clock, ExternalLink, ShieldCheck } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { MediaItem, UserMediaEntry } from '@/types';
 import { useStore } from '@/store/useStore';
-import { findLibraryEntry } from '@/services/identity';
+import { createEntryId, findLibraryEntry } from '@/services/identity';
 import { toast } from 'sonner';
 
 interface GameManagementModalProps {
@@ -24,8 +24,10 @@ export function GameManagementModal({ item, isOpen, onClose }: GameManagementMod
   const [completionPercentage, setCompletionPercentage] = useState<number>(existingEntry?.progress?.completionPercentage || 0);
   const [isInstalled, setIsInstalled] = useState<boolean>(existingEntry?.progress?.isInstalled || false);
   const [isOwned, setIsOwned] = useState<boolean>(existingEntry?.progress?.isOwned || false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setIsSaving(true);
     const updatedProgress = {
       ...existingEntry?.progress,
       hoursPlayed: Number(hoursPlayed) || 0,
@@ -35,16 +37,18 @@ export function GameManagementModal({ item, isOpen, onClose }: GameManagementMod
     };
 
     if (existingEntry) {
-      updateLibraryItem(existingEntry.id, {
+      await updateLibraryItem(existingEntry.id, {
         status,
         progress: updatedProgress,
       });
       toast.success(`Dados do jogo ${item.title} atualizados!`);
     } else {
-      addToLibrary(item, status);
+      await addToLibrary(item, status);
+      await updateLibraryItem(createEntryId(item), { status, progress: updatedProgress });
       toast.success(`${item.title} adicionado aos seus jogos!`);
     }
     onClose();
+    setIsSaving(false);
   };
 
   const getSteamUrl = () => {
@@ -199,11 +203,11 @@ export function GameManagementModal({ item, isOpen, onClose }: GameManagementMod
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="ghost" onClick={onClose} className="rounded-xl">
+          <Button variant="ghost" onClick={onClose} className="rounded-xl" disabled={isSaving}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} className="rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold">
-            Salvar Alterações
+          <Button onClick={() => void handleSave()} className="rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold" disabled={isSaving}>
+            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
           </Button>
         </DialogFooter>
       </DialogContent>

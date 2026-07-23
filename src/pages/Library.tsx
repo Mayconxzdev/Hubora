@@ -2,7 +2,6 @@ import { formatProgress, getCompletionPercentage } from '@/utils/formatProgress'
 import { useState, useMemo } from 'react';
 import { useStore } from '@/store/useStore';
 import { MediaCard } from '@/components/ui/MediaCard';
-import { LibraryStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, CheckCircle, PlayCircle, PauseCircle, XCircle, Clock, Film, Tv, Zap, Search, ArrowUpDown, LayoutGrid, List as ListIcon, Star, Filter } from 'lucide-react';
@@ -163,6 +162,7 @@ export function Library() {
           </div>
           <div className="flex gap-3">
             <select 
+              aria-label="Ordenar biblioteca"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'dateAdded' | 'title' | 'rating' | 'releaseDate')}
               className="hub-select h-12 min-w-[10rem] rounded-xl text-sm font-bold"
@@ -174,6 +174,8 @@ export function Library() {
               <option value="releaseDate" className="bg-slate-900">{t('library.sort.release_date')}</option>
             </select>
             <button 
+              type="button"
+              aria-label={sortOrder === 'asc' ? t('library.sort.asc') : t('library.sort.desc')}
               onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
               className="hub-icon-button h-12 w-12 rounded-xl"
               title={sortOrder === 'asc' ? t('library.sort.asc') : t('library.sort.desc')}
@@ -239,8 +241,9 @@ export function Library() {
               </div>
               <div className="mt-4 flex flex-col gap-4 sm:flex-row">
                 <div className="flex-1">
-                  <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">{t('library.filters.genre')}</label>
+                  <label htmlFor="library-genre-filter" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[var(--hub-muted)]">{t('library.filters.genre')}</label>
                   <select
+                    id="library-genre-filter"
                     value={activeGenreFilter}
                     onChange={(e) => setActiveGenreFilter(e.target.value)}
                     className="hub-select rounded-xl text-sm"
@@ -253,8 +256,9 @@ export function Library() {
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">{t('library.filters.year')}</label>
+                  <label htmlFor="library-year-filter" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[var(--hub-muted)]">{t('library.filters.year')}</label>
                   <select
+                    id="library-year-filter"
                     value={activeYearFilter}
                     onChange={(e) => setActiveYearFilter(e.target.value)}
                     className="hub-select rounded-xl text-sm"
@@ -303,7 +307,7 @@ export function Library() {
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                     <div className="flex-1 min-w-0 py-2">
-                      <h3 className="text-xl md:text-2xl font-black text-white truncate group-hover:text-purple-400 transition-colors drop-shadow-md">{item.media.title}</h3>
+                      <h2 className="text-xl md:text-2xl font-black text-white truncate group-hover:text-purple-400 transition-colors drop-shadow-md">{item.media.title}</h2>
                       <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-400">
                         <span className="uppercase text-[10px] font-black tracking-widest px-3 py-1 bg-slate-950/50 rounded-full text-slate-300 border border-white/5">
                           {item.media.mediaType}
@@ -357,11 +361,11 @@ export function Library() {
               <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-[var(--hub-surface-2)] text-[var(--hub-text-strong)]">
                 <BookOpen size={26} />
               </div>
-              <h3 className="mb-2 text-xl font-extrabold text-[var(--hub-text-strong)]">{t('library.empty')}</h3>
+              <h2 className="mb-2 text-xl font-extrabold text-[var(--hub-text-strong)]">{t('library.empty')}</h2>
               <p className="mx-auto max-w-md text-sm leading-relaxed text-[var(--hub-muted)]">
                 {t('library.empty.desc')}
               </p>
-              <Link to="/discover" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--hub-brand)] px-4 text-sm font-bold text-white">Descobrir algo</Link>
+              <Link to="/discover" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--hub-brand)] px-4 text-sm font-bold text-[var(--hub-brand-contrast)]">Descobrir algo</Link>
             </div>
           )}
         </motion.div>

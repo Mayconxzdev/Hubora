@@ -30,6 +30,7 @@ export function VibeSearch() {
     setSearchParams({ vibe: text.trim() });
 
     try {
+      if (!navigator.onLine) throw new Error('offline');
       const terms = intent.queryTerms.length ? intent.queryTerms.slice(0, 4) : [text.trim()];
       const responses = await Promise.all(terms.map((term) => api.searchMulti(term, 1).catch(() => [])));
       const candidates = Array.from(new Map(responses.flat().map((item) => [String(item.id), item])).values());
@@ -57,14 +58,14 @@ export function VibeSearch() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-3">
-          <Input
+        <div className="flex flex-col gap-3 md:flex-row md:items-end">
+          <label className="block flex-1"><span className="mb-2 block text-sm font-bold text-[var(--hub-text-strong)]">Clima, tempo e restrições</span><Input
             value={text}
             onChange={(event) => setText(event.target.value)}
             onKeyDown={(event) => event.key === 'Enter' && void handleSearch()}
             placeholder="Ex.: algo sombrio, curto, com mistério e sem romance"
-            className="h-14 flex-1 bg-slate-900 border-white/10 rounded-2xl"
-          />
+            className="h-14 rounded-2xl"
+          /></label>
           <Button onClick={handleSearch} disabled={isSearching || !text.trim()} className="h-14 px-7 rounded-2xl gap-2">
             <Search size={18} /> {isSearching ? 'Cruzando catálogos...' : 'Encontrar obras'}
           </Button>
@@ -78,7 +79,7 @@ export function VibeSearch() {
         )}
       </section>
 
-      {error && <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-300">{error}</div>}
+      {error && <div role="alert" className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-300">{error}</div>}
 
       {results.length > 0 && (
         <section className="space-y-5">

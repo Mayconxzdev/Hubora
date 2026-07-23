@@ -7,6 +7,13 @@ import { SectionToolbar } from '@/components/section/SectionToolbar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
 
+const MOVIE_TABS = [
+  { id: 'popular', label: 'Populares' },
+  { id: 'now_playing', label: 'Em Cartaz' },
+  { id: 'upcoming', label: 'Em Breve' },
+  { id: 'top_rated', label: 'Mais Bem Avaliados' },
+];
+
 const MOVIE_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: '28', labelKey: 'genre.action' },
   { value: '12', labelKey: 'genre.adventure' },
@@ -37,6 +44,7 @@ const SORT_OPTIONS: { value: string; labelKey: TranslationKey }[] = [
 
 export function Movies() {
   const { t } = useTranslation();
+  const [tab, setTab] = useState('popular');
   const [sort, setSort] = useState('popularity.desc');
   const [genre, setGenre] = useState('');
   const [query, setQuery] = useState('');
@@ -49,6 +57,8 @@ export function Movies() {
     return () => clearTimeout(timer);
   }, [query]);
 
+  const effectiveSort = tab === 'top_rated' ? 'vote_average.desc' : tab === 'upcoming' ? 'primary_release_date.desc' : tab === 'now_playing' ? 'popularity.desc' : sort;
+
   const { 
     data, 
     isLoading,
@@ -58,8 +68,8 @@ export function Movies() {
     hasNextPage, 
     isFetchingNextPage 
   } = useInfiniteQuery({ 
-    queryKey: ['movies-discover', sort, genre, debouncedQuery], 
-    queryFn: ({ pageParam = 1 }) => api.discoverMovies(pageParam, sort, genre, debouncedQuery),
+    queryKey: ['movies-discover', effectiveSort, genre, debouncedQuery, tab],
+    queryFn: ({ pageParam = 1 }) => api.discoverMovies(pageParam, effectiveSort, genre, debouncedQuery),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length > 0 ? allPages.length + 1 : undefined;
@@ -84,6 +94,9 @@ export function Movies() {
       isError={isError}
       error={error as Error}
       items={movies}
+      tabs={MOVIE_TABS}
+      activeTab={tab}
+      onTabChange={setTab}
       emptyMessage="Nenhum filme encontrado. Verifique sua conexão ou tente outros filtros."
       footer={
         hasNextPage && (

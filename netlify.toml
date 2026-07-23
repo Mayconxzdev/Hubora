@@ -6,9 +6,11 @@
 [build.environment]
   NODE_VERSION = "22"
   NPM_FLAGS = "--no-audit --no-fund"
-  VITE_REQUIRE_AUTH = "true"
-  VITE_ALLOW_PUBLIC_SIGNUP = "false"
-  VITE_ENFORCE_SERVER_ALLOWLIST = "true"
+
+# As opções VITE_* de acesso não ficam aqui. Variáveis declaradas no
+# netlify.toml prevalecem sobre as configuradas no painel do Netlify; mantê-las
+# no painel permite separar produção, previews e desenvolvimento sem publicar
+# decisões de acesso no repositório.
 
 [[redirects]]
   from = "/*"
@@ -24,7 +26,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(self), microphone=(self), geolocation=(), payment=()"
     Cross-Origin-Opener-Policy = "same-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://www.google.com https://books.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; frame-src https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.google.com https://books.google.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; frame-src https://www.google.com https://books.google.com https://archive.org https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob: https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
 
 [[headers]]
   for = "/assets/*"

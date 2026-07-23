@@ -4,6 +4,12 @@ import { MediaCard } from '@/components/ui/MediaCard';
 import { VirtualGrid } from '@/components/ui/VirtualGrid';
 import { MediaItem } from '@/types';
 import { useTranslation } from '@/hooks/useTranslation';
+import { cn } from '@/lib/utils';
+
+export interface SectionTab {
+  id: string;
+  label: string;
+}
 
 interface SectionPageLayoutProps {
   title: string;
@@ -17,9 +23,12 @@ interface SectionPageLayoutProps {
   hideEmptyState?: boolean;
   emptyMessage?: React.ReactNode;
   extraHeaderActions?: React.ReactNode;
+  tabs?: SectionTab[];
+  activeTab?: string;
+  onTabChange?: (tabId: string) => void;
 }
 
-export function SectionPageLayout({ title, subtitle, isLoading, isError, error, items, children, footer, hideEmptyState, emptyMessage, extraHeaderActions }: SectionPageLayoutProps) {
+export function SectionPageLayout({ title, subtitle, isLoading, isError, error, items, children, footer, hideEmptyState, emptyMessage, extraHeaderActions, tabs, activeTab, onTabChange }: SectionPageLayoutProps) {
   const { t } = useTranslation();
 
   return (
@@ -33,13 +42,33 @@ export function SectionPageLayout({ title, subtitle, isLoading, isError, error, 
         {extraHeaderActions && <div className="flex-shrink-0">{extraHeaderActions}</div>}
       </header>
 
+      {/* Tabs */}
+      {tabs && tabs.length > 0 && (
+        <div className="mb-5 flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange?.(tab.id)}
+              className={cn(
+                'px-4 py-2 rounded-xl text-sm font-bold transition-all border',
+                activeTab === tab.id
+                  ? 'bg-[var(--hub-brand)] text-[var(--hub-brand-contrast)] border-[var(--hub-brand)]'
+                  : 'bg-[var(--hub-surface-2)] text-[var(--hub-muted)] border-[var(--hub-border)] hover:border-[var(--hub-brand)] hover:text-[var(--hub-text-strong)]'
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {children}
 
       {isError ? (
         <div className="hub-empty-state border-red-500/25 bg-red-500/6">
           <div>
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-[1rem] bg-red-500/10 text-red-500"><AlertCircle size={26} /></span>
-            <h3 className="mt-4 text-xl font-extrabold text-[var(--hub-text-strong)]">Não foi possível carregar agora</h3>
+            <h2 className="mt-4 text-xl font-extrabold text-[var(--hub-text-strong)]">Não foi possível carregar agora</h2>
             <p className="mx-auto mt-2 max-w-lg leading-relaxed text-[var(--hub-muted)]">{error?.message || 'A fonte externa não respondeu. Seus dados salvos continuam disponíveis.'}</p>
           </div>
         </div>

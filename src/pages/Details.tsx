@@ -1,648 +1,714 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/services/api';
-import { useStore } from '@/store/useStore';
-import { formatProgress } from '@/utils/formatProgress';
-import { Button } from '@/components/ui/Button';
-import { Plus, Check, Star, Calendar, Clock, PlayCircle, BookOpen, Edit3, User, Users, Video, Sparkles, Lightbulb, AlertTriangle, Film, Tv, Compass, Gamepad2 } from 'lucide-react';
-import { motion } from 'motion/react';
-import { LibraryStatus, MediaItem } from '@/types';
-import { cn } from '@/lib/utils';
-import { WhereToWatch } from '@/components/details/WhereToWatch';
-import { TrailerModal } from '@/components/ui/TrailerModal';
-import { OptimizedImage } from '@/components/ui/OptimizedImage';
-import { StarRating } from '@/components/ui/StarRating';
-import { DetailsInsight } from '@/components/details/DetailsInsight';
-import { MediaPassport } from '@/components/details/MediaPassport';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Bookmark,
+  Check,
+  Clipboard,
+  ExternalLink,
+  Library,
+  MoreHorizontal,
+  Play,
+  Server,
+  Trash2,
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { SEO } from '@/components/ui/SEO';
-import { useTranslation } from '@/hooks/useTranslation';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { LibraryStatusModal } from '@/components/library/LibraryStatusModal';
+import { api } from '@/services/api';
+import type { MediaAccess, MediaItem, MediaType, UserMediaEntry } from '@/types';
+import { useStore } from '@/store/useStore';
+import { TrailerModal } from '@/components/ui/TrailerModal';
 import { findLibraryEntry } from '@/services/identity';
-import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
-import { normalizeLegacyTrailer } from '@/services/mediaVideos';
+import { getMediaI18n } from '@/lib/i18n';
+import { useTranslation } from '@/hooks/useTranslation';
+import { MediaPassport } from '@/components/details/MediaPassport';
+import { WhereToWatch } from '@/components/details/WhereToWatch';
+import { EpisodeList } from '@/components/details/EpisodeList';
+import { GameManagementModal } from '@/components/games/GameManagementModal';
+import { getMediaPresentationContract } from '@/services/mediaPresentation';
+import {
+  fetchMangaChapters,
+  resolveMangaDexId,
+  type MangaChapter,
+} from '@/services/mangaService';
+import { MediaCard } from '@/components/ui/MediaCard';
+import { cn } from '@/lib/utils';
+import { accessDestination, verifiedAccessFor } from '@/services/mediaAccess';
+
+type DetailTab = 'overview' | 'videos' | 'episodes' | 'sources' | 'activity' | 'details';
+
+type ProgressSummary = {
+  percentage: number;
+  label: string;
+};
+
+function progressSummary(entry: UserMediaEntry | undefined, item: MediaItem): ProgressSummary | null {
+  if (!entry) return null;
+  const progress = entry.progress || {};
+  let percentage = 0;
+  let label = '';
+
+  if (item.mediaType === 'movie') {
+    if (!progress.watched) return null;
+    percentage = 100;
+    label = 'Assistido';
+  } else if (['tv', 'series', 'drama', 'anime'].includes(item.mediaType)) {
+    const current = progress.currentEpisode || 0;
+    const total = progress.totalEpisodes || item.episodesCount || 0;
+    if (!current) return null;
+    percentage = total ? (current / total) * 100 : 0;
+    label = total ? `Episódio ${current} de ${total}` : `Episódio ${current}`;
+  } else if (item.mediaType === 'manga' || item.mediaType === 'novel') {
+    const current = progress.currentChapter || 0;
+    const total = progress.totalChapters || item.chaptersCount || 0;
+    if (!current) return null;
+    percentage = total ? (current / total) * 100 : 0;
+    label = total ? `Capítulo ${current} de ${total}` : `Capítulo ${current}`;
+  } else if (item.mediaType === 'book') {
+    const directPercentage = progress.percentageRead || 0;
+    const current = progress.currentPage || 0;
+    const total = progress.totalPages || item.pages || 0;
+    percentage = directPercentage || (current && total ? (current / total) * 100 : 0);
+    if (!percentage && !current) return null;
+    label = current && total ? `Página ${current} de ${total}` : `${Math.round(percentage)}% lido`;
+  } else if (item.mediaType === 'comic') {
+    const current = progress.currentIssue || 0;
+    if (!current) return null;
+    label = `Edição ${current}`;
+  } else if (item.mediaType === 'game') {
+    percentage = progress.completionPercentage || 0;
+    if (!percentage && !progress.hoursPlayed) return null;
+    label = percentage
+      ? `${Math.round(percentage)}% concluído`
+      : `${progress.hoursPlayed} h registradas`;
+  }
+
+  return {
+    percentage: Math.max(0, Math.min(100, percentage)),
+    label,
+  };
+}
+
+function completionCopy(mediaType: MediaType) {
+  if (mediaType === 'movie' || ['tv', 'series', 'drama', 'anime'].includes(mediaType)) {
+    return { action: 'Marcar como visto', completed: 'Visto' };
+  }
+  if (['book', 'novel', 'manga', 'comic'].includes(mediaType)) {
+    return { action: 'Marcar como lido', completed: 'Lido' };
+  }
+  return { action: 'Marcar como concluído', completed: 'Concluído' };
+}
+
+function formatRuntime(minutes?: number) {
+  if (!minutes || minutes <= 0) return null;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return hours ? `${hours}h${rest ? ` ${rest}min` : ''}` : `${rest}min`;
+}
+
+function typeSpecificFacts(item: MediaItem): Array<{ label: string; value: string }> {
+  const facts: Array<{ label: string; value: string }> = [];
+  const add = (label: string, value: string | number | undefined) => {
+    if (value !== undefined && value !== null && String(value).trim()) facts.push({ label, value: String(value) });
+  };
+
+  if (['tv', 'series', 'drama', 'anime'].includes(item.mediaType)) {
+    add('Temporadas', item.seasonsCount);
+    add('Episódios', item.episodesCount);
+    if (item.nextEpisodeToAir) {
+      add('Próximo episódio', `T${item.nextEpisodeToAir.seasonNumber}E${item.nextEpisodeToAir.episodeNumber} · ${item.nextEpisodeToAir.airDate}`);
+    }
+  }
+  if (['manga', 'novel', 'comic'].includes(item.mediaType)) {
+    add('Volumes', item.volumesCount);
+    add(item.mediaType === 'comic' ? 'Edições' : 'Capítulos', item.chaptersCount);
+  }
+  if (item.mediaType === 'book') add('Páginas', item.pages);
+  if (item.mediaType === 'game') {
+    add('Plataformas', item.platforms?.join(', '));
+    add('Desenvolvedora', item.developers?.join(', '));
+    add('Publicadora', item.publishers?.join(', '));
+  }
+  add('Autores', item.authors?.join(', '));
+  add('Editora', item.publisher);
+  return facts;
+}
+
+function detailFields(item: MediaItem): Array<{ label: string; value: string }> {
+  const fields: Array<{ label: string; value: string }> = [];
+  const add = (label: string, value: string | number | undefined) => {
+    if (value !== undefined && value !== null && String(value).trim()) fields.push({ label, value: String(value) });
+  };
+  add('Tipo', getMediaPresentationContract(item.mediaType).displayName);
+  add('Título original', item.originalTitle && item.originalTitle !== item.title ? item.originalTitle : undefined);
+  add('Status', item.status);
+  add('Lançamento', item.releaseDate);
+  add('Duração', formatRuntime(item.runtime) || undefined);
+  add('Classificação', item.ageRating ? `${item.ageRating}${item.ageRatingSystem ? ` · ${item.ageRatingSystem}` : ''}` : undefined);
+  add('Gêneros', item.genres?.join(', '));
+  add('Países', item.countries?.join(', '));
+  add('Autores', item.authors?.join(', '));
+  add('Editora', item.publisher);
+  add('Plataformas', item.platforms?.join(', '));
+  add('Desenvolvedoras', item.developers?.join(', '));
+  add('Publicadoras', item.publishers?.join(', '));
+  add('Fonte de metadados', item.source);
+  add('ID da fonte', item.sourceId);
+  return fields;
+}
 
 export function Details() {
-  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const { addToLibrary, removeFromLibrary, updateLibraryItem, getItemStatus, library, customLists, addItemToCustomList } = useStore();
-  const [showTrailerModal, setShowTrailerModal] = useState(false);
-  const [showTriviaModal, setShowTriviaModal] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [trivia, setTrivia] = useState<string[]>([]);
-  const [isLoadingTrivia, setIsLoadingTrivia] = useState(false);
-  
-  const { data: item, isLoading } = useQuery<MediaItem | null>({
-    queryKey: ['details', id],
-    queryFn: () => api.getDetails(id!),
-    enabled: !!id,
-  });
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const i18n = getMediaI18n(t);
 
+  const [item, setItem] = useState<MediaItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<MediaItem[]>([]);
+  const [mangaChapters, setMangaChapters] = useState<MangaChapter[]>([]);
+  const [mangaDexId, setMangaDexId] = useState<string | null>(null);
+  const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+  const [isGameModalOpen, setIsGameModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<DetailTab>('overview');
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
-  const [gameDeals, setGameDeals] = useState<any[]>([]);
-  const [isLoadingDeals, setIsLoadingDeals] = useState(false);
+  const library = useStore((state) => state.library);
+  const addToLibrary = useStore((state) => state.addToLibrary);
+  const removeFromLibrary = useStore((state) => state.removeFromLibrary);
+  const updateLibraryItem = useStore((state) => state.updateLibraryItem);
+  const toggleFavorite = useStore((state) => state.toggleFavorite);
 
   useEffect(() => {
-    if (item && item.mediaType === 'game') {
-      setIsLoadingDeals(true);
-      api.getGameDeals(item.title)
-        .then(deals => {
-          setGameDeals(deals.slice(0, 4));
-        })
-        .catch(err => console.warn("Erro ao buscar ofertas:", err))
-        .finally(() => setIsLoadingDeals(false));
-    }
-  }, [item]);
+    let active = true;
+    async function loadDetails() {
+      if (!id) return;
+      setIsLoading(true);
+      setItem(null);
+      setRecommendations([]);
+      setMangaChapters([]);
+      setMangaDexId(null);
+      setActiveTab('overview');
 
-  const getStoreName = (storeId: string) => {
-    const stores: Record<string, string> = {
-      '1': 'Steam',
-      '2': 'GamersGate',
-      '3': 'GreenManGaming',
-      '7': 'GOG',
-      '11': 'Humble Store',
-      '25': 'Epic Games',
+      try {
+        const details = await api.getDetails(id);
+        if (!active) return;
+        setItem(details);
+        if (!details) return;
+
+        if (details.mediaType === 'manga') {
+          const [resolvedId, chapters] = await Promise.all([
+            resolveMangaDexId(details),
+            fetchMangaChapters(details),
+          ]);
+          if (active) {
+            setMangaDexId(resolvedId);
+            setMangaChapters(chapters);
+          }
+        }
+
+        try {
+          let recs: MediaItem[] = [];
+          const numericId = String(details.tmdbId || details.sourceId || details.id).replace(/\D+/g, '');
+          if (details.mediaType === 'movie' && numericId) recs = await api.getSimilarMovies(numericId);
+          else if (['tv', 'series', 'drama'].includes(details.mediaType) && numericId) recs = await api.getSimilarTV(numericId);
+          else if (details.mediaType === 'anime') recs = await api.getTrendingAnime();
+          else if (details.mediaType === 'game') recs = await api.discoverGames(1);
+          else if (details.mediaType === 'manga') recs = await api.getTrendingManga();
+          else if (details.mediaType === 'book' || details.mediaType === 'novel') {
+            recs = await api.discoverBooks(1, 'relevance', '', details.title.split(' ')[0]);
+          } else if (details.mediaType === 'comic') {
+            recs = await api.discoverComics(1, 'relevance', '', details.title.split(' ')[0]);
+          }
+          if (active) setRecommendations(recs.filter((entry) => String(entry.id) !== String(details.id)).slice(0, 6));
+        } catch (error) {
+          console.warn('Não foi possível carregar recomendações relacionadas:', error);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar detalhes:', error);
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    }
+
+    void loadDetails();
+    return () => {
+      active = false;
     };
-    return stores[storeId] || 'Loja Virtual';
-  };
+  }, [id]);
 
-  const libraryItem = item ? findLibraryEntry(library, item) || null : null;
-  const status = libraryItem?.status || null;
-
-  const handleAdd = () => {
-    if (item) {
-      addToLibrary(item, 'planning');
-      toast.success(`${item.title} ${t('details.added')}`);
-    }
-  };
-
-  const handleTrivia = () => {
-    if (!item) return;
-    setShowTriviaModal(true);
-    if (trivia.length > 0) return;
-    setIsLoadingTrivia(true);
-    const facts = [
-      item.originalTitle && item.originalTitle !== item.title ? `O título original é “${item.originalTitle}”.` : '',
-      item.releaseDate ? `A data de lançamento informada pelo catálogo é ${item.releaseDate}.` : '',
-      item.genres?.length ? `Os gêneros associados são ${item.genres.slice(0, 5).join(', ')}.` : '',
-      item.runtime ? `A duração catalogada é de aproximadamente ${item.runtime} minutos.` : '',
-      item.episodesCount ? `O catálogo registra ${item.episodesCount} episódios.` : '',
-      item.pages ? `Esta edição registra ${item.pages} páginas.` : '',
-      item.authors?.length ? `Autoria: ${item.authors.join(', ')}.` : '',
-      item.developers?.length ? `Desenvolvimento: ${item.developers.join(', ')}.` : '',
-      item.publishers?.length ? `Publicação: ${item.publishers.join(', ')}.` : '',
-      item.cast?.length ? `Entre os nomes do elenco estão ${item.cast.slice(0, 3).map((person) => person.name).join(', ')}.` : '',
-    ].filter(Boolean) as string[];
-    setTrivia(facts.length ? facts : ['O provedor não disponibilizou fatos estruturados suficientes para esta obra.']);
-    setIsLoadingTrivia(false);
-  };
-
-  const handleRemove = () => {
-    if (item) {
-      if (libraryItem) removeFromLibrary(libraryItem.id);
-      toast.success(`${item.title} ${t('details.removed')}`);
-    }
-  };
+  const libraryEntry = useMemo(
+    () => (item ? findLibraryEntry(library, item) : undefined),
+    [item, library],
+  );
+  const access = useMemo(() => (item ? verifiedAccessFor(item) : []), [item]);
+  const summary = useMemo(() => (item ? progressSummary(libraryEntry, item) : null), [item, libraryEntry]);
 
   if (isLoading) {
     return (
-      <div className="hub-page hub-details-page relative min-h-screen">
-        <div className="relative h-[50vh] md:h-[70vh] w-full">
-          <Skeleton className="w-full h-full" />
-        </div>
-        <div className="container mx-auto px-4 -mt-32 relative z-20">
-          <div className="flex flex-col md:flex-row gap-8">
-            <div className="w-48 md:w-72 flex-shrink-0 mx-auto md:mx-0">
-              <Skeleton className="w-full aspect-[2/3] rounded-2xl" />
-            </div>
-            <div className="flex-1 pt-4 md:pt-32 space-y-6">
-              <Skeleton className="h-12 w-3/4" />
-              <div className="flex gap-4">
-                <Skeleton className="h-6 w-24" />
-                <Skeleton className="h-6 w-24" />
-                <Skeleton className="h-6 w-24" />
-              </div>
-              <div className="flex gap-4">
-                <Skeleton className="h-12 w-32 rounded-full" />
-                <Skeleton className="h-12 w-32 rounded-full" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-[var(--hub-brand)] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs text-[var(--hub-muted)] font-bold uppercase tracking-wider">
+          Carregando dados reais e fontes disponíveis...
+        </p>
       </div>
     );
   }
 
   if (!item) {
     return (
-      <div className="text-center py-20">
-        <h2 className="text-xl text-slate-400">{t('details.not_found')}</h2>
+      <div className="hub-page text-center py-20">
+        <h2 className="text-2xl font-black text-white mb-3">Obra indisponível</h2>
+        <p className="text-[var(--hub-muted)] text-sm mb-6">
+          A fonte não retornou detalhes para este identificador. Nenhum dado substituto foi inventado.
+        </p>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-6 py-2.5 rounded-xl font-bold bg-[var(--hub-brand)] text-white hover:bg-[var(--hub-brand-strong)] transition-all"
+        >
+          Voltar para o catálogo
+        </button>
       </div>
     );
   }
 
-  const legacyVideo = normalizeLegacyTrailer(item.trailerUrl);
-  const detailVideos = item.videos?.length ? item.videos : legacyVideo ? [legacyVideo] : [];
+  const contract = getMediaPresentationContract(item.mediaType);
+  const title = i18n.displayTitle(item);
+  const overview = i18n.displayOverview(item);
+  const completedCopy = completionCopy(item.mediaType);
+  const isCompleted = libraryEntry?.status === 'completed';
+  const primaryAccess = access[0];
+  const firstChapter = mangaChapters[0];
+  const facts = typeSpecificFacts(item);
+  const fields = detailFields(item);
+  const hasEpisodes = ['tv', 'series', 'drama', 'anime'].includes(item.mediaType);
+  const hasChapterList = item.mediaType === 'manga';
+  const hasVideos = Boolean(item.videos?.length);
+
+  const metadata = [
+    item.releaseDate?.slice(0, 4),
+    formatRuntime(item.runtime),
+    item.ageRating ? `${item.ageRating}${item.ageRatingSystem ? ` · ${item.ageRatingSystem}` : ''}` : null,
+    item.genres?.slice(0, 3).join(', '),
+    item.pages ? `${item.pages} páginas` : null,
+    item.episodesCount ? `${item.episodesCount} episódios` : null,
+    item.chaptersCount ? `${item.chaptersCount} capítulos` : null,
+    item.platforms?.slice(0, 2).join(', '),
+  ].filter(Boolean) as string[];
+
+  const visibleTabs: Array<{ id: DetailTab; label: string }> = [
+    { id: 'overview', label: 'Visão geral' },
+    ...(hasVideos ? [{ id: 'videos' as const, label: 'Vídeos' }] : []),
+    ...((hasEpisodes || hasChapterList)
+      ? [{ id: 'episodes' as const, label: hasChapterList ? 'Capítulos' : 'Episódios' }]
+      : []),
+    { id: 'sources', label: 'Fontes' },
+    { id: 'activity', label: 'Sua atividade' },
+    { id: 'details', label: 'Detalhes' },
+  ];
+
+  const openAccess = (source: MediaAccess) => {
+    const destination = accessDestination(source, item);
+    if (destination.kind === 'internal') navigate(destination.path);
+    else if (destination.kind === 'external') window.open(destination.url, '_blank', 'noopener,noreferrer');
+    else toast.error(destination.reason);
+  };
+
+  const handlePrimaryAction = () => {
+    if (item.mediaType === 'game' && !primaryAccess) {
+      setIsGameModalOpen(true);
+      return;
+    }
+    if (item.mediaType === 'manga' && firstChapter && mangaDexId) {
+      navigate(`/reader?kind=manga&mangaId=${encodeURIComponent(mangaDexId)}&chapterId=${encodeURIComponent(firstChapter.id)}&title=${encodeURIComponent(title)}`);
+      return;
+    }
+    if (primaryAccess) {
+      openAccess(primaryAccess);
+      return;
+    }
+    setActiveTab('sources');
+    toast.info('Nenhuma fonte verificada está vinculada. Consulte ou configure uma fonte.');
+  };
+
+  const primaryLabel = summary && (summary.percentage > 0 || libraryEntry?.status === 'consuming')
+    ? contract.terminology.continueActionLabel
+    : primaryAccess || (item.mediaType === 'manga' && firstChapter)
+      ? contract.terminology.primaryActionLabel
+      : item.mediaType === 'game'
+        ? 'Gerenciar jogo'
+        : 'Ver fontes';
+
+  const handleCompletion = async () => {
+    if (!libraryEntry) {
+      await addToLibrary(item, 'completed');
+      toast.success(`${title} marcado como ${completedCopy.completed.toLowerCase()}.`);
+      return;
+    }
+    await updateLibraryItem(libraryEntry.id, {
+      status: isCompleted ? 'planning' : 'completed',
+      ...(item.mediaType === 'movie' ? { progress: { ...libraryEntry.progress, watched: !isCompleted, watchedAt: !isCompleted ? Date.now() : undefined } } : {}),
+    });
+    toast.success(isCompleted ? 'Status voltou para Planejado.' : `${completedCopy.completed} registrado.`);
+  };
+
+  const handleFavorite = async () => {
+    if (!libraryEntry) await addToLibrary(item, 'planning');
+    toggleFavorite(item.id);
+    toast.success(libraryEntry?.isFavorite ? 'Removido dos favoritos.' : 'Adicionado aos favoritos.');
+  };
+
+  const handleLibrary = async () => {
+    if (libraryEntry) {
+      await removeFromLibrary(libraryEntry.id);
+      toast.success('Removido da biblioteca.');
+    } else {
+      await addToLibrary(item, 'planning');
+      toast.success('Adicionado à biblioteca.');
+    }
+    setShowMoreMenu(false);
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copiado.');
+    } catch {
+      toast.error('O navegador não permitiu copiar o link.');
+    }
+    setShowMoreMenu(false);
+  };
 
   return (
-    <div className="hub-page hub-details-page relative min-h-screen">
-      <SEO 
-        title={item.title} 
-        description={item.overview || `Saiba mais sobre ${item.title} no Hubora`} 
-        image={item.posterPath || ''} 
-      />
+    <div className="hub-page pb-24 max-w-[108rem] mx-auto w-full px-4 sm:px-8">
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--hub-muted)] hover:text-white transition-colors mb-6 group"
+      >
+        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+        Voltar
+      </button>
 
-      {/* Cinematic Background */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div 
-          className="absolute inset-0 bg-cover bg-center scale-110 blur-[100px] opacity-20"
-          style={item.backdropPath || item.posterPath ? { backgroundImage: `url("${item.backdropPath || item.posterPath}")` } : undefined}
-        />
-        <div className="absolute inset-0 bg-slate-950/60" />
-      </div>
-      
-      <div className="relative z-10">
-        {/* Cinematic Hero Banner */}
-      <div className="relative min-h-[min(66vh,43rem)] w-full overflow-hidden rounded-[clamp(1.4rem,3vw,2.5rem)] border border-[var(--hub-border)] shadow-[var(--hub-shadow-lg)] group flex items-end pb-8 sm:pb-12">
-        <div className="absolute inset-0">
-          <img
-            src={item.backdropPath || item.posterPath || '/icons/hubora-512.png'}
-            alt={item.title}
-            className="w-full h-full object-cover opacity-40 transition-transform duration-[18s] ease-linear group-hover:scale-[1.025]"
-            referrerPolicy="no-referrer"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/icons/hubora-512.png';
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
-          <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--hub-brand)_9%,transparent)] mix-blend-overlay" />
-        </div>
+      <section className="relative rounded-3xl overflow-hidden bg-[var(--hub-surface-1)] border border-[var(--hub-border)] p-6 sm:p-10 mb-8 shadow-2xl">
+        {item.backdropPath && (
+          <div className="absolute inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
+            <img src={item.backdropPath} alt="" className="w-full h-full object-cover blur-3xl scale-125" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--hub-surface-1)] via-transparent to-transparent" />
+          </div>
+        )}
 
-        <div className="mx-auto w-full max-w-7xl px-5 sm:px-7 lg:px-10 relative z-10 flex flex-col md:flex-row gap-7 lg:gap-10 items-end">
-          {/* Poster */}
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-44 sm:w-52 md:w-60 flex-shrink-0 mx-auto md:mx-0 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/10 relative group/poster"
-          >
-            <OptimizedImage
-              src={item.posterPath || '/icons/hubora-512.png'}
-              alt={item.title}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover/poster:scale-105"
-            />
-            {detailVideos.length > 0 && (
-              <div 
-                className="absolute inset-0 bg-black/60 opacity-0 group-hover/poster:opacity-100 transition-all duration-500 flex items-center justify-center cursor-pointer backdrop-blur-sm"
-                onClick={() => setShowTrailerModal(true)}
-              >
-                <div className="w-20 h-20 rounded-full bg-[color-mix(in_srgb,var(--hub-brand)_92%,black)] flex items-center justify-center text-white shadow-[0_0_30px_rgba(217,154,40,0.34)] transform scale-75 group-hover/poster:scale-100 transition-transform duration-500 ease-out">
-                  <PlayCircle size={40} fill="currentColor" />
+        <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
+          <div className="w-44 sm:w-60 shrink-0 mx-auto md:mx-0 rounded-2xl overflow-hidden shadow-2xl border border-[var(--hub-border-strong)] bg-[var(--hub-surface-2)]">
+            {item.posterPath || item.backdropPath ? (
+              <img src={item.posterPath || item.backdropPath} alt={title} className="w-full aspect-[2/3] object-cover" />
+            ) : (
+              <div className="grid aspect-[2/3] place-items-center p-6 text-center text-xs font-bold uppercase tracking-wider text-[var(--hub-muted)]">
+                Capa não disponível
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0 space-y-5">
+            <div>
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-[var(--hub-brand)]">{contract.displayName}</p>
+              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-none mb-3">{title}</h1>
+              {metadata.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--hub-muted)]">
+                  {metadata.map((value) => (
+                    <span key={value} className="rounded-full border border-[var(--hub-border)] bg-[var(--hub-surface-2)] px-2.5 py-1">
+                      {value}
+                    </span>
+                  ))}
                 </div>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Info */}
-          <div className="flex-1 text-center md:text-left pb-6">
-            <motion.h1 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
-              className="text-[clamp(2.45rem,6vw,5.5rem)] font-black text-white mb-4 drop-shadow-2xl tracking-[-0.065em] leading-[0.92] text-balance"
-            >
-              {item.title}
-            </motion.h1>
-            
-            {item.originalTitle && item.originalTitle !== item.title && (
-              <p className="text-slate-400 text-2xl mb-8 italic font-medium drop-shadow-md">{item.originalTitle}</p>
-            )}
-
-            {(item.customBadge || item.price) && (
-              <div className="flex gap-4 items-center mb-6">
-                {item.customBadge && (
-                  <span className="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full text-sm font-bold uppercase tracking-wider backdrop-blur-md">
-                    {item.customBadge}
-                  </span>
-                )}
-                {item.price && (
-                  <span className="text-2xl font-black text-green-300 drop-shadow-md">
-                    US$ {item.price}
-                  </span>
-                )}
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-5 text-base text-slate-300 mb-8 font-medium">
-              <span className="bg-gradient-to-r from-purple-600/40 to-cyan-600/40 backdrop-blur-xl px-4 py-1.5 rounded-full border border-white/20 uppercase font-black text-xs tracking-widest text-white shadow-[0_0_15px_rgba(217,154,40,0.20)]">
-                {t(`media.type.${item.mediaType}` as Parameters<typeof t>[0]) || item.mediaType}
-              </span>
-              {item.releaseDate && (
-                <span className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md">
-                  <Calendar size={18} className="text-purple-400" />
-                  {new Date(item.releaseDate).getFullYear()}
-                </span>
-              )}
-              {item.voteAverage && (
-                <span className="flex items-center gap-2 text-yellow-400 font-black text-lg bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md">
-                  <Star size={20} fill="currentColor" className="drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
-                  {item.voteAverage.toFixed(1)}
-                </span>
-              )}
-              {item.status && (
-                <span className="flex items-center gap-2 text-green-400 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md font-bold">
-                  <Clock size={18} />
-                  {item.status}
-                </span>
-              )}
-              {item.seasonsCount !== undefined && (
-                <span className="flex items-center gap-2 text-cyan-400 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md font-bold">
-                  <Film size={18} />
-                  {item.seasonsCount} Temporadas
-                </span>
-              )}
-              {item.episodesCount !== undefined && (
-                <span className="flex items-center gap-2 text-cyan-400 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md font-bold">
-                  <Tv size={18} />
-                  {item.episodesCount} Episódios
-                </span>
-              )}
-              {item.chaptersCount !== undefined && (
-                <span className="flex items-center gap-2 text-pink-400 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md font-bold">
-                  <BookOpen size={18} />
-                  {item.chaptersCount} Capítulos
-                </span>
-              )}
-              {item.pages !== undefined && (
-                <span className="flex items-center gap-2 text-amber-400 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md font-bold">
-                  <BookOpen size={18} />
-                  {item.pages} Páginas
-                </span>
-              )}
-              {item.nextEpisodeToAir && (
-                <span className="flex items-center gap-2 text-purple-400 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md font-bold" title={`Na Temporada ${item.nextEpisodeToAir.seasonNumber}`}>
-                  <Calendar size={18} />
-                  Próx: Ep {item.nextEpisodeToAir.episodeNumber} ({new Date(item.nextEpisodeToAir.airDate).toLocaleDateString('pt-BR')})
-                </span>
               )}
             </div>
 
-            {/* Quick Info Bar */}
-            <div className="flex flex-wrap gap-4 mb-8">
-              {item.genres?.slice(0, 3).map(genre => (
-                <div key={genre} className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-sm font-bold text-slate-200">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-                  {genre}
-                </div>
-              ))}
-              {item.runtime && (
-                <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-sm font-bold text-slate-200">
-                  <Clock size={16} className="text-purple-400" />
-                  {item.runtime} min
-                </div>
-              )}
-              {item.platforms && item.platforms.slice(0, 3).map(p => (
-                <div key={p} className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-sm font-bold text-slate-200">
-                  <PlayCircle size={16} className="text-teal-400" />
-                  {p}
-                </div>
-              ))}
-              {item.developers && item.developers.map(d => (
-                <div key={d} className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-sm font-bold text-slate-200">
-                  <User size={16} className="text-blue-400" />
-                  {d}
-                </div>
-              ))}
-              {item.publishers && item.publishers.map(p => (
-                <div key={p} className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-sm font-bold text-slate-200">
-                  <Star size={16} className="text-yellow-400" />
-                  {p}
-                </div>
-              ))}
-              {item.authors && item.authors.map(a => (
-                <div key={a} className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-sm font-bold text-slate-200">
-                  <User size={16} className="text-pink-400" />
-                  {a}
-                </div>
-              ))}
-            </div>
-
-            <p className="text-slate-300 text-lg leading-relaxed max-w-3xl mb-8 drop-shadow-md">
-              {item.overview || t('media.no_overview')}
+            <p className="text-sm text-[var(--hub-muted)] leading-relaxed max-w-3xl">
+              {overview || 'A fonte consultada não forneceu uma descrição para esta obra.'}
             </p>
 
-            <div className="mb-8 max-w-3xl">
-              <DetailsInsight item={item} />
-            </div>
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <button
+                onClick={handlePrimaryAction}
+                className="px-6 py-3 rounded-xl font-extrabold text-sm bg-[var(--hub-brand)] hover:bg-[var(--hub-brand-strong)] text-white flex items-center gap-2.5 shadow-lg shadow-[var(--hub-brand-soft)] transition-all hover:scale-[1.02]"
+              >
+                <Play size={18} className="fill-current" />
+                <span>{primaryLabel}</span>
+              </button>
 
-            <MediaPassport item={item} />
-
-            {/* Genres */}
-            {item.genres && item.genres.length > 0 && (
-              <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-8">
-                {item.genres.map((genre) => (
-                  <span key={genre} className="px-4 py-1.5 bg-white/5 backdrop-blur-md text-slate-300 text-sm font-medium rounded-full border border-white/10">
-                    {genre}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-8">
-              <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                <Button
-                  size="lg"
-                  variant={libraryItem ? "default" : "secondary"}
-                  onClick={() => setIsModalOpen(true)}
-                  className={`gap-3 h-14 px-10 rounded-2xl transition-all duration-300 font-bold shadow-lg ${libraryItem ? 'bg-[var(--hub-brand)] hover:bg-[var(--hub-brand-strong)] shadow-[0_0_30px_rgba(217,154,40,0.26)] border border-purple-500' : 'bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white shadow-[0_0_30px_rgba(217,154,40,0.26)]'}`}
-                >
-                  {libraryItem ? <Edit3 size={24} /> : <Plus size={26} />}
-                  <span>{libraryItem ? 'Editar Status' : t('details.add')}</span>
-                </Button>
-
-                {libraryItem?.status && (
-                    <div className="flex items-center px-6 h-14 rounded-2xl bg-slate-900/50 backdrop-blur-md border border-white/10 text-sm font-bold text-slate-300">
-                        Status: <span className="ml-2 text-purple-400 capitalize">{libraryItem.status.replace('_', ' ')}</span>
-                    </div>
+              <button
+                onClick={() => void handleCompletion()}
+                className={cn(
+                  'px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-2 border transition-all',
+                  isCompleted
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                    : 'bg-[var(--hub-surface-2)] text-white border-[var(--hub-border)] hover:border-[var(--hub-border-strong)]',
                 )}
-                
-                <Link to={`/guide?q=${encodeURIComponent(item.title)}`}>
-                  <Button variant="outline" size="lg" className="gap-3 border-white/20 hover:bg-white/10 hover:border-white/40 text-white h-14 px-8 rounded-2xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 font-bold">
-                    <BookOpen size={22} />
-                    {t('details.franchise')}
-                  </Button>
-                </Link>
-                
-                {detailVideos.length > 0 && (
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    onClick={() => setShowTrailerModal(true)}
-                    className="gap-3 border-purple-500/50 hover:bg-purple-500/20 hover:border-purple-400 text-purple-300 h-14 px-8 rounded-2xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 font-bold hover:shadow-[0_0_20px_rgba(217,154,40,0.20)]"
-                  >
-                    <PlayCircle size={22} />
-                    {detailVideos.length === 1 ? 'Trailer' : `Vídeos (${detailVideos.length})`}
-                  </Button>
+              >
+                <Check size={16} />
+                <span>{isCompleted ? completedCopy.completed : completedCopy.action}</span>
+              </button>
+
+              <button
+                onClick={() => void handleFavorite()}
+                className={cn(
+                  'p-3 rounded-xl border transition-all',
+                  libraryEntry?.isFavorite
+                    ? 'bg-[var(--hub-brand-soft)] text-[var(--hub-brand)] border-[var(--hub-brand)]'
+                    : 'bg-[var(--hub-surface-2)] text-white border-[var(--hub-border)] hover:border-[var(--hub-border-strong)]',
                 )}
+                aria-pressed={Boolean(libraryEntry?.isFavorite)}
+                title={libraryEntry?.isFavorite ? 'Remover dos favoritos' : 'Salvar nos favoritos'}
+              >
+                <Bookmark size={16} fill={libraryEntry?.isFavorite ? 'currentColor' : 'none'} />
+              </button>
 
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  onClick={handleTrivia}
-                  className="gap-3 border-yellow-500/50 hover:bg-yellow-500/20 hover:border-yellow-400 text-yellow-300 h-14 px-8 rounded-2xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 font-bold hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]"
+              <div className="relative">
+                <button
+                  onClick={() => setShowMoreMenu((current) => !current)}
+                  className="p-3 rounded-xl bg-[var(--hub-surface-2)] text-white border border-[var(--hub-border)] hover:border-[var(--hub-border-strong)] transition-all"
+                  title="Mais opções"
+                  aria-expanded={showMoreMenu}
                 >
-                  <Lightbulb size={22} />
-                   {t('details.trivia')}
-                </Button>
-
-                {/* Custom List Selector */}
-                {Object.values(customLists || {}).length > 0 && (
-                  <div className="relative">
-                    <select 
-                      onChange={(e) => {
-                        const listId = e.target.value;
-                        if (!listId) return;
-                        addItemToCustomList(listId, String(item.id));
-                        toast.success('Mídia adicionada à sua coleção.');
-                        e.target.value = ""; // reset
-                      }}
-                      className="h-14 px-6 rounded-2xl bg-slate-900/50 backdrop-blur-md border border-white/10 text-sm font-bold text-slate-300 outline-none cursor-pointer focus:ring-2 focus:ring-[var(--hub-brand)] hover:border-white/20 transition-all"
-                    >
-                      <option value="" className="bg-slate-950 text-slate-400">Adicionar à Coleção...</option>
-                      {Object.values(customLists).map((list: any) => (
-                        <option 
-                          key={list.id} 
-                          value={list.id} 
-                          disabled={list.items.includes(String(item.id))}
-                          className="bg-slate-950 text-white"
-                        >
-                          {list.name} {list.items.includes(String(item.id)) ? ' (Adicionado)' : ''}
-                        </option>
-                      ))}
-                    </select>
+                  <MoreHorizontal size={16} />
+                </button>
+                {showMoreMenu && (
+                  <div className="absolute left-0 top-full z-30 mt-2 min-w-56 overflow-hidden rounded-xl border border-[var(--hub-border-strong)] bg-[var(--hub-surface-1)] p-1 shadow-2xl">
+                    <button onClick={() => void handleLibrary()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-bold text-white hover:bg-[var(--hub-surface-2)]">
+                      {libraryEntry ? <Trash2 size={14} /> : <Library size={14} />}
+                      {libraryEntry ? 'Remover da biblioteca' : 'Adicionar à biblioteca'}
+                    </button>
+                    <button onClick={() => { setActiveTab('sources'); setShowMoreMenu(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-bold text-white hover:bg-[var(--hub-surface-2)]">
+                      <Server size={14} /> Abrir fontes
+                    </button>
+                    <button onClick={() => void copyLink()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-bold text-white hover:bg-[var(--hub-surface-2)]">
+                      <Clipboard size={14} /> Copiar link
+                    </button>
                   </div>
                 )}
               </div>
+            </div>
 
-              <WhereToWatch item={item} />
+            {summary && summary.percentage > 0 && (
+              <div className="pt-2 max-w-xl">
+                <div className="h-1.5 w-full rounded-full bg-[var(--hub-surface-3)] overflow-hidden">
+                  <div
+                    className="h-full bg-[var(--hub-brand)] rounded-full"
+                    style={{ width: `${summary.percentage}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[0.7rem] font-bold text-[var(--hub-muted)] mt-1.5">
+                  <span>{summary.label}</span>
+                  <span>{Math.round(summary.percentage)}%</span>
+                </div>
+              </div>
+            )}
+
+            <div role="tablist" aria-label="Seções da obra" className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-4 border-t border-[var(--hub-border)] text-xs font-bold text-[var(--hub-muted)]">
+              {visibleTabs.map((tab) => (
+                <button
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    'pb-2 border-b-2 transition-colors',
+                    activeTab === tab.id ? 'border-[var(--hub-brand)] text-white' : 'border-transparent hover:text-white',
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Main Content Area */}
-      <div className="container mx-auto px-4 mt-16 space-y-24">
-        
-        {/* User Progress */}
-
-        {status && libraryItem && (
-          <section className="max-w-4xl mx-auto">
-            <div className="glass-card p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 pointer-events-none" />
-              <div className="relative z-10">
-                <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-2xl font-black text-white flex items-center gap-3">
-                    <Edit3 size={28} className="text-purple-400" />
-                    {t('details.progress.title')}
-                    </h3>
-                    <Button variant="outline" onClick={() => setIsModalOpen(true)} className="border-purple-500/30 hover:bg-purple-500/10 text-purple-300">
-                        <Edit3 size={16} className="mr-2" /> Atualizar Progresso
-                    </Button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="bg-slate-950/40 p-6 rounded-2xl border border-white/5 flex flex-col justify-center">
-                    <label className="block text-xs font-black text-slate-400 mb-4 uppercase tracking-widest">Status e Progresso</label>
-                    <div className="text-2xl font-black text-white mb-2">
-                         {formatProgress(libraryItem) || 'Nenhum progresso registrado'}
-                    </div>
-                    <div className="text-sm text-slate-450 flex gap-2">
-                        Status: <span className="text-purple-400 uppercase font-bold">{libraryItem.status}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-slate-950/40 p-6 rounded-2xl border border-white/5">
-                    <label className="block text-xs font-black text-slate-400 mb-4 uppercase tracking-widest">{t('details.progress.notes')}</label>
-                    <div className="text-sm text-slate-300 italic min-h-[80px]">
-                         {libraryItem.notes || 'Nenhuma anotação.'}
-                    </div>
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <main className="lg:col-span-8 space-y-6">
+          {activeTab === 'overview' && (
+            <section role="tabpanel" className="space-y-5">
+              <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-1)] p-6">
+                <h2 className="text-lg font-black text-white">Sobre esta {contract.displayName.toLowerCase()}</h2>
+                <p className="mt-3 text-sm leading-relaxed text-[var(--hub-muted)]">
+                  {overview || 'A descrição não está disponível na fonte consultada.'}
+                </p>
               </div>
-            </div>
-          </section>
-        )}
-
-        {/* Game Deals Section (CheapShark) */}
-        {item.mediaType === 'game' && gameDeals.length > 0 && (
-          <section className="max-w-4xl mx-auto">
-            <div className="glass-card p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-cyan-500/5 pointer-events-none" />
-              <div className="relative z-10">
-                <h3 className="text-2xl font-black text-white flex items-center gap-3 mb-8">
-                  <Gamepad2 size={28} className="text-green-450 drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-                  Melhores Ofertas de PC (CheapShark)
-                </h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  {gameDeals.map((deal: any, idx: number) => (
-                    <a 
-                      key={idx} 
-                      href={`https://www.cheapshark.com/redirect?dealID=${deal.dealID}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="bg-slate-950/40 p-5 rounded-2xl border border-white/5 flex flex-col items-center justify-between text-center hover:border-green-500/30 transition-all hover:scale-[1.03] group"
-                    >
-                      <span className="text-xs font-black text-slate-450 uppercase tracking-widest">{getStoreName(deal.storeID)}</span>
-                      <div className="my-3">
-                        <div className="text-2xl font-black text-green-400">${deal.price}</div>
-                        {parseFloat(deal.savings) > 0 && (
-                          <div className="text-xs text-slate-500 line-through">${deal.retailPrice}</div>
-                        )}
-                      </div>
-                      {parseFloat(deal.savings) > 0 ? (
-                        <span className="text-[10px] font-black bg-green-500/20 text-green-400 px-3 py-1 rounded-full border border-green-500/30">
-                          {Math.round(parseFloat(deal.savings))}% OFF
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-black bg-slate-800 text-slate-400 px-3 py-1 rounded-full">
-                          Preço Normal
-                        </span>
-                      )}
-                    </a>
+              {facts.length > 0 && (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {facts.map((fact) => (
+                    <div key={fact.label} className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-1)] p-4">
+                      <span className="text-[0.68rem] font-black uppercase tracking-wider text-[var(--hub-muted)]">{fact.label}</span>
+                      <strong className="mt-1 block text-sm text-white">{fact.value}</strong>
+                    </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Trailer Modal */}
-
-        <TrailerModal 
-          isOpen={showTrailerModal} 
-          onClose={() => setShowTrailerModal(false)} 
-          videos={detailVideos}
-        />
-
-        {/* Trivia Modal */}
-        <Dialog open={showTriviaModal} onOpenChange={setShowTriviaModal}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <div className="flex items-center gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-yellow-500/15 text-yellow-500">
-                  <Lightbulb size={24} aria-hidden="true" />
-                </span>
-                <div>
-                  <DialogTitle>{t('details.trivia')}</DialogTitle>
-                  <DialogDescription>{t('details.trivia.title').replace('{title}', item.title)}</DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
-
-            <DialogBody>
-              {isLoadingTrivia ? (
-                <div className="grid min-h-52 place-items-center text-center">
-                  <div>
-                    <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-yellow-500/20 border-t-yellow-500" />
-                    <p className="mt-4 text-sm font-bold text-[var(--hub-muted)]">{t('details.trivia.loading')}</p>
+              )}
+              {item.cast?.length ? (
+                <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-1)] p-6">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-white">Elenco</h3>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {item.cast.slice(0, 8).map((person) => (
+                      <div key={`${person.name}-${person.character}`} className="flex items-center justify-between gap-3 border-b border-[var(--hub-border)] pb-2 text-xs">
+                        <strong className="text-white">{person.name}</strong>
+                        <span className="text-right text-[var(--hub-muted)]">{person.character}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ) : trivia.length === 0 ? (
-                <div className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-red-500">
-                  <AlertTriangle size={20} aria-hidden="true" />
-                  <span>{t('details.trivia.error')}</span>
+              ) : null}
+            </section>
+          )}
+
+          {activeTab === 'videos' && hasVideos && (
+            <section role="tabpanel" className="space-y-4">
+              <div className="relative aspect-video rounded-2xl overflow-hidden border border-[var(--hub-border)] bg-black group shadow-xl">
+                {item.backdropPath || item.posterPath ? (
+                  <img src={item.backdropPath || item.posterPath} alt="" className="w-full h-full object-cover opacity-75 group-hover:scale-105 transition-transform duration-500" />
+                ) : null}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                  <button
+                    onClick={() => setIsTrailerOpen(true)}
+                    className="h-16 w-16 rounded-full bg-[var(--hub-brand)] text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-transform"
+                    aria-label="Abrir vídeos disponíveis"
+                  >
+                    <Play size={28} className="fill-current ml-1" />
+                  </button>
+                </div>
+                <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent text-xs text-white">
+                  <strong>{item.videos?.[0]?.name}</strong>
+                  <span className="ml-2 text-white/70">{item.videos?.[0]?.provider}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {item.videos?.map((video) => (
+                  <button
+                    type="button"
+                    key={video.id}
+                    onClick={() => setIsTrailerOpen(true)}
+                    className="p-3 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-1)] text-left text-xs text-[var(--hub-muted)] hover:text-white hover:border-[var(--hub-brand)]"
+                  >
+                    <strong className="block truncate text-white">{video.name}</strong>
+                    <span>{video.provider}{video.language ? ` · ${video.language}` : ''}{video.official ? ' · oficial' : ''}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'episodes' && hasEpisodes && (
+            <section role="tabpanel">
+              <EpisodeList item={item} onRequestSources={() => setActiveTab('sources')} />
+            </section>
+          )}
+
+          {activeTab === 'episodes' && hasChapterList && (
+            <section role="tabpanel" className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-1)] p-5">
+              <h2 className="text-sm font-black uppercase tracking-wider text-white">Capítulos encontrados no MangaDex</h2>
+              {mangaChapters.length > 0 && mangaDexId ? (
+                <div className="mt-4 grid max-h-[34rem] gap-2 overflow-y-auto sm:grid-cols-2">
+                  {mangaChapters.map((chapter) => (
+                    <button
+                      key={chapter.id}
+                      onClick={() => navigate(`/reader?kind=manga&mangaId=${encodeURIComponent(mangaDexId)}&chapterId=${encodeURIComponent(chapter.id)}&title=${encodeURIComponent(`${title} · ${chapter.title}`)}`)}
+                      className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] px-4 py-3 text-left hover:border-[var(--hub-brand)]"
+                    >
+                      <strong className="block text-xs text-white">Capítulo {chapter.chapter}</strong>
+                      <span className="mt-1 block truncate text-[0.7rem] text-[var(--hub-muted)]">{chapter.title} · {chapter.language}</span>
+                    </button>
+                  ))}
                 </div>
               ) : (
-                <ol className="space-y-3">
-                  {trivia.map((fact, index) => (
-                    <li key={`${fact}-${index}`} className="flex gap-3 rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] p-4">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-yellow-500/15 text-sm font-black text-yellow-500">
-                        {index + 1}
-                      </span>
-                      <p className="pt-1 text-sm leading-7 text-[var(--hub-text)] sm:text-base">{fact}</p>
-                    </li>
-                  ))}
-                </ol>
+                <p className="mt-3 text-sm text-[var(--hub-muted)]">Não foi localizada uma identidade correspondente no MangaDex.</p>
               )}
-            </DialogBody>
+            </section>
+          )}
 
-            <DialogFooter>
-              <Button onClick={() => setShowTriviaModal(false)}>Entendido</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          {activeTab === 'sources' && <section role="tabpanel"><WhereToWatch item={item} /></section>}
+          {activeTab === 'activity' && <section role="tabpanel"><MediaPassport item={item} /></section>}
 
-        {/* Cast Section */}
-        {item.cast && item.cast.length > 0 && (
-          <section className="relative">
-            <div className="absolute -inset-x-4 -inset-y-8 bg-gradient-to-r from-purple-900/10 via-transparent to-transparent -z-10" />
-            <h3 className="text-3xl md:text-4xl font-black text-white mb-10 flex items-center gap-4 drop-shadow-lg">
-              <Users className="text-purple-400 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]" size={36} />
-              {t('details.cast')}
-            </h3>
-            <div className="flex overflow-x-auto gap-6 pb-12 scrollbar-hide snap-x -mx-4 px-4 md:mx-0 md:px-0">
-              {item.cast.map((actor, idx) => (
-                <div key={idx} className="flex-shrink-0 w-36 md:w-48 rounded-3xl overflow-hidden relative group snap-start glass-card hover-card-effect shadow-xl transition-all duration-500 hover:z-20">
-                  <div className="aspect-[2/3] w-full bg-slate-800">
-                    {actor.profilePath ? (
-                      <img src={actor.profilePath} alt={actor.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.025]" referrerPolicy="no-referrer" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-600">
-                        <User size={48} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-0 left-0 w-full p-5 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out">
-                    <p className="text-base md:text-lg font-black text-white leading-tight drop-shadow-md mb-1">{actor.name}</p>
-                    <p className="text-xs md:text-sm text-purple-300 leading-tight drop-shadow-md font-bold opacity-80 group-hover:opacity-100 transition-opacity">{actor.character}</p>
-                  </div>
-                </div>
-              ))}
+          {activeTab === 'details' && (
+            <section role="tabpanel" className="p-6 rounded-2xl bg-[var(--hub-surface-1)] border border-[var(--hub-border)] space-y-4 text-xs">
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Ficha disponível</h2>
+              {fields.length > 0 ? (
+                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {fields.map((field) => (
+                    <div key={field.label}>
+                      <dt className="font-semibold text-white">{field.label}</dt>
+                      <dd className="mt-1 break-words text-[var(--hub-muted)]">{field.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <p className="text-[var(--hub-muted)]">A fonte não forneceu campos técnicos adicionais.</p>
+              )}
+            </section>
+          )}
+        </main>
+
+        <aside className="lg:col-span-4 space-y-4">
+          <div className="p-5 rounded-2xl bg-[var(--hub-surface-1)] border border-[var(--hub-border)] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                <Server size={14} className="text-[var(--hub-brand)]" />
+                Fontes verificáveis
+              </h2>
+              <span className="text-[0.7rem] font-bold text-[var(--hub-brand)]">{access.length}</span>
             </div>
-          </section>
-        )}
 
+            {access.length > 0 ? (
+              <div className="space-y-2.5">
+                {access.slice(0, 4).map((source) => (
+                  <button
+                    type="button"
+                    key={source.id}
+                    onClick={() => openAccess(source)}
+                    className="flex w-full items-center justify-between p-3 rounded-xl bg-[var(--hub-surface-2)] border border-[var(--hub-border)] hover:border-[var(--hub-brand)] transition-colors text-left group"
+                  >
+                    <span className="min-w-0">
+                      <strong className="block truncate text-xs text-white group-hover:text-[var(--hub-brand)]">{source.label}</strong>
+                      <span className="mt-0.5 block truncate text-[0.68rem] text-[var(--hub-muted)]">
+                        {source.provider}{source.quality ? ` · ${source.quality}` : ''}{source.language ? ` · ${source.language}` : ''}
+                      </span>
+                    </span>
+                    <ExternalLink size={14} className="shrink-0 text-[var(--hub-muted)] group-hover:text-white" />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-[var(--hub-border)] p-4 text-xs leading-relaxed text-[var(--hub-muted)]">
+                Nenhum arquivo pessoal, servidor configurado, acesso oficial ou provedor autorizado foi confirmado para esta obra.
+              </div>
+            )}
 
-        {/* Similar Items Section */}
-        {item.similar && item.similar.length > 0 && (
-          <section className="relative">
-            <div className="absolute -inset-x-4 -inset-y-8 bg-gradient-to-l from-cyan-900/10 via-transparent to-transparent -z-10" />
-            <h3 className="text-3xl md:text-4xl font-black text-white mb-10 flex items-center gap-4 drop-shadow-lg">
-              <Sparkles className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]" size={36} />
-              {t('details.similar')}
-            </h3>
-            <div className="flex overflow-x-auto gap-6 pb-12 scrollbar-hide snap-x -mx-4 px-4 md:mx-0 md:px-0">
-              {item.similar.map((similarItem) => (
-                <Link key={similarItem.id} to={`/details/${similarItem.id}`} className="flex-shrink-0 w-40 md:w-52 group snap-start">
-                  <div className="aspect-[2/3] rounded-3xl overflow-hidden mb-5 glass-card hover-card-effect shadow-xl transition-all duration-500 relative">
-                    {similarItem.posterPath ? (
-                      <img src={similarItem.posterPath} alt={similarItem.title} className="w-full h-full object-cover group-hover:scale-[1.025] transition-transform duration-700" referrerPolicy="no-referrer" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-600 text-xs text-center p-4 bg-slate-800 font-bold">
-                        {t('details.no_image')}
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  </div>
-                  <p className="text-lg font-black text-white truncate group-hover:text-cyan-400 transition-colors drop-shadow-md px-1">{similarItem.title}</p>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
+            <button
+              onClick={() => setActiveTab('sources')}
+              className="w-full text-center py-2 text-xs font-bold text-[var(--hub-muted)] hover:text-white transition-colors"
+            >
+              {access.length > 4 ? `Ver todas as ${access.length} fontes` : 'Consultar e configurar fontes'} →
+            </button>
+          </div>
+        </aside>
       </div>
-      <LibraryStatusModal item={item} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+      {recommendations.length > 0 && (
+        <section className="mt-16 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-white tracking-tight">Você também pode gostar</h2>
+            <Link to="/discover" className="text-xs font-bold text-[var(--hub-brand)] hover:underline">Ver mais sugestões</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+            {recommendations.map((recommendation) => <MediaCard key={String(recommendation.id)} item={recommendation} />)}
+          </div>
+        </section>
+      )}
+
+      <TrailerModal
+        isOpen={isTrailerOpen}
+        onClose={() => setIsTrailerOpen(false)}
+        videos={item.videos || []}
+      />
+      <GameManagementModal item={item} isOpen={isGameModalOpen} onClose={() => setIsGameModalOpen(false)} />
     </div>
-  </div>
-);
+  );
 }

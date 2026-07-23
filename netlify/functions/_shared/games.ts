@@ -6,7 +6,7 @@ let igdbToken: string | null = null;
 let igdbTokenExpiresAt = 0;
 
 const HEADERS = {
-  'User-Agent': 'Hubora/8.0 (personal media hub)',
+  'User-Agent': 'Hubora/9.0.2-rc.1 (personal media hub)',
 };
 
 const env = (name: string) => process.env[name]?.trim() || '';
@@ -72,6 +72,51 @@ async function fetchCheapSharkDeals(): Promise<UnknownRecord[]> {
   const response = await fetchWithTimeout(url, { headers: HEADERS });
   if (!response.ok) return [];
   return response.json() as Promise<UnknownRecord[]>;
+}
+
+async function fetchFreeToGameGames(query = ''): Promise<UnknownRecord[]> {
+  const url = new URL('https://www.freetogame.com/api/games');
+  url.searchParams.set('sort-by', query ? 'relevance' : 'popularity');
+  const response = await fetchWithTimeout(url, { headers: HEADERS });
+  if (!response.ok) return [];
+  const games = await response.json() as UnknownRecord[];
+  const normalizedQuery = query.trim().toLocaleLowerCase('pt-BR');
+  return (normalizedQuery
+    ? games.filter((game) => String(game.title || '').toLocaleLowerCase('pt-BR').includes(normalizedQuery))
+    : games
+  ).slice(0, 15);
+}
+
+function normalizeFreeToGame(item: UnknownRecord) {
+  const officialUrl = item.game_url || item.freetogame_profile_url;
+  return {
+    id: `ftg-${item.id}`,
+    sourceId: item.id,
+    source: 'freetogame',
+    title: item.title,
+    originalTitle: item.title,
+    posterPath: item.thumbnail || undefined,
+    backdropPath: item.thumbnail || undefined,
+    mediaType: 'game',
+    overview: item.short_description,
+    genres: item.genre ? [item.genre] : [],
+    platforms: item.platform ? [item.platform] : [],
+    publisher: item.publisher,
+    releaseDate: item.release_date,
+    voteAverage: 0,
+    customBadge: 'Grátis',
+    providerUrl: officialUrl,
+    access: officialUrl ? [{
+      id: `freetogame-${item.id}`,
+      label: 'Abrir página oficial do jogo',
+      kind: 'official-link',
+      url: officialUrl,
+      provider: 'FreeToGame',
+      free: true,
+      health: 'available',
+      legalNote: 'Jogo listado como gratuito pela API do FreeToGame.',
+    }] : [],
+  };
 }
 
 function normalizeGameResult(item: UnknownRecord, source: 'igdb' | 'cheapshark' | 'cheapshark-deal') {
@@ -161,7 +206,10 @@ export async function searchGames(query: string) {
     console.warn('IGDB search indisponível:', error);
   }
 
-  return (await fetchCheapShark(safeQuery)).map((item) => normalizeGameResult(item, 'cheapshark'));
+  const cheapShark = await fetchCheapShark(safeQuery);
+  if (cheapShark.length) return cheapShark.map((item) => normalizeGameResult(item, 'cheapshark'));
+
+  return (await fetchFreeToGameGames(safeQuery)).map(normalizeFreeToGame);
 }
 
 export async function trendingGames() {
@@ -176,7 +224,10 @@ export async function trendingGames() {
     console.warn('IGDB trending indisponível:', error);
   }
 
-  return (await fetchCheapSharkDeals()).map((item) => normalizeGameResult(item, 'cheapshark-deal'));
+  const deals = await fetchCheapSharkDeals();
+  if (deals.length) return deals.map((item) => normalizeGameResult(item, 'cheapshark-deal'));
+
+  return (await fetchFreeToGameGames()).map(normalizeFreeToGame);
 }
 
 export async function upcomingGames() {
@@ -245,6 +296,49 @@ export async function gameDetails(id: string) {
     };
   }
 
+
+  if (/^ftg-\d+$/.test(id)) {
+    const numericId = id.replace('ftg-', '');
+    const url = new URL('https://www.freetogame.com/api/game');
+    url.searchParams.set('id', numericId);
+    const response = await fetchWithTimeout(url, { headers: HEADERS });
+    if (!response.ok) return null;
+    const data = await response.json() as UnknownRecord;
+    if (!data.id || !data.title) return null;
+    const officialUrl = data.game_url || data.freetogame_profile_url;
+    return {
+      id: `ftg-${data.id}`,
+      sourceId: data.id,
+      source: 'freetogame',
+      title: data.title,
+      originalTitle: data.title,
+      posterPath: data.thumbnail || undefined,
+      backdropPath: data.screenshots?.[0]?.image || data.thumbnail || undefined,
+      screenshots: data.screenshots?.map((shot: UnknownRecord) => shot.image).filter(Boolean) ?? [],
+      overview: data.description || data.short_description,
+      mediaType: 'game',
+      releaseDate: data.release_date,
+      voteAverage: 0,
+      genres: data.genre ? [data.genre] : [],
+      platforms: data.platform ? [data.platform] : [],
+      developers: data.developer ? [data.developer] : [],
+      publishers: data.publisher ? [data.publisher] : [],
+      status: data.status,
+      customBadge: 'Grátis',
+      providerUrl: officialUrl,
+      access: officialUrl ? [{
+        id: `freetogame-${data.id}`,
+        label: 'Abrir página oficial do jogo',
+        kind: 'official-link',
+        url: officialUrl,
+        provider: 'FreeToGame',
+        free: true,
+        health: 'available',
+        legalNote: 'Jogo listado como gratuito pela API do FreeToGame.',
+      }] : [],
+    };
+  }
+
   if (/^rawg-\d+$/.test(id) && env('RAWG_API_KEY')) {
     const numericId = id.replace('rawg-', '');
     const url = new URL(`https://api.rawg.io/api/games/${numericId}`);
@@ -253,8 +347,11 @@ export async function gameDetails(id: string) {
     if (!response.ok) return null;
     const data = await response.json() as UnknownRecord;
     if (!data.name) return null;
+    const rawgPage = data.slug ? `https://rawg.io/games/${encodeURIComponent(data.slug)}` : 'https://rawg.io/';
     return {
       id: `rawg-${data.id}`,
+      sourceId: data.id,
+      source: 'rawg',
       title: data.name,
       posterPath: data.background_image || undefined,
       backdropPath: data.background_image_additional || data.background_image || undefined,
@@ -266,6 +363,17 @@ export async function gameDetails(id: string) {
       platforms: data.platforms?.map((entry: UnknownRecord) => entry.platform?.name).filter(Boolean) ?? [],
       companies: data.developers?.map((developer: UnknownRecord) => developer.name) ?? [],
       status: 'Released',
+      providerUrl: rawgPage,
+      access: [{
+        id: `rawg-attribution-${data.id}`,
+        label: 'Ver dados e página no RAWG',
+        kind: 'official-link',
+        url: rawgPage,
+        provider: 'RAWG',
+        free: true,
+        health: 'available',
+        legalNote: 'Metadados fornecidos pelo RAWG; o link de atribuição acompanha a página.',
+      }],
     };
   }
 

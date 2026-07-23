@@ -15,7 +15,7 @@ export default defineConfig({
       },
     },
     setupFiles: ['./tests/setup.ts'],
-    exclude: ['tests/e2e/**', 'node_modules/**'],
+    exclude: ['tests/e2e/**', 'audit-tools/e2e/**', 'node_modules/**'],
     coverage: {
       reporter: ['text', 'html'],
     },
