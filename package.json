@@ -1,7 +1,7 @@
 {
   "name": "hubora",
   "private": true,
-  "version": "9.0.2-rc.1",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

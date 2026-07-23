@@ -6,7 +6,7 @@ let igdbToken: string | null = null;
 let igdbTokenExpiresAt = 0;
 
 const HEADERS = {
-  'User-Agent': 'Hubora/9.0.2-rc.1 (personal media hub)',
+  'User-Agent': 'Hubora (personal media hub)',
 };
 
 const env = (name: string) => process.env[name]?.trim() || '';

@@ -57,7 +57,7 @@ async function openLibrary(query: string): Promise<Item[]> {
 }
 
 async function gutenberg(query: string): Promise<Item[]> {
-  const response = await fetchWithTimeout(`https://www.gutenberg.org/ebooks/search.opds/?query=${encodeURIComponent(query)}`, { headers: { 'user-agent': 'Hubora/9.0.2 (personal media organizer)' } }, 9_000);
+  const response = await fetchWithTimeout(`https://www.gutenberg.org/ebooks/search.opds/?query=${encodeURIComponent(query)}`, { headers: { 'user-agent': 'Hubora (personal media organizer)' } }, 9_000);
   if (!response.ok) return [];
   const xml = await response.text();
   return Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/gi)).slice(0, 20).map((match) => {
@@ -97,7 +97,7 @@ async function internetArchiveMovies(query: string): Promise<Item[]> {
   for (const field of ['identifier', 'title', 'creator', 'date', 'description', 'licenseurl', 'rights', 'collection', 'downloads']) {
     params.append('fl[]', field);
   }
-  const response = await fetchWithTimeout(`https://archive.org/advancedsearch.php?${params.toString()}`, { headers: { 'user-agent': 'Hubora/9.0.2 (personal media organizer)' } }, 10_000);
+  const response = await fetchWithTimeout(`https://archive.org/advancedsearch.php?${params.toString()}`, { headers: { 'user-agent': 'Hubora (personal media organizer)' } }, 10_000);
   if (!response.ok) return [];
   const data = await response.json() as { response?: { docs?: Array<Record<string, any>> } };
   return (data.response?.docs || []).flatMap((doc) => {

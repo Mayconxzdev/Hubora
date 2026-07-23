@@ -40,7 +40,7 @@ test('expõe metadados do build para provar a versão implantada', async ({ requ
   expect(response.headers()['content-type']).toContain('application/json');
   await expect(response.json()).resolves.toMatchObject({
     name: 'hubora',
-    version: '9.0.2-rc.1',
+    version: '1.0.0',
   });
   const metadata = await response.json();
   expect(metadata.commit).toMatch(/^[0-9a-f]{7,40}$/i);

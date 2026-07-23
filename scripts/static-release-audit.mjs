@@ -90,7 +90,7 @@ check('Netlify publica dist', /publish\s*=\s*"dist"/.test(netlify), 'diretório 
 check('Netlify usa build do projeto', /command\s*=\s*"npm run build"/.test(netlify), 'comando de build divergente');
 
 
-check('versão de entrega atualizada', packageJson.version === '9.0.2-rc.1', 'package.json não declara 9.0.2-rc.1');
+check('versão de entrega atualizada', packageJson.version === '1.0.0', 'package.json não declara 1.0.0');
 check('opções privadas não são sobrescritas pelo netlify.toml', !/VITE_(REQUIRE_AUTH|ALLOW_PUBLIC_SIGNUP|ALLOW_GUEST_MODE|ENFORCE_SERVER_ALLOWLIST)\s*=/.test(netlify), 'uma opção privada continua fixada no repositório');
 for (const name of ['GOOGLE_BOOKS_API_KEY', 'VITE_REQUIRE_AUTH', 'VITE_ALLOW_PUBLIC_SIGNUP', 'VITE_ALLOW_GUEST_MODE']) {
   check(`variável documentada: ${name}`, envExample.includes(name) && configCheck.includes(name), 'variável ausente do exemplo ou do diagnóstico');

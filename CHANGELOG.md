@@ -1,6 +1,6 @@
 # Changelog de preparação de release
 
-## Não publicado — `release/hubora-9.0.2-prep`
+## Hubora
 
 - Preparado modelo público de contas, removendo a dependência de allowlist de e-mail no frontend.
 - Criada migration `003_hubora_public_accounts.sql` com RLS/policies pessoais vinculadas a `auth.uid()` e tabelas de notificações/assinaturas.

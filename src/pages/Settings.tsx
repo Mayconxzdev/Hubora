@@ -804,7 +804,7 @@ export function Settings() {
       </div>
       
       <div className="text-center pt-10">
-        <p className="text-xs text-[var(--hub-subtle)]">Hubora v9.0.2-rc.1 — {new Date().getFullYear()}</p>
+        <p className="text-xs text-[var(--hub-subtle)]">Hubora — {new Date().getFullYear()}</p>
       </div>
     </div>
   );

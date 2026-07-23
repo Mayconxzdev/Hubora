@@ -2,7 +2,7 @@
 
 **Veredito atual: NÃO PRONTO.**
 
-Este repositório local está na branch `release/hubora-9.0.2-prep`, criada localmente e ainda não enviada ao GitHub. A produção comprovada é `main`; não houve push, Pull Request, Deploy Preview, merge nem deploy de produção.
+Este repositório é preparado no Git preservando o histórico. A produção usa `main`; o estado de CI e deploy deve ser conferido no GitHub e no Netlify antes de qualquer declaração de prontidão.
 
 ## O que foi comprovado
 

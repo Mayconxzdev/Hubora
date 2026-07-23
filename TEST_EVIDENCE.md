@@ -1,4 +1,4 @@
-# Evidências de teste — Hubora 9.0.2-rc.1
+# Evidências de teste — Hubora
 
 Data da atualização: 23 de julho de 2026. Este documento só registra execuções observadas; não contém segredos, tokens nem dados de usuários.
 

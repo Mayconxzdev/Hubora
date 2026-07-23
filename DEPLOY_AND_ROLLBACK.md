@@ -2,7 +2,7 @@
 
 ## Fluxo permitido
 
-1. Fechar bloqueios de teste local e revisar `git diff` na branch local `release/hubora-9.0.2-prep`.
+1. Fechar bloqueios de teste local e revisar `git diff` antes de enviar mudanças à `main`.
 2. Com autorização explícita, enviar somente a branch de release ao repositório preservando `main`.
 3. Abrir Pull Request para `main`; CI e Netlify devem criar Deploy Preview.
 4. Testar URL do preview: autenticação, isolamento, Functions, busca, PWA, rotas e auditoria visual.
