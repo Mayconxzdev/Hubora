@@ -92,7 +92,7 @@ export async function recognizeText(file: File, onProgress?: (value: number) => 
   return response.texts[0] || '';
 }
 
-export async function searchCatalogFromText(text: string): Promise<RadarCandidate[]> {
+export async function searchCatalogFromText(text: string, signal?: AbortSignal): Promise<RadarCandidate[]> {
   const cleaned = text
     .replace(/[@#][\w.-]+/g, ' ')
     .replace(/https?:\/\/\S+/g, ' ')
@@ -105,7 +105,7 @@ export async function searchCatalogFromText(text: string): Promise<RadarCandidat
   const results: MediaItem[] = [];
   for (const query of queries) {
     try {
-      const found = await api.searchMulti(query.slice(0, 90));
+      const found = await api.searchMulti(query.slice(0, 90), 1, { signal });
       for (const item of found.slice(0, 4)) if (!results.some((existing) => existing.mediaType === item.mediaType && String(existing.id) === String(item.id))) results.push(item);
     } catch {
       // OCR is opportunistic; other signals can still succeed.

@@ -55,9 +55,15 @@ function readCachedDetail(id: string): MediaItem | null {
   }
 }
 
-function cacheDetail(item: MediaItem) {
+function cacheDetail(item: MediaItem, routeId?: string) {
   try {
     sessionStorage.setItem(detailCacheKey(String(item.id)), JSON.stringify(item));
+    // Alguns provedores retornam um ID canônico diferente do ID usado no link
+    // do catálogo. Preserve os dois para que um reload não descarte uma obra
+    // que a pessoa acabou de registrar na própria biblioteca.
+    if (routeId && routeId !== String(item.id)) {
+      sessionStorage.setItem(detailCacheKey(routeId), JSON.stringify(item));
+    }
   } catch {
     // A read-only fallback must never prevent the real details screen from rendering.
   }
@@ -227,7 +233,7 @@ export function Details() {
         const resolvedDetails = details || localDetail || readCachedDetail(id);
         setItem(resolvedDetails);
         if (!resolvedDetails) return;
-        if (details) cacheDetail(details);
+        if (details) cacheDetail(details, id);
 
         if (resolvedDetails.mediaType === 'manga') {
           const [resolvedId, chapters] = await Promise.all([

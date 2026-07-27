@@ -155,7 +155,20 @@ export function Radar() {
       if (frameText) texts.push(frameText);
       setPhase(`Quadro ${index + 1}/${frames.length}: cruzando catálogos`);
       setProgress(0.76 + ((index + 0.5) / frames.length) * 0.18);
-      const frameCandidates = frameText ? await searchCatalogFromText(frameText) : [];
+      const catalogAbort = new AbortController();
+      const catalogTimeout = window.setTimeout(() => catalogAbort.abort(), 12_000);
+      let frameCandidates: RadarCandidate[] = [];
+      try {
+        frameCandidates = frameText ? await searchCatalogFromText(frameText, catalogAbort.signal) : [];
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          videoWarnings.add(`Catálogo do quadro ${index + 1} indisponível: ${error instanceof Error ? error.message : 'erro desconhecido'}`);
+        } else {
+          videoWarnings.add(`Catálogo do quadro ${index + 1} excedeu o tempo seguro.`);
+        }
+      } finally {
+        window.clearTimeout(catalogTimeout);
+      }
       if (index === 1 && remoteRadarAvailable && allowRemoteAnimeSearch) {
         try { frameCandidates.push(...await searchAnimeFrame(frames[index])); }
         catch (error) { videoWarnings.add(`Busca remota de anime indisponível: ${error instanceof Error ? error.message : 'erro desconhecido'}`); }
