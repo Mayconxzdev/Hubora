@@ -46,7 +46,7 @@ test.describe('recursos pessoais do visitante', () => {
     await page.goto('/guide');
     await page.getByRole('button', { name: 'Star Wars', exact: true }).click();
     await expect(page.getByText('Coleção cinematográfica relacionada explicitamente pelo TMDB')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByRole('heading', { name: /Star Wars/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: /Star Wars/i })).toBeVisible();
     await expect(page.getByText(/Doraemon: Nobita.*Star Wars/i)).toHaveCount(0);
 
     const markSeen = page.getByRole('button', { name: /marcar como visto/i }).first();
