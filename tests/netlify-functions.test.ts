@@ -85,6 +85,18 @@ describe('Netlify functions', () => {
     }
   });
 
+  it('normaliza indisponibilidade temporária do Google Books para que o navegador acione o fallback', async () => {
+    const previousFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response('temporarily unavailable', { status: 503 });
+    try {
+      const response = await googleBooks(new Request('http://localhost/api/google-books?q=Spider-Man'));
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({ items: [], providerStatus: 'unavailable', upstreamStatus: 503 });
+    } finally {
+      globalThis.fetch = previousFetch;
+    }
+  });
+
   it('mantém uma obra de domínio público verificável quando Google Books está indisponível', async () => {
     const previousFetch = globalThis.fetch;
     globalThis.fetch = async (input) => {

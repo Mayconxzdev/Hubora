@@ -139,10 +139,12 @@ export function Radar() {
     const videoWarnings = new Set<string>();
     let recognizedTexts: string[] = [];
     try {
+      // Video analysis is a bounded interaction: a slow OCR result for one
+      // frame cannot prevent the other frames and the final honest summary.
       const ocr = await recognizeTexts(frames, (index, value) => {
         setPhase(`Quadro ${index + 1}/${frames.length}: lendo textos`);
         setProgress(0.12 + ((index + value) / frames.length) * 0.62);
-      });
+      }, 20_000);
       recognizedTexts = ocr.texts;
       ocr.warnings.forEach((warning) => videoWarnings.add(`OCR: ${warning}`));
     } catch (error) {

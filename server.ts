@@ -261,9 +261,13 @@ async function startServer() {
     try {
       const response = await fetch(upstream, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(9_000) });
       const body = await response.text();
+      if (!response.ok && response.status >= 429) {
+        res.status(200).set('content-type', 'application/json; charset=utf-8').set('cache-control', 'no-store').set('x-hubora-provider-status', 'unavailable').json(id ? { providerStatus: 'unavailable', upstreamStatus: response.status } : { items: [], providerStatus: 'unavailable', upstreamStatus: response.status });
+        return;
+      }
       res.status(response.status).set('content-type', 'application/json; charset=utf-8').set('cache-control', response.ok ? 'public, max-age=300' : 'no-store').send(body);
     } catch {
-      res.status(502).json({ error: 'O catálogo Google Books está temporariamente indisponível.' });
+      res.status(200).set('cache-control', 'no-store').set('x-hubora-provider-status', 'unavailable').json(id ? { providerStatus: 'unavailable', upstreamStatus: 502 } : { items: [], providerStatus: 'unavailable', upstreamStatus: 502 });
     }
   });
 

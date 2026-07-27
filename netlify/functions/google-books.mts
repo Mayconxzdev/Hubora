@@ -4,6 +4,21 @@ import { fetchWithTimeout, json, safeError } from './_shared/http.js';
 const SAFE_ID = /^[A-Za-z0-9_-]{1,100}$/;
 const SAFE_LANGUAGE = /^[a-z]{2}$/i;
 
+function unavailableCatalogResponse(id: string, status: number) {
+  // A transient upstream failure must not become a broken browser screen. The
+  // client deliberately treats an empty result as a signal to use Open Library
+  // or another verified fallback; the status remains explicit in the payload.
+  return json(id
+    ? { providerStatus: 'unavailable', upstreamStatus: status }
+    : { items: [], providerStatus: 'unavailable', upstreamStatus: status }, {
+    headers: {
+      'cache-control': 'no-store',
+      'x-hubora-provider-status': 'unavailable',
+      'x-content-type-options': 'nosniff',
+    },
+  });
+}
+
 function boundedInteger(value: string | null, fallback: number, min: number, max: number) {
   const parsed = Number.parseInt(value || '', 10);
   return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
@@ -38,6 +53,7 @@ export default async function googleBooks(request: Request) {
   try {
     const response = await fetchWithTimeout(upstream, { headers: { Accept: 'application/json' } }, 9_000);
     const body = await response.text();
+    if (!response.ok && response.status >= 429) return unavailableCatalogResponse(id, response.status);
     return new Response(body, {
       status: response.status,
       headers: {
@@ -47,7 +63,8 @@ export default async function googleBooks(request: Request) {
       },
     });
   } catch (error) {
-    return json({ error: safeError(error) }, { status: 502 });
+    console.warn('Hubora Google Books function:', safeError(error));
+    return unavailableCatalogResponse(id, 502);
   }
 }
 

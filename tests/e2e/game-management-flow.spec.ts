@@ -8,7 +8,7 @@ test('gerencia Hades do backlog à conclusão e restaura o baseline', async ({ p
   await page.getByPlaceholder(/buscar nesta (?:seção|categoria)/i).fill(title);
   await page.getByRole('link', { name: `Abrir detalhes de ${title}`, exact: true }).first().click();
   await expect(page.getByRole('heading', { name: title, exact: true }).first()).toBeVisible({ timeout: 30_000 });
-  await page.getByRole('button', { name: 'Gerenciar Jogo' }).click();
+  await page.getByRole('button', { name: /Gerenciar Jogo|Continuar jogando/i }).click();
 
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('heading', { name: title })).toBeVisible();
@@ -27,7 +27,9 @@ test('gerencia Hades do backlog à conclusão e restaura o baseline', async ({ p
   await expect(page.getByText(`${title} adicionado aos seus jogos!`)).toBeVisible();
 
   await page.reload();
-  await page.getByRole('button', { name: 'Gerenciar Jogo' }).click();
+  // Depois de salvar progresso, a ação principal passa honestamente a indicar
+  // continuidade. As duas etiquetas levam ao mesmo painel de gerenciamento.
+  await page.getByRole('button', { name: /Gerenciar Jogo|Continuar jogando/i }).click();
   await expect(dialog.getByRole('checkbox', { name: /Possuído na conta/i })).toBeChecked();
   await expect(dialog.getByRole('checkbox', { name: /Instalado no PC\/Console/i })).toBeChecked();
   await expect(dialog.getByRole('spinbutton').nth(0)).toHaveValue('12');

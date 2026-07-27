@@ -57,7 +57,7 @@ async function createOcrSession(onProgress?: (fileIndex: number, value: number) 
   }
 }
 
-export async function recognizeTexts(files: File[], onProgress?: (fileIndex: number, value: number) => void): Promise<RadarOcrBatchResult> {
+export async function recognizeTexts(files: File[], onProgress?: (fileIndex: number, value: number) => void, perImageTimeoutMs = 45_000): Promise<RadarOcrBatchResult> {
   const session = await createOcrSession(onProgress);
   const texts: string[] = [];
   const warnings: string[] = [];
@@ -68,7 +68,7 @@ export async function recognizeTexts(files: File[], onProgress?: (fileIndex: num
         const result = await Promise.race([
           session.worker.recognize(files[index], { rotateAuto: true }),
           session.workerError,
-          rejectAfter<never>(45_000, `A leitura da imagem ${index + 1} excedeu o tempo seguro.`),
+          rejectAfter<never>(perImageTimeoutMs, `A leitura da imagem ${index + 1} excedeu o tempo seguro.`),
         ]);
         texts.push(result.data.text.replace(/\s+/g, ' ').trim());
       } catch (error) {
