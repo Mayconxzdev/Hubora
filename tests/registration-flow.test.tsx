@@ -10,6 +10,7 @@ vi.mock('@/services/auth', () => ({
   authService: {
     registerWithEmail: vi.fn(),
     loginWithGoogle: vi.fn(),
+    onAuthStateChange: vi.fn(() => () => undefined),
   },
 }));
 

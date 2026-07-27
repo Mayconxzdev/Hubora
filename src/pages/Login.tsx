@@ -23,8 +23,23 @@ export function Login() {
     if (params.get('denied') === '1') {
       setError('Esta conta não está autorizada nesta instalação do Hubora.');
       void authService.logout();
+      return;
+    }
+
+    // O Supabase pode devolver um erro após o provedor externo ter aberto a
+    // tela de consentimento. Nunca exibimos a descrição retornada na URL:
+    // ela é técnica, pode mudar e não é uma mensagem segura para a pessoa.
+    if (params.get('error')) {
+      setError('Não foi possível concluir o login com Google. Verifique a configuração do provedor ou tente novamente mais tarde.');
     }
   }, [params]);
+
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChange((user) => {
+      if (user) navigate('/', { replace: true });
+    });
+    return unsubscribe;
+  }, [navigate]);
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();

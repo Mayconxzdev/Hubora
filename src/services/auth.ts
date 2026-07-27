@@ -22,7 +22,9 @@ export const authService = {
     const client = requireClient();
     const { error } = await client.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      // O callback volta à tela que iniciou o fluxo. Assim, falhas ocorridas
+      // pelo provedor depois do redirecionamento não desaparecem na Home.
+      options: { redirectTo: `${window.location.origin}/login` },
     });
     if (error) throw error;
   },
