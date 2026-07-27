@@ -313,7 +313,7 @@ const GameContract: MediaPresentationContract = {
   displayName: 'Jogo',
   terminology: {
     primaryActionLabel: 'Ver Lojas',
-    continueActionLabel: 'Atualizar Progresso',
+    continueActionLabel: 'Continuar jogando',
     unitLabel: 'horas',
     itemPluralLabel: 'Jogos',
     progressFormat: (item) => (item.platforms?.length ? item.platforms.slice(0, 2).join(', ') : 'Jogo'),

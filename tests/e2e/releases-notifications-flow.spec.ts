@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 
 test.describe('Lançamentos e notificações', () => {
   test('pede permissão real e explica o limite dos avisos do navegador', async ({ page, context }) => {
-    await context.grantPermissions(['notifications'], { origin: 'http://127.0.0.1:4187' });
+    const baseURL = test.info().project.use.baseURL as string;
+    await context.grantPermissions(['notifications'], { origin: new URL(baseURL).origin });
     await page.goto('/releases');
     await page.getByRole('button', { name: /Ativar avisos do navegador|Avisos do navegador ativos/i }).click();
     await expect(page.getByRole('status', { name: 'Permissão de notificações' })).toContainText('enquanto o Hubora estiver aberto');

@@ -19,6 +19,7 @@ import {
 import { normalizeTmdbVideos } from './mediaVideos';
 import { canQueryExplicitProviderContent } from './adultPolicy';
 import { isVaultUnlocked } from './vault';
+import { findOfficialGameByTitle, getOfficialGameCatalogItem } from './officialGameCatalog';
 
 // Utility for fetching with exponential backoff retry
 const fetchWithRetry = async (url: string, options?: RequestInit, maxRetries = 3): Promise<Response> => {
@@ -653,17 +654,19 @@ export const api = {
     query = '',
     signal?: AbortSignal,
   ): Promise<MediaItem[]> => {
+    const officialMatch = query.trim() ? findOfficialGameByTitle(query) : null;
     try {
       const url = query ? `/api/games/search?q=${encodeURIComponent(query)}` : `/api/games/trending`;
       const res = await fetch(url, { signal });
-      if (!res.ok) return [];
+      if (!res.ok) return officialMatch ? [officialMatch] : [];
       const data = await res.json();
-      return Array.isArray(data) ? deduplicateMediaItems(data) : [];
+      const remoteGames = Array.isArray(data) ? data : [];
+      return deduplicateMediaItems(officialMatch ? [officialMatch, ...remoteGames] : remoteGames);
     } catch (error) {
       if ((error as Error)?.name !== 'AbortError') {
         console.warn('Game API indisponível:', error);
       }
-      return [];
+      return officialMatch ? [officialMatch] : [];
     }
   },
 
@@ -894,6 +897,9 @@ export const api = {
 
     const officialItem = getOfficialReadableCatalogItem(id);
     if (officialItem) return officialItem;
+
+    const officialGame = getOfficialGameCatalogItem(id);
+    if (officialGame) return officialGame;
 
     if (id.startsWith('tmdb-movie-')) {
       const tmdbId = id.replace('tmdb-movie-', '');

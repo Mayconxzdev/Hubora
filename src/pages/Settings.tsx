@@ -17,30 +17,11 @@ import { createAutomaticBackup, listAutomaticBackups, readAutomaticBackup } from
 import { huboraDb, type LocalBackupSnapshot } from '@/lib/db';
 import type { HuboraBackup } from '@/services/backup';
 import { cloudService } from '@/services/cloud';
+import { findOfficialGameByTitle } from '@/services/officialGameCatalog';
 import type { MediaItem } from '@/types';
 
-const KNOWN_IMPORT_FALLBACKS: MediaItem[] = [
-  {
-    id: 'official-game-hades',
-    source: 'official-publisher',
-    sourceId: 'supergiant-hades',
-    title: 'Hades',
-    mediaType: 'game',
-    releaseDate: '2020',
-    developers: ['Supergiant Games'],
-    publishers: ['Supergiant Games'],
-    providerUrl: 'https://www.supergiantgames.com/games/hades/',
-    externalIds: { steam: '1145360' },
-    access: [{ id: 'official-game-hades-page', label: 'Abrir página oficial do jogo', kind: 'official-link', url: 'https://www.supergiantgames.com/games/hades/', provider: 'Supergiant Games', free: false }],
-  },
-];
-
-function knownImportFallback(title: string, year?: string): MediaItem | null {
-  const normalized = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('pt-BR');
-  return KNOWN_IMPORT_FALLBACKS.find((item) => {
-    const itemTitle = item.title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
-    return itemTitle === normalized && (!year || item.releaseDate?.startsWith(year));
-  }) || null;
+function knownImportFallback(title: string, year?: string) {
+  return findOfficialGameByTitle(title, year);
 }
 
 export function Settings() {

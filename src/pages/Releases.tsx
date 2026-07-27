@@ -117,8 +117,8 @@ export function Releases() {
     setNotificationMessage(permission === 'granted'
       ? 'Avisos do sistema ativados. Eles aparecem para novas atualizações enquanto o Hubora estiver aberto.'
       : permission === 'denied'
-        ? 'A permissão foi negada pelo navegador. Você ainda recebe atualizações no sino do Hubora.'
-        : 'A permissão não foi concluída. Você pode tentar novamente quando quiser.');
+        ? 'A permissão foi negada pelo navegador. Você ainda recebe atualizações no sino do Hubora. Avisos do sistema dependem deste navegador e só podem aparecer enquanto o Hubora estiver aberto.'
+        : 'A permissão não foi concluída. Você pode tentar novamente quando quiser. Avisos do sistema dependem deste navegador e só podem aparecer enquanto o Hubora estiver aberto.');
     if (user) updateUser({ preferences: { ...user.preferences, notificationsEnabled: permission === 'granted' } });
   };
 

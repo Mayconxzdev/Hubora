@@ -8,6 +8,7 @@ test('gerencia Hades do backlog à conclusão e restaura o baseline', async ({ p
   await page.getByPlaceholder(/buscar nesta (?:seção|categoria)/i).fill(title);
   await page.getByRole('link', { name: `Abrir detalhes de ${title}`, exact: true }).first().click();
   await expect(page.getByRole('heading', { name: title, exact: true }).first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText('Supergiant Games', { exact: true }).first()).toBeVisible();
   await page.getByRole('button', { name: /Gerenciar Jogo|Continuar jogando/i }).click();
 
   const dialog = page.getByRole('dialog');

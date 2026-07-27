@@ -4,6 +4,8 @@ import { config as loadEnvironment } from 'dotenv';
 loadEnvironment({ path: '.env.test.local', quiet: true });
 
 const externalChromium = process.env.PLAYWRIGHT_CHROMIUM_PATH;
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4187';
+const useExternalBaseURL = Boolean(process.env.PLAYWRIGHT_BASE_URL);
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -17,7 +19,7 @@ export default defineConfig({
     ['json', { outputFile: 'test-results/results.json' }],
   ],
   use: {
-    baseURL: 'http://127.0.0.1:4187',
+    baseURL,
     trace: 'on-first-retry',
     launchOptions: {
       executablePath: externalChromium || undefined,
@@ -26,7 +28,7 @@ export default defineConfig({
         : undefined,
     },
   },
-  webServer: {
+  webServer: useExternalBaseURL ? undefined : {
     command: 'npm run serve:e2e',
     url: 'http://127.0.0.1:4187',
     // CI sempre cria uma instância limpa. Em auditoria local, um servidor já

@@ -1,5 +1,6 @@
 # Dependências e Builds
 node_modules/
+.netlify/
 dist/
 build/
 coverage/

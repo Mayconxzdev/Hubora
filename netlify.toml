@@ -7,6 +7,14 @@
   NODE_VERSION = "22"
   NPM_FLAGS = "--no-audit --no-fund"
 
+[dev]
+  # O modo local reproduz o artefato estático que o Netlify publica. Usar o
+  # servidor Vite de desenvolvimento aqui escondia manifest, build-meta e SW,
+  # gerando falsos negativos em testes de PWA e rotas estáticas.
+  command = "npm run preview -- --host 127.0.0.1"
+  targetPort = 4173
+  port = 8888
+
 # As opções VITE_* de acesso não ficam aqui. Variáveis declaradas no
 # netlify.toml prevalecem sobre as configuradas no painel do Netlify; mantê-las
 # no painel permite separar produção, previews e desenvolvimento sem publicar

@@ -216,6 +216,7 @@ export function Details() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const library = useStore((state) => state.library);
+  const initialized = useStore((state) => state.initialized);
   const addToLibrary = useStore((state) => state.addToLibrary);
   const removeFromLibrary = useStore((state) => state.removeFromLibrary);
   const updateLibraryItem = useStore((state) => state.updateLibraryItem);
@@ -224,7 +225,10 @@ export function Details() {
   useEffect(() => {
     let active = true;
     async function loadDetails() {
-      if (!id) return;
+      // The local library is hydrated from IndexedDB after a reload. Do not
+      // start a provider request before that snapshot is available: otherwise
+      // a slow provider can hide a game the user has already saved.
+      if (!id || !initialized) return;
       const localDetail = readCachedDetail(id) || readLibraryDetail(id, library);
       // A work already saved by the person is a trustworthy local snapshot.
       // Show it immediately on reload and enrich it in the background instead
@@ -283,7 +287,7 @@ export function Details() {
     return () => {
       active = false;
     };
-  }, [id, library]);
+  }, [id, initialized, library]);
 
   const libraryEntry = useMemo(
     () => (item ? findLibraryEntry(library, item) : undefined),
@@ -369,7 +373,10 @@ export function Details() {
   };
 
   const handlePrimaryAction = () => {
-    if (item.mediaType === 'game' && !primaryAccess) {
+    // A biblioteca e o progresso de jogos pertencem à pessoa, não à loja ou
+    // à página externa disponível. A fonte oficial continua acessível na aba
+    // Fontes, mas nunca deve bloquear o gerenciamento do jogo.
+    if (item.mediaType === 'game') {
       setIsGameModalOpen(true);
       return;
     }
@@ -387,10 +394,10 @@ export function Details() {
 
   const primaryLabel = summary && (summary.percentage > 0 || libraryEntry?.status === 'consuming')
     ? contract.terminology.continueActionLabel
-    : primaryAccess || (item.mediaType === 'manga' && firstChapter)
-      ? contract.terminology.primaryActionLabel
-      : item.mediaType === 'game'
-        ? 'Gerenciar jogo'
+    : item.mediaType === 'game'
+      ? 'Gerenciar jogo'
+      : primaryAccess || (item.mediaType === 'manga' && firstChapter)
+        ? contract.terminology.primaryActionLabel
         : 'Ver fontes';
 
   const handleCompletion = async () => {

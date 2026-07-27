@@ -69,7 +69,11 @@ test.describe('Radar 360°', () => {
     await page.getByRole('button', { name: 'Identificar obra', exact: true }).click();
 
     const extractedTextSummary = page.getByText('Texto encontrado na imagem');
-    await expect(extractedTextSummary).toBeVisible({ timeout: 90_000 });
+    // O Radar possui dois limites independentes de 45 s (inicialização do
+    // worker e reconhecimento) antes de consultar o catálogo. A asserção
+    // precisa respeitar o orçamento total de 180 s deste cenário, em vez de
+    // vencer exatamente no limite somado das duas etapas.
+    await expect(extractedTextSummary).toBeVisible({ timeout: 150_000 });
     await extractedTextSummary.click();
     await expect(page.locator('details').getByText('INTERESTELAR', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Interestelar', exact: true }).first()).toBeVisible({ timeout: 30_000 });

@@ -47,7 +47,6 @@ export function Login() {
       await authService.loginWithGoogle();
     } catch {
       setError('O login com Google não está habilitado no projeto Supabase atual. Você pode navegar como Visitante ou criar uma conta por e-mail.');
-      toast.error('Google OAuth não habilitado no Supabase.');
       setLoadingGoogle(false);
     }
   };
@@ -75,7 +74,7 @@ export function Login() {
           </div>
         )}
         {error && (
-          <p className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs font-semibold leading-relaxed text-red-400">
+          <p role="alert" className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs font-semibold leading-relaxed text-red-400">
             {error}
           </p>
         )}
