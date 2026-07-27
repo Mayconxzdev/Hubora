@@ -29,6 +29,13 @@ jobs:
     name: browser-smoke (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Os contratos E2E usam os adaptadores reais. As chaves entram apenas no
+    # processo do runner e nunca são expostas ao bundle, aos logs ou ao Git.
+    env:
+      TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+      GOOGLE_BOOKS_API_KEY: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
+      IGDB_CLIENT_ID: ${{ secrets.IGDB_CLIENT_ID }}
+      IGDB_CLIENT_SECRET: ${{ secrets.IGDB_CLIENT_SECRET }}
     strategy:
       fail-fast: false
       matrix:
