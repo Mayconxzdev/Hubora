@@ -1695,6 +1695,7 @@ html.light .hub-quick-pick-button {
   --hub-nav-compact: 4.5rem;
   --hub-nav-expanded: 14.5rem;
   --hub-nav-offset: var(--hub-nav-compact);
+  --hub-header-height: 4.5rem;
   --hub-content-max: 100rem;
 }
 

@@ -180,7 +180,9 @@ test('paleta, Escape, busca responsiva e histórico funcionam por teclado', asyn
     await page.goForward();
     await expect(page).toHaveURL(/\/discover/);
   } else {
-    const globalSearch = page.getByRole('textbox', { name: 'Buscar em todo o Hubora' });
+    // A busca global é um combobox: ele oferece resultados enquanto a pessoa
+    // digita, além de aceitar a pesquisa direta por Enter.
+    const globalSearch = page.getByRole('combobox', { name: 'Buscar em todo o Hubora' });
     await globalSearch.fill('Interestelar');
     await globalSearch.press('Enter');
     await expect(page).toHaveURL(/\/discover\?q=Interestelar$/);
@@ -205,12 +207,15 @@ test('menu de categorias contém exatamente as nove categorias oficiais', async 
     return;
   }
 
-  await page.getByRole('button', { name: 'Categorias', exact: true }).click();
-  const menu = page.locator('.hub-category-menu');
+  // Em desktop as categorias são links permanentes na barra lateral, inclusive
+  // quando ela está recolhida. Isso preserva descoberta por leitor de tela e
+  // evita depender de um popover que não faz mais parte do produto.
+  const menu = page.getByRole('navigation', { name: 'Navegação principal' });
   await expect(menu).toBeVisible();
   const categoryPaths = ['/movies', '/series', '/anime', '/manga', '/doramas', '/books', '/novels', '/comics', '/games'];
   for (const path of categoryPaths) await expect(menu.locator(`a[href="${path}"]`)).toHaveCount(1);
-  await expect(menu.locator('a').filter({ hasNotText: /Fontes e provedores|Ler e assistir grátis/ })).toHaveCount(9);
+  const categoryLinks = menu.locator(categoryPaths.map((path) => `a[href="${path}"]`).join(', '));
+  await expect(categoryLinks).toHaveCount(9);
 });
 
 test('campos de autenticação reservam espaço para os ícones', async ({ page }) => {
