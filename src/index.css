@@ -2259,6 +2259,25 @@ html.light .hub-brand-mark {
   border-style: solid;
 }
 
+/* Empty states are part of the primary flow, including when a provider is
+   temporarily unavailable. Keep their explanatory copy and recovery action
+   readable in both themes. */
+.hub-empty-state p {
+  color: #dedee5;
+}
+
+.hub-empty-state a {
+  color: #ffffff !important;
+}
+
+html.light .hub-empty-state p {
+  color: #303038;
+}
+
+html.light .hub-empty-state a {
+  color: #ffffff !important;
+}
+
 @media (min-width: 768px) {
   .hub-global-search {
     display: grid;
