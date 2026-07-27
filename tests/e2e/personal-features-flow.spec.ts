@@ -41,11 +41,13 @@ test.describe('recursos pessoais do visitante', () => {
     expect(download.suggestedFilename()).toMatch(/^hubora-wrapped-\d{4}\.svg$/);
   });
 
-  test('Guia marca, persiste e restaura um item da franquia', async ({ page }) => {
+  test('Guia marca, persiste e restaura um item de coleção confirmada', async ({ page }) => {
     test.setTimeout(90_000);
     await page.goto('/guide');
     await page.getByRole('button', { name: 'Star Wars', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Star Wars', exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText('Coleção cinematográfica relacionada explicitamente pelo TMDB')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('heading', { name: /Star Wars/i })).toBeVisible();
+    await expect(page.getByText(/Doraemon: Nobita.*Star Wars/i)).toHaveCount(0);
 
     const markSeen = page.getByRole('button', { name: /marcar como visto/i }).first();
     await markSeen.click();
