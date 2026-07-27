@@ -27,8 +27,9 @@ import {
   Sun,
   LogOut,
   LogIn,
-  Boxes,
-  ChevronRight
+  Orbit,
+  ChevronRight,
+  MoreHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store/useStore';
@@ -103,6 +104,13 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
+const COMPACT_PRIMARY_PATHS = new Set([
+  '/', '/movies', '/series', '/anime', '/manga', '/comics', '/games',
+  '/library', '/discover', '/radar', '/guide',
+]);
+
+const ALL_NAV_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
+
 const PAGE_LABELS: Array<[RegExp, string]> = [
   [/^\/$/, 'Início'],
   [/^\/discover/, 'Descobrir'],
@@ -129,11 +137,11 @@ const PAGE_LABELS: Array<[RegExp, string]> = [
 
 function Brand({ showName = true }: { showName?: boolean }) {
   return (
-    <Link to="/" className="flex items-center gap-2.5 px-2 py-1.5" aria-label="Hubora — início">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--hub-brand)] text-white shadow-lg shadow-[var(--hub-brand-soft)]">
-        <Boxes size={20} strokeWidth={2.4} />
+    <Link to="/" className="hub-brand" aria-label="Hubora — início">
+      <span className="hub-brand-mark">
+        <Orbit size={20} strokeWidth={2.15} />
       </span>
-      {showName && <span className="text-lg font-black tracking-tight text-white">Hubora</span>}
+      {showName && <span className="hub-brand-name">Hubora</span>}
     </Link>
   );
 }
@@ -146,13 +154,40 @@ export function Sidebar({ pinned, onPinnedChange }: SidebarProps) {
   const location = useLocation();
   const { user } = useStore();
   const [expanded, setExpanded] = useState(pinned);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => setExpanded(pinned), [pinned]);
+  useEffect(() => setMoreOpen(false), [location.pathname]);
 
   const avatar = (user?.name || user?.email || 'H').slice(0, 1).toUpperCase();
+  const compactItems = ALL_NAV_ITEMS.filter((item) => COMPACT_PRIMARY_PATHS.has(item.path));
+  const compactOverflowItems = ALL_NAV_ITEMS.filter((item) => !COMPACT_PRIMARY_PATHS.has(item.path));
+  const compactOverflowActive = compactOverflowItems.some((item) => isActivePath(location.pathname, item.path));
+  const profileTarget = user ? '/profile' : '/login';
+  const profileName = user?.name || 'Seu espaço';
+  const profileSubtitle = user?.email || 'Entrar para sincronizar';
+
+  const renderNavItem = (item: NavItem, compact = false) => {
+    const active = isActivePath(location.pathname, item.path);
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        className={cn('hub-rail-link', active && 'is-active', compact && 'is-compact')}
+        aria-current={active ? 'page' : undefined}
+        aria-label={compact ? item.label : undefined}
+        title={compact ? item.label : undefined}
+      >
+        <span className="hub-rail-link-icon"><Icon size={18} strokeWidth={active ? 2.3 : 1.9} /></span>
+        {!compact && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+        {!compact && active && <span className="hub-rail-active-dot" aria-hidden="true" />}
+      </Link>
+    );
+  };
 
   return (
-    <aside className={cn('hub-navigation-rail overflow-y-auto scrollbar-hide', expanded && 'is-expanded', pinned && 'is-pinned')}>
+    <aside className={cn('hub-navigation-rail overflow-hidden', expanded && 'is-expanded', pinned && 'is-pinned')}>
       <div className="hub-rail-brand-row flex items-center justify-between">
         <Brand showName={expanded} />
         <button
@@ -161,7 +196,7 @@ export function Sidebar({ pinned, onPinnedChange }: SidebarProps) {
             setExpanded(next);
             onPinnedChange(next);
           }}
-          className="hidden md:flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-surface-2)] text-[var(--hub-muted)] hover:text-white transition-colors"
+          className="hub-rail-pin hidden md:grid"
           aria-label={expanded ? 'Recolher menu' : 'Expandir menu'}
           title={expanded ? 'Recolher menu' : 'Expandir menu'}
         >
@@ -169,61 +204,54 @@ export function Sidebar({ pinned, onPinnedChange }: SidebarProps) {
         </button>
       </div>
 
-      <nav className="hub-rail-nav space-y-6 pt-2" aria-label="Navegação principal">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.title} className="space-y-1">
-            {expanded && (
-              <div className="px-3 pb-1 text-[0.65rem] font-black uppercase tracking-wider text-[var(--hub-muted)] opacity-70">
-                {group.title}
-              </div>
-            )}
-            {group.items.map((item) => {
-              const active = isActivePath(location.pathname, item.path);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150',
-                    active
-                      ? 'bg-[var(--hub-brand-soft)] text-white border border-[rgba(109,74,255,0.4)] shadow-sm'
-                      : 'text-[var(--hub-muted)] hover:bg-[var(--hub-surface-2)] hover:text-white',
-                    !expanded && 'justify-center px-0'
-                  )}
-                  aria-current={active ? 'page' : undefined}
-                  aria-label={item.label}
-                  title={!expanded ? item.label : undefined}
-                >
-                  <span className={cn('flex-shrink-0', active && 'text-[var(--hub-brand)]')}>
-                    <Icon size={18} strokeWidth={active ? 2.5 : 2} />
-                  </span>
-                  {expanded && <span className="truncate">{item.label}</span>}
-                </Link>
-              );
-            })}
+      <nav className="hub-rail-nav min-h-0 flex-1 overflow-y-auto px-0.5 pb-3 scrollbar-hide" aria-label="Navegação principal">
+        {expanded ? NAV_GROUPS.map((group) => (
+          <div key={group.title} className="mb-5 space-y-1">
+            <div className="px-2 pb-1 text-[0.63rem] font-black uppercase tracking-[0.12em] text-[var(--hub-subtle)]">
+              {group.title}
+            </div>
+            {group.items.map((item) => renderNavItem(item))}
           </div>
-        ))}
+        )) : (
+          <div className="space-y-1">
+            {compactItems.map((item) => renderNavItem(item, true))}
+            <div className="relative pt-1">
+              <button
+                type="button"
+                className={cn('hub-rail-link is-compact w-full', compactOverflowActive && 'is-active')}
+                onClick={() => setMoreOpen((open) => !open)}
+                aria-label="Mostrar mais áreas"
+                title="Mostrar mais áreas"
+                aria-expanded={moreOpen}
+              >
+                <span className="hub-rail-link-icon"><MoreHorizontal size={19} /></span>
+              </button>
+              {moreOpen && (
+                <div className="hub-rail-more" role="menu" aria-label="Mais áreas do Hubora">
+                  {compactOverflowItems.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActivePath(location.pathname, item.path);
+                    return <Link key={item.path} to={item.path} className={cn('hub-more-link', active && 'bg-[var(--hub-surface-2)]')} role="menuitem"><span className="hub-more-icon"><Icon size={18} /></span><span className="min-w-0"><strong className="block truncate text-sm text-[var(--hub-text-strong)]">{item.label}</strong><small className="block truncate text-xs text-[var(--hub-muted)]">Abrir área</small></span></Link>;
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* User Profile Widget at Bottom of Sidebar */}
-      <div className="mt-auto pt-4 border-t border-[var(--hub-border)]">
+      <div className="shrink-0 border-t border-[var(--hub-border)] pb-1 pt-2">
         <Link
-          to="/profile"
-          className={cn(
-            'flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--hub-surface-2)] transition-colors',
-            !expanded && 'justify-center'
-          )}
-          title="Ver perfil"
+          to={profileTarget}
+          className={cn('hub-rail-link', !expanded && 'is-compact')}
+          title={expanded ? undefined : profileSubtitle}
+          aria-label={expanded ? undefined : profileSubtitle}
         >
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--hub-brand)] text-xs font-black text-white">
+          <span className="hub-rail-link-icon rounded-full bg-[var(--hub-brand)] text-xs font-black text-white">
             {avatar}
-          </div>
+          </span>
           {expanded && (
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-xs font-bold text-white">{user?.name || 'Usuário Hubora'}</div>
-              <div className="truncate text-[0.7rem] text-[var(--hub-muted)]">{user?.email || 'Minha Central'}</div>
-            </div>
+            <span className="min-w-0 flex-1"><strong className="block truncate text-xs text-[var(--hub-text-strong)]">{profileName}</strong><small className="block truncate text-[0.68rem] text-[var(--hub-muted)]">{profileSubtitle}</small></span>
           )}
         </Link>
       </div>

@@ -13,9 +13,12 @@ describe('navegação adaptativa', () => {
 
     screen.getByRole('navigation', { name: /navegação principal/i });
     expect(screen.queryByText('Minha lista')).toBeNull();
+    expect(screen.queryByText('Usuário Hubora')).toBeNull();
+    expect(screen.getByRole('link', { name: /entrar para sincronizar/i })).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: /expandir menu/i }));
     expect(screen.getByText('Minha lista')).toBeTruthy();
     expect(screen.getByText('Descobrir')).toBeTruthy();
+    expect(screen.getByText('Seu espaço')).toBeTruthy();
   });
 });

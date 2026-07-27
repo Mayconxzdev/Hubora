@@ -2904,3 +2904,60 @@ html.light .hub-empty-state a {
 @media (max-width: 420px) {
   .hub-decision-modes { grid-template-columns: 1fr; }
 }
+
+/* Navigation rail: preserve a stable profile footer and avoid squeezing an
+   entire application sitemap into the compact state. */
+@media (min-width: 768px) {
+  :root { --hub-nav-compact: 5.5rem; }
+
+  .hub-navigation-rail {
+    overflow: hidden;
+  }
+
+  .hub-navigation-rail:not(.is-expanded) .hub-rail-brand-row {
+    gap: 0.2rem;
+    margin-inline: -0.1rem;
+  }
+
+  .hub-navigation-rail:not(.is-expanded) .hub-brand-mark {
+    width: 2.28rem;
+    height: 2.28rem;
+    border-radius: 0.76rem;
+  }
+
+  /* A marca precisa continuar reconhecível nos dois estados do rail. O
+     contraste preto/branco anterior parecia um ícone isolado e desconectado
+     do sistema violeta do Hubora. */
+  .hub-brand-mark,
+  html.light .hub-brand-mark {
+    border-color: color-mix(in srgb, var(--hub-brand) 58%, var(--hub-border));
+    background:
+      radial-gradient(circle at 30% 18%, rgba(255,255,255,.22), transparent 34%),
+      linear-gradient(145deg, color-mix(in srgb, var(--hub-brand) 92%, white 8%), var(--hub-brand-strong));
+    color: #fff;
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--hub-brand) 24%, transparent);
+  }
+
+  .hub-navigation-rail:not(.is-expanded) .hub-rail-pin {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.7rem;
+  }
+
+  .hub-rail-nav {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .hub-navigation-rail > div:last-child .hub-rail-link {
+    min-height: 2.72rem;
+  }
+
+  .hub-rail-more {
+    top: calc(100% + 0.55rem);
+    bottom: auto;
+    left: 0.2rem;
+    width: min(21rem, calc(100vw - 6.5rem));
+  }
+}

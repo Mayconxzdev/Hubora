@@ -15,6 +15,10 @@ export interface TMDBMovie {
   genre_ids?: number[];
   popularity?: number;
   adult?: boolean;
+  belongs_to_collection?: {
+    id: number;
+    name: string;
+  } | null;
 }
 
 export interface TMDBTV {
@@ -112,6 +116,13 @@ export const adaptTMDBMovie = (movie: TMDBMovie): MediaItem => ({
   tmdbId: movie.id,
   source: 'tmdb',
   sourceId: movie.id,
+  collection: movie.belongs_to_collection?.id && movie.belongs_to_collection.name
+    ? {
+      provider: 'tmdb',
+      providerId: String(movie.belongs_to_collection.id),
+      name: movie.belongs_to_collection.name,
+    }
+    : undefined,
   externalIds: { tmdb: String(movie.id) },
   providerIdentities: [{ provider: 'tmdb', providerId: String(movie.id), mediaType: 'movie', verifiedAt: Date.now() }],
   title: movie.title,

@@ -26,4 +26,20 @@ describe('contrato da busca global', () => {
     expect(search).toContain("type === 'drama'");
     expect(api).toContain('options.signal');
   });
+
+  it('não duplica livros como quadrinhos ou novels sem sinais de catálogo', () => {
+    expect(api).toContain('subject:comics ${query}');
+    expect(api).toContain('"light novel" ${query.trim()}');
+    expect(api).toContain('return results.filter(isComicResult)');
+    expect(api).toContain('return results.filter(isNovelResult)');
+    expect(api).toContain('return results.filter(isBookResult)');
+  });
+
+  it('limita cada catálogo e declara resultados parciais sem bloquear a busca global', () => {
+    expect(api).toContain('MULTI_SEARCH_SOURCE_TIMEOUT_MS = 4_500');
+    expect(api).toContain('runMultiSearchSource');
+    expect(api).toContain("source: 'Jogos'");
+    expect(api).toContain('onSourceStatus?: (source: string, status: MultiSearchSourceStatus) => void');
+    expect(search).toContain('Resultados parciais:');
+  });
 });

@@ -207,15 +207,20 @@ test('menu de categorias contém exatamente as nove categorias oficiais', async 
     return;
   }
 
-  // Em desktop as categorias são links permanentes na barra lateral, inclusive
-  // quando ela está recolhida. Isso preserva descoberta por leitor de tela e
-  // evita depender de um popover que não faz mais parte do produto.
+  // Em desktop, o rail compacto guarda as categorias de consumo mais frequente
+  // e expõe as demais por um menu nomeado. Isso evita transformar a navegação
+  // em uma coluna de ícones espremidos, sem esconder áreas do produto.
   const menu = page.getByRole('navigation', { name: 'Navegação principal' });
   await expect(menu).toBeVisible();
-  const categoryPaths = ['/movies', '/series', '/anime', '/manga', '/doramas', '/books', '/novels', '/comics', '/games'];
-  for (const path of categoryPaths) await expect(menu.locator(`a[href="${path}"]`)).toHaveCount(1);
-  const categoryLinks = menu.locator(categoryPaths.map((path) => `a[href="${path}"]`).join(', '));
-  await expect(categoryLinks).toHaveCount(9);
+  const primaryCategoryPaths = ['/movies', '/series', '/anime', '/manga', '/comics', '/games'];
+  for (const path of primaryCategoryPaths) await expect(menu.locator(`a[href="${path}"]`)).toHaveCount(1);
+
+  await page.getByRole('button', { name: 'Mostrar mais áreas' }).click();
+  const moreAreas = page.getByRole('menu', { name: 'Mais áreas do Hubora' });
+  await expect(moreAreas).toBeVisible();
+  for (const path of ['/doramas', '/books', '/novels']) {
+    await expect(moreAreas.locator(`a[href="${path}"]`)).toHaveCount(1);
+  }
 });
 
 test('campos de autenticação reservam espaço para os ícones', async ({ page }) => {

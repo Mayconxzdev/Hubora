@@ -455,6 +455,80 @@ const deduplicateMediaItems = (items: MediaItem[]): MediaItem[] => {
 
 const searchMultiCache = new Map<string, { results: MediaItem[]; timestamp: number }>();
 const SEARCH_CACHE_TTL = 1000 * 60 * 15;
+const MULTI_SEARCH_SOURCE_TIMEOUT_MS = 4_500;
+
+export type MultiSearchSourceStatus = 'timed_out' | 'failed';
+
+type MultiSearchOptions = {
+  signal?: AbortSignal;
+  perCategoryLimit?: number;
+  onSourceStatus?: (source: string, status: MultiSearchSourceStatus) => void;
+};
+
+type MultiSearchSourceResult = {
+  source: string;
+  items: MediaItem[];
+  status?: MultiSearchSourceStatus;
+};
+
+function abortError() {
+  return new DOMException('Busca cancelada', 'AbortError');
+}
+
+async function runMultiSearchSource(
+  source: string,
+  run: (signal: AbortSignal) => Promise<MediaItem[]>,
+  parentSignal?: AbortSignal,
+): Promise<MultiSearchSourceResult> {
+  if (parentSignal?.aborted) throw abortError();
+
+  const controller = new AbortController();
+  const abortFromParent = () => controller.abort();
+  parentSignal?.addEventListener('abort', abortFromParent, { once: true });
+  let timedOut = false;
+  const timeout = window.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, MULTI_SEARCH_SOURCE_TIMEOUT_MS);
+
+  try {
+    const items = await run(controller.signal);
+    if (parentSignal?.aborted) throw abortError();
+    return { source, items, status: timedOut ? 'timed_out' : undefined };
+  } catch (error) {
+    if (parentSignal?.aborted || (error instanceof DOMException && error.name === 'AbortError' && !timedOut)) {
+      throw abortError();
+    }
+    return { source, items: [], status: timedOut ? 'timed_out' : 'failed' };
+  } finally {
+    window.clearTimeout(timeout);
+    parentSignal?.removeEventListener('abort', abortFromParent);
+  }
+}
+
+function catalogSearchText(item: MediaItem): string {
+  return normalizeSearchText([
+    item.title,
+    item.originalTitle,
+    ...(item.genres || []),
+    item.overview || '',
+  ].join(' '));
+}
+
+function isComicResult(item: MediaItem): boolean {
+  if (item.source !== 'googlebooks') return item.mediaType === 'comic';
+  return /(comic|quadrinh|graphicnovel|manga|marvel|dccomics)/.test(catalogSearchText(item));
+}
+
+function isNovelResult(item: MediaItem): boolean {
+  if (item.source !== 'googlebooks') return item.mediaType === 'novel';
+  return /(lightnovel|webnovel|webfiction|novel)/.test(catalogSearchText(item));
+}
+
+function isBookResult(item: MediaItem): boolean {
+  const text = catalogSearchText(item);
+  return !/(comic|quadrinh|graphicnovel|manga|lightnovel|webnovel|webfiction)/.test(text);
+}
 
 type TMDBCollectionResponse = {
   id: number;
@@ -616,11 +690,12 @@ export const api = {
   ): Promise<MediaItem[]> => {
     try {
       const startIndex = (page - 1) * 20;
-      let searchQuery = query ? query : 'subject:comics';
+      let searchQuery = query ? `subject:comics ${query}` : 'subject:comics';
       if (genre) searchQuery += ` subject:${genre}`;
       const orderBy = sort === 'newest' ? 'newest' : 'relevance';
       const url = `/api/google-books?q=${encodeURIComponent(searchQuery)}&startIndex=${startIndex}&maxResults=20&orderBy=${orderBy}&langRestrict=pt`;
-      return await fetchBooksWithFallback(url, 'comic', searchQuery, signal);
+      const results = await fetchBooksWithFallback(url, 'comic', searchQuery, signal);
+      return results.filter(isComicResult);
     } catch {
       return [];
     }
@@ -639,7 +714,8 @@ export const api = {
       if (genre) searchQuery += ` subject:${genre}`;
       const orderBy = sort === 'newest' ? 'newest' : 'relevance';
       const url = `/api/google-books?q=${encodeURIComponent(searchQuery)}&startIndex=${startIndex}&maxResults=20&orderBy=${orderBy}&langRestrict=pt`;
-      return await fetchBooksWithFallback(url, 'book', searchQuery, signal);
+      const results = await fetchBooksWithFallback(url, 'book', searchQuery, signal);
+      return results.filter(isBookResult);
     } catch {
       return [];
     }
@@ -654,11 +730,12 @@ export const api = {
   ): Promise<MediaItem[]> => {
     try {
       const startIndex = (page - 1) * 20;
-      let searchQuery = query.trim() || '"light novel"';
+      let searchQuery = query.trim() ? `"light novel" ${query.trim()}` : '"light novel"';
       if (genre) searchQuery += ` subject:${genre}`;
       const orderBy = sort === 'newest' ? 'newest' : 'relevance';
       const url = `/api/google-books?q=${encodeURIComponent(searchQuery)}&startIndex=${startIndex}&maxResults=20&orderBy=${orderBy}&langRestrict=pt`;
-      return await fetchBooksWithFallback(url, 'novel', searchQuery, signal);
+      const results = await fetchBooksWithFallback(url, 'novel', searchQuery, signal);
+      return results.filter(isNovelResult);
     } catch {
       return [];
     }
@@ -853,7 +930,7 @@ export const api = {
   searchMulti: async (
     query: string,
     page: number = 1,
-    options: { signal?: AbortSignal; perCategoryLimit?: number } = {},
+    options: MultiSearchOptions = {},
   ): Promise<MediaItem[]> => {
     if (!query || query.trim().length < 2 || options.signal?.aborted) return [];
     const perCategoryLimit = Math.max(1, Math.min(12, options.perCategoryLimit || 6));
@@ -867,23 +944,31 @@ export const api = {
     const intent = detectIntent(query);
 
     try {
-      // General Parallel Search (No blocking promises)
-      const promises: Promise<MediaItem[]>[] = [
-        api.discoverBooks(page, 'relevance', '', searchTerms, options.signal),
-        api.discoverMovies(page, 'popularity.desc', '', searchTerms, options.signal),
-        api.discoverTV(page, 'popularity.desc', '', searchTerms, options.signal),
-        api.discoverGames(page, '-rating', '', searchTerms, options.signal),
-        api.discoverAnime(page, 'bypopularity', '', searchTerms, options.signal),
-        api.discoverManga(page, 'bypopularity', '', searchTerms, options.signal),
-        api.discoverNovels(page, 'relevance', '', searchTerms, options.signal),
-        api.discoverComics(page, 'relevance', '', searchTerms, options.signal),
+      // Uma API lenta não pode congelar a busca inteira. Cada categoria tem
+      // seu próprio cancelamento e o consumidor recebe um estado parcial explícito.
+      const sources: Array<{ source: string; run: (signal: AbortSignal) => Promise<MediaItem[]> }> = [
+        { source: 'Livros', run: (signal) => api.discoverBooks(page, 'relevance', '', searchTerms, signal) },
+        { source: 'Filmes', run: (signal) => api.discoverMovies(page, 'popularity.desc', '', searchTerms, signal) },
+        { source: 'Séries e doramas', run: (signal) => api.discoverTV(page, 'popularity.desc', '', searchTerms, signal) },
+        { source: 'Jogos', run: (signal) => api.discoverGames(page, '-rating', '', searchTerms, signal) },
+        { source: 'Animes', run: (signal) => api.discoverAnime(page, 'bypopularity', '', searchTerms, signal) },
+        { source: 'Mangás', run: (signal) => api.discoverManga(page, 'bypopularity', '', searchTerms, signal) },
+        { source: 'Novels', run: (signal) => api.discoverNovels(page, 'relevance', '', searchTerms, signal) },
+        { source: 'Quadrinhos', run: (signal) => api.discoverComics(page, 'relevance', '', searchTerms, signal) },
       ];
 
-      const settled = await Promise.allSettled(promises);
+      const settled = await Promise.allSettled(
+        sources.map(({ source, run }) => runMultiSearchSource(source, run, options.signal)),
+      );
       if (options.signal?.aborted) throw new DOMException('Busca cancelada', 'AbortError');
-      const flatResults = settled
-        .filter((res): res is PromiseFulfilledResult<MediaItem[]> => res.status === 'fulfilled')
-        .map((res) => res.value)
+      const sourceResults = settled
+        .filter((res): res is PromiseFulfilledResult<MultiSearchSourceResult> => res.status === 'fulfilled')
+        .map((res) => res.value);
+      sourceResults.forEach(({ source, status }) => {
+        if (status) options.onSourceStatus?.(source, status);
+      });
+      const flatResults = sourceResults
+        .map((result) => result.items)
         .flat();
 
       const normQuery = normalizeSearchText(searchTerms);

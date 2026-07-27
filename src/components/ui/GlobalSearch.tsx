@@ -70,6 +70,7 @@ export function GlobalSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<MediaItem[]>([]);
+  const [unavailableSources, setUnavailableSources] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
@@ -114,6 +115,7 @@ export function GlobalSearch() {
 
     if (trimmed.length < 2) {
       setResults([]);
+      setUnavailableSources([]);
       setIsLoading(false);
       return undefined;
     }
@@ -121,6 +123,7 @@ export function GlobalSearch() {
     const controller = new AbortController();
     const instant = api.instantLocalSearch(trimmed);
     setResults(instant);
+    setUnavailableSources([]);
     setIsLoading(true);
 
     const timer = window.setTimeout(async () => {
@@ -128,6 +131,11 @@ export function GlobalSearch() {
         const networkData = await api.searchMulti(trimmed, 1, {
           signal: controller.signal,
           perCategoryLimit: 6,
+          onSourceStatus: (source) => {
+            if (!controller.signal.aborted && sequence === requestSequence.current) {
+              setUnavailableSources((current) => current.includes(source) ? current : [...current, source]);
+            }
+          },
         });
         if (controller.signal.aborted || sequence !== requestSequence.current) return;
         setResults(networkData.length > 0 ? networkData : instant);
@@ -357,8 +365,18 @@ export function GlobalSearch() {
           {query.trim().length >= 2 && (
             <div className="max-h-[75vh] overflow-y-auto divide-y divide-[var(--hub-border)]">
               <div className="sr-only" aria-live="polite">
-                {isLoading ? 'Buscando resultados.' : `${totalFound} resultados visíveis em ${CATEGORY_CONFIG.filter((entry) => categorized[entry.key].length > 0).length} categorias.`}
+                {isLoading
+                  ? 'Buscando resultados.'
+                  : unavailableSources.length > 0
+                  ? `Resultados parciais. Catálogos indisponíveis: ${unavailableSources.join(', ')}.`
+                  : `${totalFound} resultados visíveis em ${CATEGORY_CONFIG.filter((entry) => categorized[entry.key].length > 0).length} categorias.`}
               </div>
+
+              {unavailableSources.length > 0 && (
+                <div className="mx-2 mt-2 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs leading-relaxed text-amber-100">
+                  Resultados parciais: {unavailableSources.join(', ')} não responderam agora. Você pode tentar novamente para atualizar esses catálogos.
+                </div>
+              )}
 
               {isLoading && totalFound === 0 && (
                 <div className="flex items-center justify-center gap-3 p-6 text-xs text-[var(--hub-muted)]">

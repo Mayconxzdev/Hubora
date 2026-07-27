@@ -92,6 +92,15 @@ export interface MediaItem {
   dealID?: string;
   source?: string;
   sourceId?: string | number;
+  /**
+   * Relação de coleção devolvida explicitamente pelo provedor. Ela oferece
+   * contexto de descoberta, não prova que resultados textuais sejam adaptações.
+   */
+  collection?: {
+    provider: string;
+    providerId: string;
+    name: string;
+  };
   providerIdentities?: ProviderIdentity[];
   externalIds?: ExternalIdMap;
   workFingerprint?: string;

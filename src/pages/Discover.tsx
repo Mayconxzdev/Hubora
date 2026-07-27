@@ -67,6 +67,7 @@ export function Discover() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const initialQuery = searchParams.get('q') || '';
+  const collectionContext = searchParams.get('context') === 'tmdb-collection' ? searchParams.get('collection') : null;
   const initialScene = searchParams.get('scene');
   const initialVibe = searchParams.get('vibe');
   const requestedCategory = searchParams.get('category') || '';
@@ -164,6 +165,7 @@ export function Discover() {
           <div className="hub-section-eyebrow"><CompassMark /> Tudo em uma busca</div>
           <h1 className="hub-page-title">Descobrir</h1>
           <p className="hub-page-subtitle">Busque um título ou diga apenas o que lembra. Resultados de filmes e séries priorizam português e disponibilidade no Brasil.</p>
+          {collectionContext && <p className="mt-3 max-w-3xl rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] px-4 py-3 text-xs leading-relaxed text-[var(--hub-muted)]">Você está explorando o contexto de coleção <strong className="text-[var(--hub-text-strong)]">{collectionContext}</strong>, confirmado pelo TMDB. Os itens abaixo são resultados independentes dos catálogos de cada categoria; o Hubora não os declara adaptações sem uma relação fornecida pela origem.</p>}
         </div>
         <Button variant="outline" onClick={surprise} className="shrink-0"><Dices size={18} /> Surpreenda-me</Button>
       </header>
