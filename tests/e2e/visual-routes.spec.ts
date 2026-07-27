@@ -37,11 +37,13 @@ const visualRoutes = [
 ] as const;
 
 const expectedCiProviderFailures = new Set([
-  // The browser workflow intentionally has no server secrets. A missing TMDB
-  // key or a public Google Books quota response must remain visible to the UI,
-  // but does not turn a visual layout audit into a false product regression.
+  // Provider unavailability is exercised by dedicated fallback tests. This
+  // visual audit still fails for application errors, overflow and uncaught
+  // exceptions; it does not falsely equate an honest upstream 5xx with a
+  // broken layout after the fallback has rendered.
   '503 /api/tmdb',
   '429 /api/google-books',
+  '503 /api/google-books',
 ]);
 
 test.describe('evidência visual das rotas principais', () => {

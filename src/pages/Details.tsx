@@ -42,6 +42,27 @@ type ProgressSummary = {
   label: string;
 };
 
+const detailCacheKey = (id: string) => `hubora:detail:${id}`;
+
+function readCachedDetail(id: string): MediaItem | null {
+  try {
+    const raw = sessionStorage.getItem(detailCacheKey(id));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as MediaItem;
+    return String(parsed?.id) === id && parsed.title ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheDetail(item: MediaItem) {
+  try {
+    sessionStorage.setItem(detailCacheKey(String(item.id)), JSON.stringify(item));
+  } catch {
+    // A read-only fallback must never prevent the real details screen from rendering.
+  }
+}
+
 function progressSummary(entry: UserMediaEntry | undefined, item: MediaItem): ProgressSummary | null {
   if (!entry) return null;
   const progress = entry.progress || {};
@@ -192,13 +213,15 @@ export function Details() {
       try {
         const details = await api.getDetails(id);
         if (!active) return;
-        setItem(details);
-        if (!details) return;
+        const resolvedDetails = details || readCachedDetail(id);
+        setItem(resolvedDetails);
+        if (!resolvedDetails) return;
+        if (details) cacheDetail(details);
 
-        if (details.mediaType === 'manga') {
+        if (resolvedDetails.mediaType === 'manga') {
           const [resolvedId, chapters] = await Promise.all([
-            resolveMangaDexId(details),
-            fetchMangaChapters(details),
+            resolveMangaDexId(resolvedDetails),
+            fetchMangaChapters(resolvedDetails),
           ]);
           if (active) {
             setMangaDexId(resolvedId);
@@ -208,18 +231,18 @@ export function Details() {
 
         try {
           let recs: MediaItem[] = [];
-          const numericId = String(details.tmdbId || details.sourceId || details.id).replace(/\D+/g, '');
-          if (details.mediaType === 'movie' && numericId) recs = await api.getSimilarMovies(numericId);
-          else if (['tv', 'series', 'drama'].includes(details.mediaType) && numericId) recs = await api.getSimilarTV(numericId);
-          else if (details.mediaType === 'anime') recs = await api.getTrendingAnime();
-          else if (details.mediaType === 'game') recs = await api.discoverGames(1);
-          else if (details.mediaType === 'manga') recs = await api.getTrendingManga();
-          else if (details.mediaType === 'book' || details.mediaType === 'novel') {
-            recs = await api.discoverBooks(1, 'relevance', '', details.title.split(' ')[0]);
-          } else if (details.mediaType === 'comic') {
-            recs = await api.discoverComics(1, 'relevance', '', details.title.split(' ')[0]);
+          const numericId = String(resolvedDetails.tmdbId || resolvedDetails.sourceId || resolvedDetails.id).replace(/\D+/g, '');
+          if (resolvedDetails.mediaType === 'movie' && numericId) recs = await api.getSimilarMovies(numericId);
+          else if (['tv', 'series', 'drama'].includes(resolvedDetails.mediaType) && numericId) recs = await api.getSimilarTV(numericId);
+          else if (resolvedDetails.mediaType === 'anime') recs = await api.getTrendingAnime();
+          else if (resolvedDetails.mediaType === 'game') recs = await api.discoverGames(1);
+          else if (resolvedDetails.mediaType === 'manga') recs = await api.getTrendingManga();
+          else if (resolvedDetails.mediaType === 'book' || resolvedDetails.mediaType === 'novel') {
+            recs = await api.discoverBooks(1, 'relevance', '', resolvedDetails.title.split(' ')[0]);
+          } else if (resolvedDetails.mediaType === 'comic') {
+            recs = await api.discoverComics(1, 'relevance', '', resolvedDetails.title.split(' ')[0]);
           }
-          if (active) setRecommendations(recs.filter((entry) => String(entry.id) !== String(details.id)).slice(0, 6));
+          if (active) setRecommendations(recs.filter((entry) => String(entry.id) !== String(resolvedDetails.id)).slice(0, 6));
         } catch (error) {
           console.warn('Não foi possível carregar recomendações relacionadas:', error);
         }
@@ -454,6 +477,14 @@ export function Details() {
               >
                 <Check size={16} />
                 <span>{isCompleted ? completedCopy.completed : completedCopy.action}</span>
+              </button>
+
+              <button
+                onClick={() => void handleLibrary()}
+                className="px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-2 border border-[var(--hub-border)] bg-[var(--hub-surface-2)] text-white hover:border-[var(--hub-border-strong)] transition-all"
+              >
+                <Library size={16} />
+                <span>{libraryEntry ? 'Adicionado à Biblioteca' : 'Adicionar à Biblioteca'}</span>
               </button>
 
               <button

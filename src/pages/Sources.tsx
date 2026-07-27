@@ -34,6 +34,7 @@ export function Sources() {
   const [providerItems, setProviderItems] = useState<Array<{ item: MediaItem; provider: ProviderConfig }>>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [providerWarnings, setProviderWarnings] = useState<string[]>([]);
 
   const refresh = () => void listProviderConfigs().then(setProviders);
   useEffect(refresh, []);
@@ -44,16 +45,18 @@ export function Sources() {
     setLoading(true);
     setHasSearched(false);
     setSearchError('');
+    setProviderWarnings([]);
     try {
       const freePromise = fetch(`/api/free-catalog?q=${encodeURIComponent(normalized)}`).then(async (response) => {
-        const data = await response.json() as { items?: FreeCatalogItem[]; error?: string };
+        const data = await response.json() as { items?: FreeCatalogItem[]; warnings?: string[]; error?: string };
         if (!response.ok) throw new Error(data.error || 'Falha ao consultar catálogos gratuitos.');
-        return data.items || [];
+        return { items: data.items || [], warnings: data.warnings || [] };
       });
       const enabledProviders = providers.filter((provider) => provider.enabled && provider.capabilities.includes('search'));
       const providerPromise = Promise.allSettled(enabledProviders.map(async (provider) => (await searchStremioCatalog(provider, normalized)).map((item) => ({ item, provider }))));
-      const [freeItems, providerSettled] = await Promise.all([freePromise, providerPromise]);
-      setItems(freeItems);
+      const [freeCatalog, providerSettled] = await Promise.all([freePromise, providerPromise]);
+      setItems(freeCatalog.items);
+      setProviderWarnings(freeCatalog.warnings);
       setProviderItems(providerSettled.flatMap((result) => result.status === 'fulfilled' ? result.value : []));
       setHasSearched(true);
     } catch (error) {
@@ -168,6 +171,7 @@ export function Sources() {
     </section>
 
     {searchError && <div role="alert" className="hub-panel border-red-500/25 bg-red-500/8 p-4 text-sm text-red-300">{searchError} Tente novamente quando a fonte estiver disponível.</div>}
+    {providerWarnings.length > 0 && <div role="status" aria-label="Status das fontes" className="hub-panel border-amber-400/25 bg-amber-400/8 p-4 text-sm text-amber-100"><strong>Resultados parciais, com transparência:</strong><ul className="mt-1 list-disc pl-5">{providerWarnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}
     {hasSearched && grouped.length === 0 && providerItems.length === 0 && !searchError && <div className="hub-empty-state"><div><Search className="mx-auto mb-3 text-[var(--hub-brand)]" size={28}/><p className="font-bold text-[var(--hub-text-strong)]">Nenhuma fonte aberta encontrada</p><p className="mt-1 text-sm">Tente outro título, autor ou uma grafia mais curta.</p></div></div>}
 
     {grouped.map(([source, sourceItems]) => <section key={source} className="hub-section"><div className="hub-section-heading"><div><div className="hub-section-eyebrow"><LibraryBig size={14}/> {source}</div><h2 className="hub-section-title">{sourceItems.length} resultado(s)</h2></div></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{sourceItems.map((item) => <article key={item.id} className="hub-panel flex min-h-48 overflow-hidden"><div className="w-28 shrink-0 bg-[var(--hub-surface-3)] sm:w-36">{item.image ? <img src={item.image} alt="" className="h-full w-full object-cover" loading="lazy"/> : <div className="grid h-full place-items-center">{item.mediaType === 'movie' ? <Film size={30}/> : <BookOpen size={30}/>}</div>}</div><div className="min-w-0 flex-1 p-4"><p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[var(--hub-brand)]">{item.year || source}</p><h3 className="mt-1 line-clamp-2 font-black text-[var(--hub-text-strong)]">{item.title}</h3><p className="mt-1 line-clamp-1 text-xs text-[var(--hub-subtle)]">{item.authors.join(', ') || 'Autor não informado'}</p><p className="mt-3 line-clamp-2 text-xs leading-relaxed text-[var(--hub-muted)]">{item.description || 'Sem descrição.'}</p><div className="mt-4 flex flex-wrap gap-2">{item.access.slice(0, 2).map((access, index) => <Button key={`${access.kind}-${index}`} size="sm" variant={index === 0 ? 'default' : 'outline'} onClick={() => openAccess(item, access)}>{access.kind === 'official-link' ? <ExternalLink size={15}/> : item.mediaType === 'movie' ? <Film size={15}/> : <BookOpen size={15}/>} {access.label}</Button>)}<Button size="sm" variant="ghost" onClick={() => addFreeItem(item)}><Plus size={15}/> Biblioteca</Button></div></div></article>)}</div></section>)}

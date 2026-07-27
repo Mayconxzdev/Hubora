@@ -13,4 +13,9 @@ describe('catálogo gratuito honesto', () => {
     expect(source).toContain('hasOpenLicense');
     expect(source).toContain('Verificar acesso e licença na origem');
   });
+
+  it('não apresenta a mensagem de protocolo do Gutenberg como se fosse uma obra', () => {
+    expect(source).toContain('no records found');
+    expect(source).toContain('ebooks\\/\\d+');
+  });
 });

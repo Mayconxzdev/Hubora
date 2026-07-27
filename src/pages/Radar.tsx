@@ -95,8 +95,18 @@ export function Radar() {
     const url = URL.createObjectURL(selected);
     try {
       const video = document.createElement('video');
-      video.preload = 'metadata'; video.muted = true; video.playsInline = true; video.src = url;
-      await new Promise<void>((resolve, reject) => { video.onloadedmetadata = () => resolve(); video.onerror = () => reject(new Error('Não foi possível ler o vídeo.')); });
+      video.preload = 'auto'; video.muted = true; video.playsInline = true;
+      const waitFor = (event: 'loadedmetadata' | 'seeked', message: string, ready: () => boolean) => new Promise<void>((resolve, reject) => {
+        if (ready()) { resolve(); return; }
+        const timeout = window.setTimeout(() => reject(new Error(message)), 12_000);
+        const complete = () => { window.clearTimeout(timeout); resolve(); };
+        const fail = () => { window.clearTimeout(timeout); reject(new Error(message)); };
+        video.addEventListener(event, complete, { once: true });
+        video.addEventListener('error', fail, { once: true });
+      });
+      const metadata = waitFor('loadedmetadata', 'Não foi possível ler os metadados do vídeo.', () => video.readyState >= HTMLMediaElement.HAVE_METADATA);
+      video.src = url;
+      await metadata;
       if (!Number.isFinite(video.duration) || video.duration <= 0) throw new Error('Duração de vídeo inválida.');
       if (video.duration > 90) toast.info('O Hubora analisará amostras do vídeo; para maior precisão, envie um trecho de até 30 segundos.');
       const points = [0.18, 0.5, 0.82].map((ratio) => Math.min(Math.max(video.duration * ratio, 0.05), Math.max(video.duration - 0.05, 0.05)));
@@ -105,8 +115,11 @@ export function Radar() {
       const context = canvas.getContext('2d', { alpha: false });
       if (!context) throw new Error('Canvas indisponível neste navegador.');
       for (let index = 0; index < points.length; index += 1) {
-        video.currentTime = points[index];
-        await new Promise<void>((resolve, reject) => { video.onseeked = () => resolve(); video.onerror = () => reject(new Error('Falha ao extrair quadro.')); });
+        const point = points[index];
+        const seeked = waitFor('seeked', `Falha ao extrair o quadro ${index + 1} do vídeo.`, () => Math.abs(video.currentTime - point) < 0.02 && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA);
+        video.currentTime = point;
+        await seeked;
+        if (!video.videoWidth || !video.videoHeight) throw new Error('O vídeo não forneceu um quadro visual utilizável.');
         const scale = Math.min(1, 1280 / Math.max(video.videoWidth, 1));
         canvas.width = Math.max(1, Math.round(video.videoWidth * scale)); canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
         context.drawImage(video, 0, 0, canvas.width, canvas.height);

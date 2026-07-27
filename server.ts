@@ -10,6 +10,7 @@ import { TtlResponseCache } from './src/server/ttlResponseCache';
 import { fetchAllowedReaderSource } from './src/config/readerSources';
 import { gameDetails } from './netlify/functions/_shared/games.js';
 import jikanFunction from './netlify/functions/jikan.mts';
+import freeCatalogFunction from './netlify/functions/free-catalog.mts';
 import { API_RATE_LIMIT_WINDOW_MS, resolveApiRateLimit } from './src/server/rateLimits';
 
 dotenv.config();
@@ -495,6 +496,20 @@ async function startServer() {
 
   // --- Free Catalog API (Google Books + Open Library + Gutenberg + Internet Archive) ---
   app.get('/api/free-catalog', async (req, res) => {
+    // Keep the local development endpoint on the exact same adapter used by
+    // Netlify. This prevents a local pass from hiding a production fallback
+    // regression when an upstream catalog is temporarily unavailable.
+    try {
+      const origin = `${req.protocol}://${req.get('host')}`;
+      const response = await freeCatalogFunction(new Request(`${origin}${req.originalUrl}`));
+      response.headers.forEach((value, name) => res.set(name, value));
+      res.status(response.status).send(Buffer.from(await response.arrayBuffer()));
+      return;
+    } catch {
+      res.status(502).json({ error: 'Catálogo gratuito indisponível.' });
+      return;
+    }
+
     const query = String(req.query.q || '').trim();
     if (!query || query.length < 2) { res.status(400).json({ error: 'Busca entre 2 e 120 caracteres.' }); return; }
 

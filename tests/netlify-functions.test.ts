@@ -3,6 +3,7 @@ import health from '../netlify/functions/health.mts';
 import games from '../netlify/functions/games.mts';
 import tmdb from '../netlify/functions/tmdb.mts';
 import googleBooks from '../netlify/functions/google-books.mts';
+import freeCatalog from '../netlify/functions/free-catalog.mts';
 
 describe('Netlify functions', () => {
   it('returns local-first health without credentials', async () => {
@@ -81,6 +82,25 @@ describe('Netlify functions', () => {
       globalThis.fetch = previousFetch;
       if (previousKey === undefined) delete process.env.GOOGLE_BOOKS_API_KEY;
       else process.env.GOOGLE_BOOKS_API_KEY = previousKey;
+    }
+  });
+
+  it('mantém uma obra de domínio público verificável quando Google Books está indisponível', async () => {
+    const previousFetch = globalThis.fetch;
+    globalThis.fetch = async (input) => {
+      const url = String(input);
+      if (url.includes('googleapis.com/books')) return new Response('temporarily unavailable', { status: 503 });
+      return new Response(JSON.stringify({ docs: [] }), { status: 200, headers: { 'content-type': 'application/json' } });
+    };
+    try {
+      const response = await freeCatalog(new Request('http://localhost/api/free-catalog?q=A%20Metamorfose'));
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        items: [expect.objectContaining({ title: 'A Metamorfose', source: 'Domínio Público / MEC' })],
+        sources: { googleBooks: 'unavailable' },
+      });
+    } finally {
+      globalThis.fetch = previousFetch;
     }
   });
 });

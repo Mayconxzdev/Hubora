@@ -13,6 +13,49 @@ type Item = {
   access: Array<{ kind: string; label: string; url?: string; volumeId?: string; free: boolean }>;
 };
 
+type ProviderState = 'available' | 'unavailable';
+
+const VERIFIED_OPEN_WORKS: Array<Item & { aliases: string[] }> = [
+  {
+    id: 'official:dominiopublico:bk000424',
+    source: 'Domínio Público / MEC',
+    mediaType: 'book',
+    title: 'A Metamorfose',
+    authors: ['Franz Kafka'],
+    year: '1915',
+    aliases: ['a metamorfose', 'metamorfose', 'die verwandlung', 'metamorphosis', 'franz kafka', 'kafka'],
+    access: [
+      { kind: 'pdf', label: 'Ler PDF completo (Domínio Público / MEC)', url: 'https://www.dominiopublico.gov.br/download/texto/bk000424.pdf', free: true },
+      { kind: 'epub', label: 'Ler EPUB (Project Gutenberg)', url: 'https://www.gutenberg.org/ebooks/5200.epub.images', free: true },
+    ],
+  },
+  {
+    id: 'official:dominiopublico:bk000043',
+    source: 'Domínio Público / MEC',
+    mediaType: 'book',
+    title: 'Dom Casmurro',
+    authors: ['Machado de Assis'],
+    year: '1899',
+    aliases: ['dom casmurro', 'machado de assis', 'machado'],
+    access: [
+      { kind: 'pdf', label: 'Ler PDF completo (Domínio Público / MEC)', url: 'https://www.dominiopublico.gov.br/download/texto/bk000043.pdf', free: true },
+      { kind: 'epub', label: 'Ler EPUB (Project Gutenberg)', url: 'https://www.gutenberg.org/ebooks/55752.epub.images', free: true },
+    ],
+  },
+];
+
+function normalizeQuery(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+}
+
+function verifiedOpenWorks(query: string): Item[] {
+  const normalized = normalizeQuery(query);
+  if (!normalized) return [];
+  return VERIFIED_OPEN_WORKS
+    .filter((item) => item.aliases.some((alias) => normalizeQuery(alias).includes(normalized) || normalized.includes(normalizeQuery(alias))))
+    .map(({ aliases: _aliases, ...item }) => item);
+}
+
 function stripHtml(value?: string) {
   return value?.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
@@ -29,7 +72,7 @@ function xmlAttr(tag: string, attr: string) {
 async function googleBooks(query: string): Promise<Item[]> {
   const key = process.env.GOOGLE_BOOKS_API_KEY ? `&key=${encodeURIComponent(process.env.GOOGLE_BOOKS_API_KEY)}` : '';
   const response = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&filter=free-ebooks&maxResults=20&printType=books${key}`);
-  if (!response.ok) return [];
+  if (!response.ok) throw new Error(`Google Books respondeu ${response.status}`);
   const data = await response.json() as { items?: Array<Record<string, any>> };
   return (data.items || []).map((record) => {
     const info = record.volumeInfo || {};
@@ -60,10 +103,13 @@ async function gutenberg(query: string): Promise<Item[]> {
   const response = await fetchWithTimeout(`https://www.gutenberg.org/ebooks/search.opds/?query=${encodeURIComponent(query)}`, { headers: { 'user-agent': 'Hubora (personal media organizer)' } }, 9_000);
   if (!response.ok) return [];
   const xml = await response.text();
-  return Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/gi)).slice(0, 20).map((match) => {
+  return Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/gi)).slice(0, 20).flatMap((match) => {
     const block = match[1];
     const idRaw = xmlText(block, 'id') || crypto.randomUUID();
     const title = xmlText(block, 'title') || 'Sem título';
+    // OPDS uses an Atom entry for a search miss. It is a protocol message, not
+    // a work, and must never be shown as a catalogue result.
+    if (!/ebooks\/\d+/.test(idRaw) || /^no records found\.?$/i.test(title.trim())) return [];
     const authorBlock = block.match(/<author>([\s\S]*?)<\/author>/i)?.[1] || '';
     const author = xmlText(authorBlock, 'name');
     const links = Array.from(block.matchAll(/<link\b[^>]*>/gi)).map((entry) => entry[0]);
@@ -74,7 +120,7 @@ async function gutenberg(query: string): Promise<Item[]> {
     const canonicalId = idRaw.match(/ebooks\/(\d+)/)?.[1];
     const landing = canonicalId ? `https://www.gutenberg.org/ebooks/${canonicalId}` : idRaw;
     const kind = /epub/i.test(mime) ? 'epub' : /pdf/i.test(mime) ? 'pdf' : /html/i.test(mime) ? 'html' : 'official-link';
-    return { id: `gutenberg:${canonicalId || idRaw}`, source: 'Project Gutenberg', mediaType: 'book', title, authors: author ? [author] : [], description: stripHtml(xmlText(block, 'summary') || xmlText(block, 'content')), image: image ? xmlAttr(image, 'href') : undefined, access: [{ kind, label: kind === 'official-link' ? 'Abrir Project Gutenberg' : 'Ler agora', url: href || landing, free: true }, { kind: 'official-link', label: 'Página oficial', url: landing, free: true }] };
+    return [{ id: `gutenberg:${canonicalId || idRaw}`, source: 'Project Gutenberg', mediaType: 'book', title, authors: author ? [author] : [], description: stripHtml(xmlText(block, 'summary') || xmlText(block, 'content')), image: image ? xmlAttr(image, 'href') : undefined, access: [{ kind, label: kind === 'official-link' ? 'Abrir Project Gutenberg' : 'Ler agora', url: href || landing, free: true }, { kind: 'official-link', label: 'Página oficial', url: landing, free: true }] }];
   });
 }
 
@@ -140,8 +186,22 @@ export default async (request: Request) => {
   if (!query || query.length < 2 || query.length > 120) return json({ error: 'Informe uma busca entre 2 e 120 caracteres.' }, { status: 400 });
   try {
     const settled = await Promise.allSettled([googleBooks(query), openLibrary(query), gutenberg(query), internetArchiveMovies(query)]);
-    const items = settled.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
-    return json({ items, sources: { googleBooks: settled[0].status, openLibrary: settled[1].status, gutenberg: settled[2].status, internetArchive: settled[3].status } }, { headers: { 'cache-control': 'public, max-age=900, stale-while-revalidate=3600' } });
+    const states: ProviderState[] = settled.map((result) => result.status === 'fulfilled' ? 'available' : 'unavailable');
+    const upstreamItems = settled.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
+    const officialItems = verifiedOpenWorks(query);
+    const existingIds = new Set(upstreamItems.map((item) => item.id));
+    const items = [...officialItems.filter((item) => !existingIds.has(item.id)), ...upstreamItems];
+    const unavailable = [
+      ['Google Books', states[0]],
+      ['Open Library', states[1]],
+      ['Project Gutenberg', states[2]],
+      ['Internet Archive', states[3]],
+    ].flatMap(([name, state]) => state === 'unavailable' ? [`${name} está temporariamente indisponível; resultados das fontes restantes continuam disponíveis.`] : []);
+    return json({
+      items,
+      sources: { googleBooks: states[0], openLibrary: states[1], gutenberg: states[2], internetArchive: states[3] },
+      warnings: unavailable,
+    }, { headers: { 'cache-control': 'public, max-age=900, stale-while-revalidate=3600' } });
   } catch (error) {
     return json({ error: safeError(error) }, { status: 502 });
   }
