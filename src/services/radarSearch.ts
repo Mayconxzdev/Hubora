@@ -5,7 +5,8 @@ export interface RadarCandidate {
   item?: MediaItem;
   title: string;
   subtitle?: string;
-  confidence: number;
+  /** Only set when the number is derived from an upstream score or explicit ID/text evidence. */
+  confidence?: number;
   reason: string;
   source: 'trace.moe' | 'ocr' | 'catalog' | 'link' | 'barcode';
   externalUrl?: string;
@@ -86,6 +87,33 @@ export async function recognizeTexts(files: File[], onProgress?: (fileIndex: num
   }
 }
 
+const RADAR_STOP_WORDS = new Set([
+  'a', 'o', 'os', 'as', 'um', 'uma', 'uns', 'umas', 'de', 'da', 'do', 'das', 'dos', 'e', 'em', 'no', 'na', 'nos', 'nas', 'para', 'por', 'com', 'sem', 'que', 'se', 'ao', 'aos', 'uma', 'the', 'and', 'with', 'from', 'this', 'that', 'into', 'about',
+]);
+
+function normalizeRadarText(value: string) {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function meaningfulTerms(value: string) {
+  return Array.from(new Set(normalizeRadarText(value).match(/[a-z0-9]{3,}/g) || []))
+    .filter((term) => !RADAR_STOP_WORDS.has(term));
+}
+
+function textEvidence(item: MediaItem, clue: string) {
+  const clueTerms = meaningfulTerms(clue);
+  const title = normalizeRadarText(`${item.title} ${item.originalTitle || ''}`);
+  const corpus = normalizeRadarText(`${item.title} ${item.originalTitle || ''} ${item.overview || ''} ${(item.genres || []).join(' ')}`);
+  const titleExact = title.includes(normalizeRadarText(clue).trim());
+  const matched = clueTerms.filter((term) => corpus.includes(term));
+  if (!titleExact && matched.length === 0) return null;
+  const confidence = titleExact ? 0.99 : Math.min(0.85, Math.max(0.35, matched.length / Math.max(clueTerms.length, 1)));
+  return { confidence, matched, titleExact };
+}
+
 export async function recognizeText(file: File, onProgress?: (value: number) => void): Promise<string> {
   const response = await recognizeTexts([file], (_index, value) => onProgress?.(value));
   if (response.warnings.length > 0) throw new Error(response.warnings[0].replace(/^Imagem 1:\s*/, ''));
@@ -112,14 +140,20 @@ export async function searchCatalogFromText(text: string, signal?: AbortSignal):
     }
   }
 
-  return results.slice(0, 6).map((item, index) => ({
-    item,
-    title: item.title,
-    subtitle: `${item.mediaType}${item.releaseDate ? ` • ${item.releaseDate.slice(0, 4)}` : ''}`,
-    confidence: Math.max(0.38, 0.76 - index * 0.07),
-    reason: 'Texto encontrado no print coincide com título, sinopse ou metadados do catálogo.',
-    source: 'ocr' as const,
-  }));
+  return results.slice(0, 6).flatMap((item) => {
+    const evidence = textEvidence(item, cleaned);
+    if (!evidence) return [];
+    return [{
+      item,
+      title: item.title,
+      subtitle: `${item.mediaType}${item.releaseDate ? ` • ${item.releaseDate.slice(0, 4)}` : ''}`,
+      confidence: evidence.confidence,
+      reason: evidence.titleExact
+        ? 'O texto encontrado no print coincide exatamente com o título catalogado.'
+        : `Texto encontrado no print coincide com: ${evidence.matched.join(', ')}. Confirme visualmente antes de adicionar.`,
+      source: 'ocr' as const,
+    }];
+  });
 }
 
 export async function searchAnimeFrame(file: File): Promise<RadarCandidate[]> {
@@ -171,7 +205,7 @@ export async function analyzeImage(file: File, options: { allowRemoteAnimeSearch
 
   options.onProgress?.('Organizando candidatos', 0.96);
   const deduped = candidates
-    .sort((a, b) => b.confidence - a.confidence)
+    .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
     .filter((candidate, index, list) => index === list.findIndex((item) => item.title.toLowerCase() === candidate.title.toLowerCase()))
     .slice(0, 8);
 
@@ -180,14 +214,20 @@ export async function analyzeImage(file: File, options: { allowRemoteAnimeSearch
 
 export async function searchSceneDescription(description: string): Promise<RadarCandidate[]> {
   const results = await api.searchMulti(description);
-  return results.slice(0, 8).map((item, index) => ({
-    item,
-    title: item.title,
-    subtitle: `${item.mediaType}${item.releaseDate ? ` • ${item.releaseDate.slice(0, 4)}` : ''}`,
-    confidence: Math.max(0.3, 0.68 - index * 0.05),
-    reason: 'Compatibilidade entre sua descrição, gêneros, temas e sinopse disponíveis.',
-    source: 'catalog',
-  }));
+  return results.slice(0, 8).flatMap((item) => {
+    const evidence = textEvidence(item, description);
+    if (!evidence) return [];
+    return [{
+      item,
+      title: item.title,
+      subtitle: `${item.mediaType}${item.releaseDate ? ` • ${item.releaseDate.slice(0, 4)}` : ''}`,
+      confidence: evidence.confidence,
+      reason: evidence.titleExact
+        ? 'A descrição contém o título catalogado. Confirme visualmente a obra antes de adicionar.'
+        : `Pista textual encontrada nos metadados: ${evidence.matched.join(', ')}. O Radar não faz identificação semântica de cenas.`,
+      source: 'catalog' as const,
+    }];
+  });
 }
 
 export async function resolveSharedLink(url: string): Promise<RadarCandidate[]> {
@@ -234,7 +274,7 @@ export async function resolveSharedLink(url: string): Promise<RadarCandidate[]> 
       if (titleFromPath) {
         const matches = await api.searchMulti(`${titleFromPath} jogo`);
         const game = matches.find((item) => item.mediaType === 'game');
-        if (game) return [{ item: { ...game, providerUrl: url }, title: game.title, subtitle: appId ? `Steam App ${appId}` : 'Steam', confidence: 0.9, reason: 'O título foi extraído do link da Steam e confirmado no catálogo de jogos.', source: 'link', externalUrl: url }];
+        if (game) return [{ item: { ...game, providerUrl: url }, title: game.title, subtitle: appId ? `Steam App ${appId}` : 'Steam', reason: 'O título foi extraído do link da Steam e encontrado no catálogo de jogos. Confirme a edição antes de adicionar.', source: 'link', externalUrl: url }];
       }
     }
 
@@ -242,7 +282,7 @@ export async function resolveSharedLink(url: string): Promise<RadarCandidate[]> 
     return [{
       title: recognized ? `Link reconhecido: ${host}` : `Link recebido de ${host}`,
       subtitle: parsed.pathname,
-      confidence: recognized ? 0.72 : 0.5,
+      confidence: undefined,
       reason: recognized ? 'A plataforma foi reconhecida, mas o link não expõe um identificador de catálogo suficiente. Use o print ou descreva a cena para completar a busca.' : 'O link foi preservado para confirmação manual.',
       source: 'link',
       externalUrl: url,

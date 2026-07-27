@@ -134,7 +134,7 @@ export function Guide() {
           <div>
             <div className="hub-section-eyebrow"><Map size={14} /> Ordem sugerida</div>
             <h1 className="hub-page-title">{t('guide.title')}</h1>
-            <p className="hub-page-subtitle">{t('guide.subtitle')}</p>
+            <p className="hub-page-subtitle">Consulte coleções cinematográficas confirmadas pelo catálogo. O Hubora não mistura adaptações, títulos parecidos ou obras de mídia diferente em uma ordem de franquia.</p>
           </div>
         </header>
 
@@ -216,6 +216,7 @@ export function Guide() {
               <p className="mx-auto mb-6 max-w-2xl text-center leading-relaxed text-[var(--hub-muted)]">
                 {franchise.description}
               </p>
+              <p className="mx-auto mb-6 max-w-2xl text-center text-xs font-semibold text-[var(--hub-subtle)]">Fonte: {franchise.source}</p>
               
               {/* Progress Bar */}
               <div className="max-w-md mx-auto mb-10">
@@ -282,6 +283,11 @@ export function Guide() {
             </div>
           </div>
         </motion.div>
+      )}
+      {!isLoading && !isError && submittedQuery && !franchise && (
+        <div className="hub-empty-state" role="status">
+          Nenhuma coleção cinematográfica confirmada foi encontrada para “{submittedQuery}”. O Hubora não cria uma ordem com títulos parecidos. Tente o nome de uma saga de filmes ou consulte os detalhes de uma obra.
+        </div>
       )}
       </div>
     </div>

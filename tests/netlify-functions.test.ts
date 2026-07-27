@@ -59,6 +59,28 @@ describe('Netlify functions', () => {
     }
   });
 
+  it('permite apenas a rota de coleção TMDB necessária ao Guia verificável', async () => {
+    const previousFetch = globalThis.fetch;
+    const previousKey = process.env.TMDB_API_KEY;
+    let upstreamUrl = '';
+    process.env.TMDB_API_KEY = 'server-only-test-key';
+    globalThis.fetch = async (input) => {
+      upstreamUrl = String(input);
+      return new Response(JSON.stringify({ results: [] }), { status: 200, headers: { 'content-type': 'application/json' } });
+    };
+
+    try {
+      const response = await tmdb(new Request('http://localhost/api/tmdb?path=/search/collection&query=Star%20Wars'));
+      expect(response.status).toBe(200);
+      expect(upstreamUrl).toContain('/search/collection');
+      expect(upstreamUrl).toContain('query=Star+Wars');
+    } finally {
+      globalThis.fetch = previousFetch;
+      if (previousKey === undefined) delete process.env.TMDB_API_KEY;
+      else process.env.TMDB_API_KEY = previousKey;
+    }
+  });
+
   it('mantém a chave do Google Books no servidor', async () => {
     const previousFetch = globalThis.fetch;
     const previousKey = process.env.GOOGLE_BOOKS_API_KEY;

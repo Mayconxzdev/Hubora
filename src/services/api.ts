@@ -8,6 +8,7 @@ import {
   adaptAnilistMedia,
   AnilistMedia,
 } from './adapters';
+import type { TMDBMovie } from './adapters';
 
 import {
   adaptGoogleBooksVolume,
@@ -455,6 +456,22 @@ const deduplicateMediaItems = (items: MediaItem[]): MediaItem[] => {
 const searchMultiCache = new Map<string, { results: MediaItem[]; timestamp: number }>();
 const SEARCH_CACHE_TTL = 1000 * 60 * 15;
 
+type TMDBCollectionResponse = {
+  id: number;
+  name: string;
+  overview?: string;
+  parts?: TMDBMovie[];
+};
+
+function collectionMatchScore(name: string, query: string) {
+  const normalizedName = normalizeSearchText(name);
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery || !normalizedName.includes(normalizedQuery)) return -1;
+  if (normalizedName === normalizedQuery) return 300;
+  if (normalizedName.startsWith(normalizedQuery)) return 200;
+  return 100;
+}
+
 export const api = {
   instantLocalSearch: (query: string): MediaItem[] => {
     if (!query || !query.trim()) return [];
@@ -709,6 +726,37 @@ export const api = {
       return (data.results || []).map(adaptTMDBTV).filter((item: MediaItem) => item.posterPath);
     } catch {
       return [];
+    }
+  },
+
+  /**
+   * Resolve a film collection through TMDB's explicit collection relation.
+   * This is deliberately narrower than a text search: unrelated adaptations,
+   * homonyms and fan works must not become a "franchise order" by accident.
+   */
+  getMovieCollectionByQuery: async (query: string): Promise<{ name: string; overview?: string; items: MediaItem[] } | null> => {
+    const cleanQuery = query.trim();
+    if (cleanQuery.length < 2) return null;
+    try {
+      const searchResponse = await fetchWithRetry(tmdbUrl('/search/collection', { query: cleanQuery, page: 1, language: 'pt-BR' }));
+      if (!searchResponse.ok) return null;
+      const searchData = await searchResponse.json() as { results?: Array<Pick<TMDBCollectionResponse, 'id' | 'name'>> };
+      const collection = (searchData.results || [])
+        .map((candidate) => ({ candidate, score: collectionMatchScore(candidate.name, cleanQuery) }))
+        .filter((entry) => entry.score >= 0)
+        .sort((a, b) => b.score - a.score)[0]?.candidate;
+      if (!collection) return null;
+
+      const detailResponse = await fetchWithRetry(tmdbUrl(`/collection/${collection.id}`, { language: 'pt-BR' }));
+      if (!detailResponse.ok) return null;
+      const detail = await detailResponse.json() as TMDBCollectionResponse;
+      const items = (detail.parts || [])
+        .map(adaptTMDBMovie)
+        .sort((a, b) => (a.releaseDate || '9999-12-31').localeCompare(b.releaseDate || '9999-12-31'));
+      if (!items.length) return null;
+      return { name: detail.name || collection.name, overview: detail.overview, items };
+    } catch {
+      return null;
     }
   },
 
