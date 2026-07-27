@@ -45,3 +45,11 @@
   for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache"
+
+# O VitePWA gera este arquivo durante o build. O Netlify não infere o MIME
+# específico de `.webmanifest` por padrão, portanto ele é declarado aqui para
+# que navegadores tratem a instalação do Hubora como PWA de forma confiável.
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json; charset=utf-8"
