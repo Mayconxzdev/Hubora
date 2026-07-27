@@ -54,9 +54,12 @@ test.describe('evidência visual das rotas principais', () => {
 
       await page.goto(route);
       await expect(page.locator('body')).not.toContainText(/erro fatal|algo deu errado/i);
+      await expect(page, `Título do documento ausente em ${route}`).toHaveTitle(/Hubora/);
 
       await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
-      await page.waitForFunction(() => [...document.images].every((image) => image.complete), undefined, { timeout: 30_000 });
+      await page.waitForFunction(() => [...document.images].every((image) => image.complete), undefined, {
+        timeout: 30_000,
+      });
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
 
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

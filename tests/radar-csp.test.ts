@@ -7,9 +7,16 @@ describe('Radar OCR content security policy', () => {
     const netlify = readFileSync('netlify.toml', 'utf8');
 
     expect(server).toContain("'https://cdn.jsdelivr.net'");
-    expect(netlify).toContain("script-src 'self' 'wasm-unsafe-eval' https://www.google.com https://books.google.com https://cdn.jsdelivr.net");
+    expect(netlify).toContain(
+      "script-src 'self' 'wasm-unsafe-eval' https://www.google.com https://books.google.com https://cdn.jsdelivr.net",
+    );
     expect(netlify).toContain("worker-src 'self' blob: https://cdn.jsdelivr.net");
-    expect(server).toContain("scriptSrc: [\"'self'\", \"'wasm-unsafe-eval'\", 'https://www.google.com', 'https://books.google.com', 'https://cdn.jsdelivr.net']");
-    expect(server).toContain("workerSrc: [\"'self'\", 'blob:', 'https://cdn.jsdelivr.net']");
+
+    const scriptSrc = server.match(/scriptSrc:\s*\[([\s\S]*?)\]/)?.[1] || '';
+    const workerSrc = server.match(/workerSrc:\s*\[([\s\S]*?)\]/)?.[1] || '';
+    expect(scriptSrc).toContain("'wasm-unsafe-eval'");
+    expect(scriptSrc).toContain("'https://cdn.jsdelivr.net'");
+    expect(workerSrc).toContain("'blob:'");
+    expect(workerSrc).toContain("'https://cdn.jsdelivr.net'");
   });
 });

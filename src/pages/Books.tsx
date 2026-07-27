@@ -7,6 +7,7 @@ import { SectionToolbar } from '@/components/section/SectionToolbar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
 import { BookOpen } from 'lucide-react';
+import { SEO } from '@/components/ui/SEO';
 
 const BOOK_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: 'fiction', labelKey: 'genre.fiction' },
@@ -67,6 +68,8 @@ export function Books() {
   const books = data ? data.pages.flat() : [];
 
   return (
+    <>
+      <SEO title={t('section.books.title')} description={t('section.books.subtitle')} />
     <SectionPageLayout 
       title={t('section.books.title')}
       subtitle={t('section.books.subtitle')}
@@ -108,6 +111,6 @@ export function Books() {
         genreOptions={BOOK_GENRES}
       />
     </SectionPageLayout>
+    </>
   );
 }
-

@@ -9,6 +9,7 @@ import { STREAM_EMBED_HOSTS } from './src/config/streamHosts';
 import { TtlResponseCache } from './src/server/ttlResponseCache';
 import { fetchAllowedReaderSource } from './src/config/readerSources';
 import { gameDetails } from './netlify/functions/_shared/games.js';
+import jikanFunction from './netlify/functions/jikan.mts';
 import { API_RATE_LIMIT_WINDOW_MS, resolveApiRateLimit } from './src/server/rateLimits';
 
 dotenv.config();
@@ -168,6 +169,24 @@ async function startServer() {
     standardHeaders: 'draft-8',
     legacyHeaders: false,
   }));
+
+  // The production route is a Netlify Function. Reuse its exact handler during
+  // local and Playwright runs so provider behaviour cannot drift between the
+  // two environments.
+  app.all('/api/jikan', async (req, res) => {
+    try {
+      const response = await jikanFunction(new Request(`http://127.0.0.1${req.originalUrl}`, {
+        method: req.method,
+      }));
+      response.headers.forEach((value, name) => res.setHeader(name, value));
+      res.status(response.status).send(Buffer.from(await response.arrayBuffer()));
+    } catch {
+      res.status(502).json({
+        data: [],
+        meta: { provider: 'jikan', status: 'indisponível', message: 'O catálogo Jikan não respondeu agora.' },
+      });
+    }
+  });
 
   app.get('/api/tmdb', async (req, res) => {
     const requestedPath = typeof req.query.path === 'string' ? req.query.path.trim() : '';

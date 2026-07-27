@@ -6,6 +6,7 @@ import { SectionPageLayout } from '@/components/section/SectionPageLayout';
 import { SectionToolbar } from '@/components/section/SectionToolbar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
+import { SEO } from '@/components/ui/SEO';
 
 const TV_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: '10759', labelKey: 'genre.action_adventure' },
@@ -74,6 +75,8 @@ export function Series() {
   const tv = data ? data.pages.flat() : [];
 
   return (
+    <>
+      <SEO title={t('section.series.title')} description={t('section.series.subtitle')} />
     <SectionPageLayout 
       title={t('section.series.title')}
       subtitle={t('section.series.subtitle')}
@@ -107,5 +110,6 @@ export function Series() {
         genreOptions={TV_GENRES}
       />
     </SectionPageLayout>
+    </>
   );
 }

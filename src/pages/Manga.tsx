@@ -6,6 +6,7 @@ import { SectionPageLayout } from '@/components/section/SectionPageLayout';
 import { SectionToolbar } from '@/components/section/SectionToolbar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
+import { SEO } from '@/components/ui/SEO';
 
 const MANGA_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: '1', labelKey: 'genre.action' },
@@ -69,6 +70,8 @@ export function Manga() {
   const manga = data ? data.pages.flat() : [];
 
   return (
+    <>
+      <SEO title={t('section.manga.title')} description={t('section.manga.subtitle')} />
     <SectionPageLayout 
       title={t('section.manga.title')}
       subtitle={t('section.manga.subtitle')}
@@ -102,5 +105,6 @@ export function Manga() {
         genreOptions={MANGA_GENRES}
       />
     </SectionPageLayout>
+    </>
   );
 }

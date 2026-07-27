@@ -33,6 +33,7 @@ import {
 import { MediaCard } from '@/components/ui/MediaCard';
 import { cn } from '@/lib/utils';
 import { accessDestination, verifiedAccessFor } from '@/services/mediaAccess';
+import { SEO } from '@/components/ui/SEO';
 
 type DetailTab = 'overview' | 'videos' | 'episodes' | 'sources' | 'activity' | 'details';
 
@@ -87,7 +88,6 @@ function progressSummary(entry: UserMediaEntry | undefined, item: MediaItem): Pr
     label,
   };
 }
-
 function completionCopy(mediaType: MediaType) {
   if (mediaType === 'movie' || ['tv', 'series', 'drama', 'anime'].includes(mediaType)) {
     return { action: 'Marcar como visto', completed: 'Visto' };
@@ -245,17 +245,22 @@ export function Details() {
 
   if (isLoading) {
     return (
+      <>
+        <SEO title="Detalhes da obra" />
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 border-4 border-[var(--hub-brand)] border-t-transparent rounded-full animate-spin" />
         <p className="text-xs text-[var(--hub-muted)] font-bold uppercase tracking-wider">
           Carregando dados reais e fontes disponíveis...
         </p>
       </div>
+      </>
     );
   }
 
   if (!item) {
     return (
+      <>
+        <SEO title="Obra indisponível" />
       <div className="hub-page text-center py-20">
         <h2 className="text-2xl font-black text-white mb-3">Obra indisponível</h2>
         <p className="text-[var(--hub-muted)] text-sm mb-6">
@@ -268,6 +273,7 @@ export function Details() {
           Voltar para o catálogo
         </button>
       </div>
+      </>
     );
   }
 
@@ -379,6 +385,8 @@ export function Details() {
   };
 
   return (
+    <>
+      <SEO title={title} description={overview || 'Detalhes, fontes verificadas e atividade pessoal da obra.'} />
     <div className="hub-page pb-24 max-w-[108rem] mx-auto w-full px-4 sm:px-8">
       <button
         onClick={() => navigate(-1)}
@@ -710,5 +718,6 @@ export function Details() {
       />
       <GameManagementModal item={item} isOpen={isGameModalOpen} onClose={() => setIsGameModalOpen(false)} />
     </div>
+    </>
   );
 }

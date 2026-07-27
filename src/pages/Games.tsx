@@ -9,6 +9,7 @@ import { SectionToolbar } from '@/components/section/SectionToolbar';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
+import { SEO } from '@/components/ui/SEO';
 
 const GAME_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: 'action', labelKey: 'genre.action' },
@@ -70,6 +71,8 @@ export function Games() {
   const games = data ? data.pages.flat() : [];
 
   return (
+    <>
+      <SEO title={t('section.games.title')} description={t('section.games.subtitle')} />
     <SectionPageLayout
       title={t('section.games.title')}
       subtitle={t('section.games.subtitle')}
@@ -115,5 +118,6 @@ export function Games() {
         genreOptions={GAME_GENRES}
       />
     </SectionPageLayout>
+    </>
   );
 }

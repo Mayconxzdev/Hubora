@@ -6,6 +6,7 @@ import { SectionPageLayout } from '@/components/section/SectionPageLayout';
 import { SectionToolbar } from '@/components/section/SectionToolbar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
+import { SEO } from '@/components/ui/SEO';
 
 const DORAMA_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: '18', labelKey: 'genre.drama' },
@@ -66,6 +67,8 @@ export function Doramas() {
   const doramas = data ? data.pages.flat() : [];
 
   return (
+    <>
+      <SEO title={t('section.doramas.title')} description={t('section.doramas.subtitle')} />
     <SectionPageLayout 
       title={t('section.doramas.title')}
       subtitle={t('section.doramas.subtitle')}
@@ -99,5 +102,6 @@ export function Doramas() {
         genreOptions={DORAMA_GENRES}
       />
     </SectionPageLayout>
+    </>
   );
 }

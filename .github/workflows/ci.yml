@@ -26,12 +26,25 @@ jobs:
       - run: npm run build
 
   browser-smoke:
+    name: browser-smoke (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        project: [desktop-chromium, tablet-chromium, android-chromium]
+        include:
+          # Functional flows are exercised once in the desktop browser. Visual
+          # and automated a11y coverage are then repeated at each breakpoint;
+          # running every real-provider flow three times was exceeding the CI
+          # window without adding distinct behaviour coverage.
+          - name: desktop-regression
+            command: "npm run test:e2e -- --project=desktop-chromium --grep-invert='evidência visual|não tem violações WCAG automatizáveis|atalho de conteúdo'"
+          - name: desktop-visual-a11y
+            command: 'npm run test:e2e -- tests/e2e/visual-routes.spec.ts tests/e2e/accessibility.spec.ts --project=desktop-chromium'
+          - name: tablet-visual-a11y
+            command: 'npm run test:e2e -- tests/e2e/visual-routes.spec.ts tests/e2e/accessibility.spec.ts --project=tablet-chromium'
+          - name: android-visual-a11y
+            command: 'npm run test:e2e -- tests/e2e/visual-routes.spec.ts tests/e2e/accessibility.spec.ts --project=android-chromium'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,4 +57,4 @@ jobs:
       - name: Install authorized E2E media generator
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: npm run build
-      - run: npm run test:e2e -- --project=${{ matrix.project }}
+      - run: ${{ matrix.command }}

@@ -7,6 +7,7 @@ import { api } from '@/services/api';
 import { SectionPageLayout } from '@/components/section/SectionPageLayout';
 import { SectionToolbar } from '@/components/section/SectionToolbar';
 import type { TranslationKey } from '@/lib/translations';
+import { SEO } from '@/components/ui/SEO';
 
 const NOVEL_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: 'fantasy', labelKey: 'genre.fantasy' },
@@ -47,6 +48,8 @@ export function Novels() {
   const novels = data?.pages.flat() || [];
 
   return (
+    <>
+      <SEO title="Novels" description="Light novels, webnovels e ficção seriada, com acesso conforme a fonte realmente disponibiliza." />
     <SectionPageLayout
       title="Novels"
       subtitle="Light novels, webnovels e ficção seriada, com acesso conforme a fonte realmente disponibiliza."
@@ -76,5 +79,6 @@ export function Novels() {
       />
       <p className="mt-3 text-xs leading-relaxed text-[var(--hub-subtle)]">Metadados iniciais: Google Books, com fallback Open Library. Leitura interna aparece somente quando o volume declara prévia, EPUB ou PDF disponível; demais plataformas abrem na origem.</p>
     </SectionPageLayout>
+    </>
   );
 }

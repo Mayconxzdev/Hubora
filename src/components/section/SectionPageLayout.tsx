@@ -10,7 +10,6 @@ export interface SectionTab {
   id: string;
   label: string;
 }
-
 interface SectionPageLayoutProps {
   title: string;
   subtitle?: string;
@@ -32,7 +31,7 @@ export function SectionPageLayout({ title, subtitle, isLoading, isError, error, 
   const { t } = useTranslation();
 
   return (
-    <div className="hub-page">
+    <div className="hub-page hub-catalog-stage">
       <header className="hub-page-header flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <div className="hub-section-eyebrow">Catálogo Hubora</div>

@@ -6,7 +6,14 @@ const routes = [
   ['discover', '/discover'],
   ['library', '/library'],
   ['movies', '/movies'],
+  ['series', '/series'],
+  ['doramas', '/doramas'],
   ['anime', '/anime'],
+  ['manga', '/manga'],
+  ['comics', '/comics'],
+  ['books', '/books'],
+  ['novels', '/novels'],
+  ['games', '/games'],
   ['radar', '/radar'],
   ['sources', '/sources'],
   ['providers', '/providers'],
@@ -26,14 +33,14 @@ for (const [name, route] of routes) {
     await page.goto(route, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('main')).toBeVisible();
     await page.evaluate(async () => {
-      const finiteAnimations = document.getAnimations().filter((animation) => animation.effect?.getTiming().iterations !== Infinity);
+      const finiteAnimations = document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getTiming().iterations !== Infinity);
       await Promise.all(finiteAnimations.map((animation) => animation.finished.catch(() => undefined)));
     });
     await expect(page).toHaveTitle(/Hubora/);
     await expect(page.locator('head title')).toHaveCount(1);
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-      .analyze();
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
     const violations = results.violations.map((violation) => ({
       id: violation.id,
       impact: violation.impact,

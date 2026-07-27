@@ -213,6 +213,93 @@ html.light .hub-shell::before {
   flex-wrap: wrap;
 }
 
+/* Discovery is intentionally more expressive than the personal tools. These
+   surfaces use only product tokens: no stock artwork or invented media. */
+.hub-catalog-stage {
+  position: relative;
+  isolation: isolate;
+}
+
+.hub-catalog-stage::before {
+  position: absolute;
+  z-index: -1;
+  top: -10rem;
+  right: -12rem;
+  width: min(46rem, 82vw);
+  height: min(34rem, 62vw);
+  content: '';
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(circle at center, color-mix(in srgb, var(--hub-brand) 22%, transparent) 0%, transparent 69%);
+  filter: blur(12px);
+  opacity: 0.88;
+}
+
+.hub-catalog-stage .hub-page-header {
+  position: relative;
+  overflow: hidden;
+  min-height: clamp(11rem, 20vw, 15.5rem);
+  align-items: flex-end;
+  padding: clamp(1.25rem, 3.2vw, 2.65rem);
+  border: 1px solid var(--hub-border);
+  border-radius: clamp(1.25rem, 2.4vw, 1.85rem);
+  background:
+    linear-gradient(116deg, color-mix(in srgb, var(--hub-surface-1) 94%, #000) 0%, color-mix(in srgb, var(--hub-surface-1) 78%, var(--hub-brand)) 100%);
+  box-shadow: var(--hub-shadow-sm);
+}
+
+.hub-catalog-stage .hub-page-header::before,
+.hub-catalog-stage .hub-page-header::after {
+  position: absolute;
+  content: '';
+  pointer-events: none;
+  border-radius: 999px;
+}
+
+.hub-catalog-stage .hub-page-header::before {
+  top: -11rem;
+  right: -6rem;
+  width: 28rem;
+  height: 28rem;
+  border: 1px solid color-mix(in srgb, var(--hub-brand) 38%, transparent);
+  box-shadow: 0 0 0 3.5rem color-mix(in srgb, var(--hub-brand) 6%, transparent), 0 0 0 7rem color-mix(in srgb, var(--hub-brand) 3%, transparent);
+}
+
+.hub-catalog-stage .hub-page-header::after {
+  right: 3rem;
+  bottom: 1.3rem;
+  width: 5.5rem;
+  height: 1px;
+  background: color-mix(in srgb, var(--hub-brand) 68%, transparent);
+  box-shadow: 0 0 2.4rem 0.35rem color-mix(in srgb, var(--hub-brand) 20%, transparent);
+}
+
+.hub-catalog-stage .hub-page-header > * {
+  position: relative;
+  z-index: 1;
+}
+
+html.light .hub-catalog-stage .hub-page-header {
+  background: linear-gradient(116deg, color-mix(in srgb, var(--hub-surface-1) 96%, #fff) 0%, color-mix(in srgb, var(--hub-surface-1) 84%, var(--hub-brand)) 100%);
+}
+
+@media (max-width: 639px) {
+  .hub-catalog-stage .hub-page-header {
+    min-height: 0;
+    padding: 1.2rem;
+  }
+
+  .hub-catalog-stage .hub-page-header::before {
+    top: -14rem;
+    right: -13rem;
+  }
+
+  .hub-catalog-stage .hub-page-header::after {
+    right: 1.2rem;
+    bottom: .8rem;
+  }
+}
+
 .hub-page-title {
   margin: 0;
   color: var(--hub-text-strong);

@@ -9,6 +9,7 @@ import { Search, Map, Film, Tv, BookOpen, CheckCircle, Circle } from 'lucide-rea
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { FranchiseItemCard } from '@/components/guide/FranchiseItemCard';
+import { SEO } from '@/components/ui/SEO';
 
 export function Guide() {
   const { t } = useTranslation();
@@ -106,6 +107,8 @@ export function Guide() {
   };
 
   return (
+    <>
+      <SEO title="Guia de franquias" description="Organize a ordem de obras e adaptações sem confundir versões, formatos ou relações." />
     <div className="hub-page relative mx-auto w-full max-w-5xl">
       {/* Dynamic Background */}
       <AnimatePresence>
@@ -282,5 +285,6 @@ export function Guide() {
       )}
       </div>
     </div>
+    </>
   );
 }

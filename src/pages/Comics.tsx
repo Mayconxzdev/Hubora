@@ -7,6 +7,7 @@ import { SectionToolbar } from '@/components/section/SectionToolbar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TranslationKey } from '@/lib/translations';
 import { BookOpen } from 'lucide-react';
+import { SEO } from '@/components/ui/SEO';
 
 const COMIC_GENRES: { value: string; labelKey: TranslationKey }[] = [
   { value: 'marvel', labelKey: 'genre.marvel' },
@@ -66,6 +67,8 @@ export function Comics() {
   const comics = data ? data.pages.flat() : [];
 
   return (
+    <>
+      <SEO title={t('section.comics.title')} description={t('section.comics.subtitle')} />
     <SectionPageLayout 
       title={t('section.comics.title')}
       subtitle={t('section.comics.subtitle')}
@@ -107,6 +110,6 @@ export function Comics() {
         genreOptions={COMIC_GENRES}
       />
     </SectionPageLayout>
+    </>
   );
 }
-
