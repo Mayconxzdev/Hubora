@@ -46,7 +46,11 @@ const detailCacheKey = (id: string) => `hubora:detail:${id}`;
 
 function readCachedDetail(id: string): MediaItem | null {
   try {
-    const raw = sessionStorage.getItem(detailCacheKey(id));
+    const key = detailCacheKey(id);
+    // The item is public catalog metadata only. localStorage is deliberately
+    // used as a resilient companion to the shorter session cache so a reload
+    // cannot strand a library entry while its provider is temporarily slow.
+    const raw = sessionStorage.getItem(key) || localStorage.getItem(key);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as MediaItem;
     return String(parsed?.id) === id && parsed.title ? parsed : null;
@@ -57,12 +61,17 @@ function readCachedDetail(id: string): MediaItem | null {
 
 function cacheDetail(item: MediaItem, routeId?: string) {
   try {
-    sessionStorage.setItem(detailCacheKey(String(item.id)), JSON.stringify(item));
+    const serialized = JSON.stringify(item);
+    const itemKey = detailCacheKey(String(item.id));
+    sessionStorage.setItem(itemKey, serialized);
+    localStorage.setItem(itemKey, serialized);
     // Alguns provedores retornam um ID canônico diferente do ID usado no link
     // do catálogo. Preserve os dois para que um reload não descarte uma obra
     // que a pessoa acabou de registrar na própria biblioteca.
     if (routeId && routeId !== String(item.id)) {
-      sessionStorage.setItem(detailCacheKey(routeId), JSON.stringify(item));
+      const routeKey = detailCacheKey(routeId);
+      sessionStorage.setItem(routeKey, serialized);
+      localStorage.setItem(routeKey, serialized);
     }
   } catch {
     // A read-only fallback must never prevent the real details screen from rendering.
