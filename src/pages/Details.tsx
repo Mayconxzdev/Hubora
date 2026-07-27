@@ -63,6 +63,13 @@ function cacheDetail(item: MediaItem) {
   }
 }
 
+function readLibraryDetail(id: string, library: Record<string, UserMediaEntry>): MediaItem | null {
+  const entry = Object.values(library).find((candidate) =>
+    String(candidate.mediaId) === id || String(candidate.media?.id) === id,
+  );
+  return entry?.media?.title ? entry.media : null;
+}
+
 function progressSummary(entry: UserMediaEntry | undefined, item: MediaItem): ProgressSummary | null {
   if (!entry) return null;
   const progress = entry.progress || {};
@@ -203,8 +210,12 @@ export function Details() {
     let active = true;
     async function loadDetails() {
       if (!id) return;
-      setIsLoading(true);
-      setItem(null);
+      const localDetail = readCachedDetail(id) || readLibraryDetail(id, library);
+      // A work already saved by the person is a trustworthy local snapshot.
+      // Show it immediately on reload and enrich it in the background instead
+      // of making management depend on a temporary provider outage.
+      setIsLoading(!localDetail);
+      setItem(localDetail);
       setRecommendations([]);
       setMangaChapters([]);
       setMangaDexId(null);
@@ -213,7 +224,7 @@ export function Details() {
       try {
         const details = await api.getDetails(id);
         if (!active) return;
-        const resolvedDetails = details || readCachedDetail(id);
+        const resolvedDetails = details || localDetail || readCachedDetail(id);
         setItem(resolvedDetails);
         if (!resolvedDetails) return;
         if (details) cacheDetail(details);
@@ -257,7 +268,7 @@ export function Details() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, library]);
 
   const libraryEntry = useMemo(
     () => (item ? findLibraryEntry(library, item) : undefined),

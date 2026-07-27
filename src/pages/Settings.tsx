@@ -104,20 +104,26 @@ export function Settings() {
 
           setImportProgress({ current: i + 1, total: parsed.length, currentTitle: title });
 
-          let results: MediaItem[] = [];
-          try {
-            results = await api.searchMulti(title);
-          } catch (err) {
-            // Falha temporária do catálogo não autoriza inventar dados. Somente
-            // identidades oficiais catalogadas podem completar a importação.
-            console.warn(`Erro ao buscar: ${title}`, err);
-          }
-
           const fallback = knownImportFallback(title, year);
-          let match = results[0] || fallback;
-          if (year) {
-            const found = results.find((result) => result.releaseDate?.startsWith(year));
-            if (found) match = found;
+          let match = fallback;
+
+          // A correspondência exata de um catálogo oficial local é mais forte
+          // que uma busca por título e continua disponível quando o provedor
+          // externo estiver lento. Para títulos não catalogados, a busca remota
+          // segue sendo necessária e nenhuma entrada é inventada.
+          if (!match) {
+            let results: MediaItem[] = [];
+            try {
+              results = await api.searchMulti(title);
+            } catch (err) {
+              console.warn(`Erro ao buscar: ${title}`, err);
+            }
+
+            match = results[0];
+            if (year) {
+              const found = results.find((result) => result.releaseDate?.startsWith(year));
+              if (found) match = found;
+            }
           }
 
           if (match) {

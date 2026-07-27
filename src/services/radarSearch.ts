@@ -78,7 +78,11 @@ export async function recognizeTexts(files: File[], onProgress?: (fileIndex: num
     }
     return { texts, warnings };
   } finally {
-    await session.worker.terminate();
+    // `terminate()` asks the browser worker to stop immediately, but its
+    // promise can remain pending when a WASM recognition task is wedged. The
+    // analysis already recorded the timeout above; waiting here would turn an
+    // honest warning into a permanently blocked Radar screen.
+    void session.worker.terminate().catch(() => undefined);
   }
 }
 
