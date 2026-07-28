@@ -32,9 +32,16 @@ It addresses a real problem: personal history, progress, and watch/read/play lis
 |---|---|
 | **Type** | Responsive web application and installable PWA |
 | **Contribution** | Product conception, UX/UI, architecture, development, integrations, persistence, authentication, and documentation |
+| **Academic context** | Final project for the **AI Tools: Agents and Automations** course (40 hours), completed at **SENAI Casa Firjan** |
 | **Usage modes** | Guest mode with local data; authenticated account when the remote environment is configured |
 | **Content principle** | Metadata, availability, and playback are shown with explicit limits; no player or source is fabricated |
-| **Quality evidence** | `main` CI runs static checks, linting, types, tests, builds, regression, and visual/accessibility audits |
+| **Version status** | **v1.0.0** published as a portfolio demonstration; external integrations and multi-user validation are tracked separately |
+
+## Quick quality evidence
+
+The current [`main`](https://github.com/Mayconxzdev/Hubora/tree/main) passed [CI](https://github.com/Mayconxzdev/Hubora/actions): **zero-warning linting, type checking, 138 unit tests, production/PWA build, desktop E2E regression, and visual/accessibility audits on desktop, tablet, and Android**.
+
+Reproducible commands and reports are available in [TEST_EVIDENCE.md](TEST_EVIDENCE.md) and [RELEASE_READINESS_REPORT.md](RELEASE_READINESS_REPORT.md).
 
 ## Two-minute evaluation
 
@@ -45,8 +52,6 @@ It addresses a real problem: personal history, progress, and watch/read/play lis
 5. Try filtering, sorting, and grid/list views.
 
 **Shortcuts:** [Home](https://hubora.netlify.app/) · [Movies](https://hubora.netlify.app/movies) · [Games](https://hubora.netlify.app/games) · [Releases](https://hubora.netlify.app/releases) · [Library](https://hubora.netlify.app/library)
-
-> **Transparency note:** the public URL displays the last successful production deployment. A new automatic deployment of `main` currently depends on restoring the Netlify account quota; until then, the source code, [CI](https://github.com/Mayconxzdev/Hubora/actions), and repository documentation are the current-review reference.
 
 ## Product walkthrough
 
@@ -204,15 +209,15 @@ npm run dev
 - [Deploy and rollback](DEPLOY_AND_ROLLBACK.md)
 - [Security policy](SECURITY.md)
 
-## Current scope and limits
+## Current status and limitations
 
-Hubora demonstrates a complete runnable application, but it does not present external dependencies as guaranteed features:
+**Hubora v1.0.0** is published as a portfolio demonstration and runs locally with the checks above. It does not present external dependencies as guaranteed features:
 
 - providers depend on valid credentials, API availability, region, and embedding permissions;
 - commercial sources never receive an internal player without proven authorization;
 - personal-server integrations (Jellyfin, Plex, Emby, Komga, Kavita, and OPDS) require owner configuration;
 - authentication, synchronization, and Realtime require a correctly configured Supabase environment; fresh two-account remote-isolation evidence must be renewed before a full-production claim;
-- Netlify production awaits the quota recovery described above to deploy the current `main`.
+- The public Netlify URL shows the last successful production deployment; publishing the current `main` awaits Netlify account quota recovery. Until then, the source code, [CI](https://github.com/Mayconxzdev/Hubora/actions), and repository documentation are the current-review reference.
 
 ## Developer
 

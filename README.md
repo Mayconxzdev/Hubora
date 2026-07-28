@@ -32,9 +32,16 @@ O produto resolve uma dor real: histórico, progresso e listas de assistir, ler 
 |---|---|
 | **Tipo** | Aplicação web responsiva e PWA instalável |
 | **Contribuição** | Concepção de produto, UX/UI, arquitetura, desenvolvimento, integrações, persistência, autenticação e documentação |
+| **Contexto acadêmico** | Projeto de conclusão do curso **Ferramentas de IA: Agentes e Automações** (40 horas), concluído no **SENAI Casa Firjan** |
 | **Modos de uso** | Visitante com dados locais; conta autenticada quando a configuração remota está disponível |
 | **Princípio de conteúdo** | Metadados, disponibilidade e reprodução são apresentados com limites explícitos; não há player ou fonte inventada |
-| **Evidência de qualidade** | CI em `main` com checagens estáticas, lint, tipos, testes, build, regressão e auditorias visuais/a11y |
+| **Estado da versão** | **v1.0.0** publicada para demonstração de portfólio; integrações externas e homologação multiusuário são rastreadas separadamente |
+
+## Evidência rápida de qualidade
+
+O [`main`](https://github.com/Mayconxzdev/Hubora/tree/main) atual passou no [CI](https://github.com/Mayconxzdev/Hubora/actions): **lint sem avisos, typecheck, 138 testes unitários, build/PWA, regressão E2E desktop e auditorias visuais/acessibilidade em desktop, tablet e Android**.
+
+Os comandos reproduzíveis e os relatórios estão em [TEST_EVIDENCE.md](TEST_EVIDENCE.md) e [RELEASE_READINESS_REPORT.md](RELEASE_READINESS_REPORT.md).
 
 ## Avaliação em dois minutos
 
@@ -45,8 +52,6 @@ O produto resolve uma dor real: histórico, progresso e listas de assistir, ler 
 5. Experimente filtros, ordenação e os modos de grade e lista.
 
 **Atalhos:** [Início](https://hubora.netlify.app/) · [Filmes](https://hubora.netlify.app/movies) · [Jogos](https://hubora.netlify.app/games) · [Lançamentos](https://hubora.netlify.app/releases) · [Biblioteca](https://hubora.netlify.app/library)
-
-> **Nota de transparência:** a URL pública exibe o último deploy de produção bem-sucedido. No momento, um novo deploy automático do `main` depende da regularização da cota da conta Netlify; por isso, código, [CI](https://github.com/Mayconxzdev/Hubora/actions) e documentação deste repositório são a referência da revisão atual.
 
 ## Fluxos do produto
 
@@ -204,15 +209,15 @@ npm run dev
 - [Deploy e rollback](DEPLOY_AND_ROLLBACK.md)
 - [Política de segurança](SECURITY.md)
 
-## Escopo e limites atuais
+## Estado atual e limitações
 
-Hubora demonstra uma aplicação completa e executável, mas não mascara dependências externas como se fossem funcionalidades garantidas:
+**Hubora v1.0.0** está publicado como demonstração de portfólio e executa localmente com as verificações acima. Ele não mascara dependências externas como se fossem funcionalidades garantidas:
 
 - provedores dependem de credenciais válidas, disponibilidade da API, região e permissão de incorporação;
 - fontes comerciais não recebem player interno sem autorização comprovada;
 - conexões com servidores pessoais (Jellyfin, Plex, Emby, Komga, Kavita e OPDS) exigem configuração do proprietário;
 - autenticação, sincronização e Realtime exigem ambiente Supabase corretamente configurado; a evidência recente de isolamento remoto com duas contas ainda deve ser renovada antes de uma declaração de produção plena;
-- a produção no Netlify aguarda a regularização de cota indicada acima para publicar o `main` atual.
+- a URL pública do Netlify exibe o último deploy de produção bem-sucedido; a publicação do `main` atual aguarda a regularização de cota da conta Netlify. Enquanto isso, código, [CI](https://github.com/Mayconxzdev/Hubora/actions) e documentação deste repositório são a referência da revisão atual.
 
 ## Autor
 

@@ -9,7 +9,7 @@
     "start": "tsx server.ts",
     "preview": "vite preview",
     "clean": "node -e \"for (const p of ['dist','coverage','test-results','playwright-report']) require('node:fs').rmSync(p,{recursive:true,force:true})\"",
-    "lint": "eslint src/ --max-warnings=50",
+    "lint": "eslint src/ --max-warnings=0",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
