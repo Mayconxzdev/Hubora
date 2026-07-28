@@ -83,13 +83,14 @@ export function Discover() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (initialQuery && initialQuery !== submittedQuery) {
-      setQuery(initialQuery);
-      setSubmittedQuery(initialQuery);
-      setActiveTab('quick');
-      setFilterType(requestedFilter);
-    }
-  }, [initialQuery, requestedFilter, submittedQuery]);
+    // A URL é a fonte de verdade quando a pessoa chega por um link interno
+    // (por exemplo, uma coleção TMDB no detalhe). Sincronizar sempre que ela
+    // muda evita mostrar o aviso de contexto sem aplicar a própria consulta.
+    setQuery(initialQuery);
+    setSubmittedQuery(initialQuery);
+    setActiveTab(initialScene ? 'scene' : initialVibe ? 'vibe' : 'quick');
+    setFilterType(requestedFilter);
+  }, [initialQuery, initialScene, initialVibe, requestedFilter]);
 
   const handleUnifiedSearch = (event: React.FormEvent) => {
     event.preventDefault();

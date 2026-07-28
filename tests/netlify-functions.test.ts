@@ -119,6 +119,18 @@ describe('Netlify functions', () => {
     }
   });
 
+  it('normaliza falha de configuração do Google Books sem encaminhar um 400 ao navegador', async () => {
+    const previousFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response(JSON.stringify({ error: { status: 'INVALID_ARGUMENT' } }), { status: 400 });
+    try {
+      const response = await googleBooks(new Request('http://localhost/api/google-books?q=Spider-Man%3A%20Blue'));
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({ items: [], providerStatus: 'unavailable', upstreamStatus: 400 });
+    } finally {
+      globalThis.fetch = previousFetch;
+    }
+  });
+
   it('mantém uma obra de domínio público verificável quando Google Books está indisponível', async () => {
     const previousFetch = globalThis.fetch;
     globalThis.fetch = async (input) => {

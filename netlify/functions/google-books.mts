@@ -53,7 +53,13 @@ export default async function googleBooks(request: Request) {
   try {
     const response = await fetchWithTimeout(upstream, { headers: { Accept: 'application/json' } }, 9_000);
     const body = await response.text();
-    if (!response.ok && response.status >= 429) return unavailableCatalogResponse(id, response.status);
+    // A entrada já foi validada localmente. Portanto, qualquer resposta não
+    // bem-sucedida daqui em diante pertence ao provedor/configuração (inclusive
+    // uma chave revogada ou restrita), não à pessoa que fez a busca. Não
+    // encaminhamos um 4xx bruto ao navegador: o cliente recebe o estado
+    // explícito de indisponibilidade e pode usar Open Library ou o catálogo
+    // oficial sem inventar uma obra, disponibilidade ou leitura.
+    if (!response.ok) return unavailableCatalogResponse(id, response.status);
     return new Response(body, {
       status: response.status,
       headers: {

@@ -263,7 +263,11 @@ async function startServer() {
     try {
       const response = await fetch(upstream, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(9_000) });
       const body = await response.text();
-      if (!response.ok && response.status >= 429) {
+      // A consulta já passou pela validação local. Um 4xx/5xx daqui é do
+      // provedor ou da configuração dele (por exemplo, uma chave restrita),
+      // não uma entrada inválida da pessoa usuária. Espelhe a Function
+      // Netlify: exponha indisponibilidade e preserve o fallback oficial.
+      if (!response.ok) {
         res.status(200).set('content-type', 'application/json; charset=utf-8').set('cache-control', 'no-store').set('x-hubora-provider-status', 'unavailable').json(id ? { providerStatus: 'unavailable', upstreamStatus: response.status } : { items: [], providerStatus: 'unavailable', upstreamStatus: response.status });
         return;
       }

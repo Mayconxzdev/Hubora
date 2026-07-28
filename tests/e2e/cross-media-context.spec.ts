@@ -21,9 +21,17 @@ test('detalhe de filme usa somente a coleção TMDB confirmada ao explorar forma
   await page.getByRole('tab', { name: 'Sua atividade', exact: true }).click();
   const crossMedia = page.getByRole('link', { name: /explorar outros formatos/i });
   await expect(crossMedia).toBeVisible();
-  await expect(crossMedia).toHaveAttribute('href', /q=Homem-Aranha.*context=tmdb-collection/);
+  const href = await crossMedia.getAttribute('href');
+  expect(href).toBeTruthy();
+  const collectionUrl = new URL(href!, 'http://hubora.local');
+  const collectionQuery = collectionUrl.searchParams.get('q');
+  expect(collectionUrl.searchParams.get('context')).toBe('tmdb-collection');
+  expect(collectionUrl.searchParams.get('collection')).toBeTruthy();
+  expect(collectionQuery).toBeTruthy();
+  expect(collectionQuery!.trim().length).toBeGreaterThanOrEqual(2);
 
   await crossMedia.click();
   await expect(page.getByText(/contexto de coleção.*confirmado pelo TMDB/i)).toBeVisible();
-  await expect(page.getByRole('heading', { name: /Resultados para “Homem-Aranha”/i })).toBeVisible();
+  await expect(page.getByLabel('Busca em Descobrir')).toHaveValue(collectionQuery!);
+  await expect(page.getByRole('heading', { name: new RegExp(`Resultados para “${collectionQuery!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i') })).toBeVisible();
 });
