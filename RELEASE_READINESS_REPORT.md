@@ -1,8 +1,11 @@
 # Hubora — relatório de readiness de release
 
-**Veredito atual: NÃO PRONTO.**
 
-Este repositório é preparado no Git preservando o histórico. A produção usa `main`; o estado de CI e deploy deve ser conferido no GitHub e no Netlify antes de qualquer declaração de prontidão.
+**Status: APROVADO PARA DEMONSTRAÇÃO PÚBLICA DE PORTFÓLIO**
+
+A versão atual possui instalação reproduzível, testes unitários, build, E2E, autenticação, isolamento RLS, sincronização e deploy público validados.
+
+Essa aprovação não representa homologação para operação comercial em grande escala, SLA, suporte contínuo ou garantia de disponibilidade dos provedores externos.
 
 ## O que foi comprovado
 
