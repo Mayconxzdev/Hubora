@@ -131,7 +131,7 @@ O produto organiza próximos lançamentos e descoberta orientada ao tempo, indo 
 |---|---|---|
 | Unificar mídias com estruturas diferentes | Identidade canônica compartilhada e campos/ações específicos por domínio | UX consistente sem tratar livro, jogo, filme e série como o mesmo objeto |
 | Permitir experimentação sem cadastro | Arquitetura **local-first** com IndexedDB/Dexie | Menor atrito inicial e dados úteis no próprio dispositivo |
-| Separar dados pessoais por conta | Integração versionada com Supabase Auth, PostgreSQL e políticas RLS | Base preparada para isolamento; a revalidação remota independente de duas contas permanece documentada como pendente |
+| Separar dados pessoais por conta | Integração versionada com Supabase Auth, PostgreSQL e políticas RLS | Isolamento validado dinamicamente com duas contas distintas; cada conta acessa somente seus próprios registros |
 | Proteger credenciais e integrações | Segredos processados em Netlify Functions, fora do bundle do navegador | Fronteira cliente/servidor clara e menor exposição |
 | Manter catálogos extensos responsivos | Cache persistente, carregamento progressivo, virtualização e imagens sob demanda | Navegação mais fluida e menos trabalho desnecessário no navegador |
 | Integrar fontes comerciais com responsabilidade | Separação explícita entre metadados, prévias, conteúdo incorporável e links externos | Comunicação honesta sobre o que de fato está disponível |
@@ -211,7 +211,12 @@ npm run dev
 
 ## Estado atual e limitações
 
-**Hubora v1.0.0** está publicado como demonstração de portfólio e executa localmente com as verificações acima. Ele não mascara dependências externas como se fossem funcionalidades garantidas:
+- autenticação por e-mail/senha e Google foi validada no ambiente publicado;
+- isolamento por RLS foi testado dinamicamente com duas contas distintas;
+- sincronização de biblioteca e progresso entre dispositivos foi validada;
+- o código atual da branch `main` está publicado no Netlify e corresponde à demonstração pública;
+- integrações externas continuam dependentes da disponibilidade e dos limites de cada provedor;
+- Google Books permanece com falha externa do provedor e é tratado com um estado explícito de indisponibilidade, sem inventar conteúdo ou resultados.
 
 - provedores dependem de credenciais válidas, disponibilidade da API, região e permissão de incorporação;
 - fontes comerciais não recebem player interno sem autorização comprovada;
