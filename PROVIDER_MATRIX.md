@@ -1,6 +1,10 @@
-# Matriz de provedores — status de release
+# Matriz de provedores
 
-A matriz detalhada de 88 fontes fica em [docs/PROVIDER_MATRIX.md](docs/PROVIDER_MATRIX.md) e [docs/PROVIDER_MATRIX.csv](docs/PROVIDER_MATRIX.csv).
+Esta matriz registra o estado observado das integrações no ambiente publicado.
+
+Um provedor só recebe o estado **VALIDADO** quando retornou conteúdo ou concluiu o fluxo esperado de ponta a ponta. A existência de adaptador, variável de ambiente, botão ou código de integração não é suficiente para classificá-lo como funcional.
+
+Na versão atual, as integrações testadas permanecem disponíveis conforme os estados individuais da tabela. **Google Books** está classificado como **BLOQUEADO EXTERNAMENTE** devido a erro do próprio provedor; o aplicativo trata essa condição sem apresentar dados inventados.
 
 ## Leitura obrigatória do status atual
 
