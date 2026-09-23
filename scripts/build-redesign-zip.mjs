@@ -22,6 +22,8 @@ const EXCLUDE_DIRS = new Set([
   '.qoder',
   '.impeccable',
   '.agents',
+  'audit-tools',
+  'audit',
   'Hubora_Redesign_Cinematografico_Completo',
 ]);
 
@@ -30,6 +32,9 @@ const EXCLUDE_FILES = new Set([
   'package-lock.json', // keep package-lock.json — re-include
   '.env',
   '.env.test.local',
+  'VISUAL_AUDIT_REPORT.md',
+  'RELEASE_READINESS_REPORT.md',
+  'PACKAGE_CONTENTS.md',
 ]);
 
 async function ensureCleanDir(target) {

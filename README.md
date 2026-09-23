@@ -37,11 +37,9 @@ A aplicação permite descobrir uma obra, consultar metadados e fontes, salvá-l
 | **Conteúdo externo** | Metadados, disponibilidade e reprodução aparecem com limites explícitos; não há player ou fonte inventada |
 | **Versão** | v1.0.0 publicada para demonstração; integrações externas e validação multiusuário são acompanhadas separadamente |
 
-## Qualidade atual
+## Verificações
 
-A branch `main` passa por lint sem avisos, typecheck, 138 testes unitários, build/PWA, regressão E2E desktop e verificações visuais e de acessibilidade em desktop, tablet e Android.
-
-Os comandos e relatórios ficam em [TEST_EVIDENCE.md](TEST_EVIDENCE.md) e [RELEASE_READINESS_REPORT.md](RELEASE_READINESS_REPORT.md).
+O GitHub Actions executa verificações estáticas, lint, typecheck, testes, build/PWA e fluxos de navegador. Consulte [as execuções recentes](https://github.com/Mayconxzdev/Hubora/actions/workflows/ci.yml) para ver o resultado atual. [TEST_EVIDENCE.md](TEST_EVIDENCE.md) registra uma rodada anterior com os comandos e resultados observados.
 
 ## Como experimentar
 
@@ -172,7 +170,7 @@ npm run dev
 - [Matriz de provedores](PROVIDER_MATRIX.md)
 - [Variáveis de ambiente](ENVIRONMENT_VARIABLES.md)
 - [Testes](TEST_EVIDENCE.md)
-- [Estado da release](RELEASE_READINESS_REPORT.md)
+- [Execuções recentes de CI](https://github.com/Mayconxzdev/Hubora/actions/workflows/ci.yml)
 - [Deploy e rollback](DEPLOY_AND_ROLLBACK.md)
 - [Política de segurança](SECURITY.md)
 

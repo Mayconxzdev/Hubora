@@ -33,3 +33,4 @@ output/
 test-results/
 playwright-report/
 .playwright/
+/artifacts/PACKAGE_CONTENTS.md

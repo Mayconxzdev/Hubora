@@ -72,7 +72,7 @@ async function main() {
         await copyRecursive(path.join(docsSrc, e.name), path.join(STAGING, 'docs', e.name));
       } else if (e.isDirectory()) {
         // keep architecture and decisions folders
-        if (['architecture', 'decisions', 'evidence', 'audit'].includes(e.name)) {
+        if (['architecture', 'decisions', 'evidence'].includes(e.name)) {
           await copyRecursive(path.join(docsSrc, e.name), path.join(STAGING, 'docs', e.name));
         }
       }
