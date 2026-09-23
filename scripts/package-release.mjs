@@ -3,7 +3,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 const ROOT_DIR = process.cwd();
-const AUDIT_DIR = path.join(ROOT_DIR, 'docs', 'audit');
+const PACKAGE_CONTENTS_DIR = path.join(ROOT_DIR, 'artifacts');
+const PACKAGE_CONTENTS_PATH = path.join(PACKAGE_CONTENTS_DIR, 'PACKAGE_CONTENTS.md');
 
 const FORBIDDEN_PATTERNS = [
   /\.env(\.local)?$/,
@@ -16,25 +17,11 @@ const FORBIDDEN_PATTERNS = [
   /\.tmp$/,
 ];
 
-const ALLOWED_DIRECTORIES = ['src', 'netlify', 'public', 'docs', 'tests', 'scripts', '.agents'];
-const ALLOWED_FILES = [
-  'package.json',
-  'package-lock.json',
-  'tsconfig.json',
-  'tsconfig.app.json',
-  'tsconfig.node.json',
-  'vite.config.ts',
-  'vitest.config.ts',
-  'playwright.config.ts',
-  '.env.example',
-  'server.ts',
-  'README.md',
-  'skills-lock.json',
-  '.gitignore',
-];
-
 function isForbidden(filePath) {
   const relativePath = path.relative(ROOT_DIR, filePath);
+  if (relativePath.replace(/\\/g, '/') === 'artifacts/PACKAGE_CONTENTS.md') {
+    return true;
+  }
   if (relativePath.startsWith('.env') && relativePath !== '.env.example') {
     return true;
   }
@@ -73,8 +60,8 @@ function scanDir(dirPath, fileList = []) {
 
 function main() {
   console.log('📦 Iniciando verificação e empacotamento de release do Hubora...');
-  if (!fs.existsSync(AUDIT_DIR)) {
-    fs.mkdirSync(AUDIT_DIR, { recursive: true });
+  if (!fs.existsSync(PACKAGE_CONTENTS_DIR)) {
+    fs.mkdirSync(PACKAGE_CONTENTS_DIR, { recursive: true });
   }
 
   const allFiles = scanDir(ROOT_DIR);
@@ -98,8 +85,8 @@ function main() {
     ...packageContents.map((f) => `| \`${f.path}\` | ${f.size} | \`${f.sha256.substring(0, 16)}...\` |`),
   ].join('\n');
 
-  fs.writeFileSync(path.join(AUDIT_DIR, 'PACKAGE_CONTENTS.md'), contentsMarkdown, 'utf8');
-  console.log(`✅ Inventário do pacote gerado com sucesso em docs/audit/PACKAGE_CONTENTS.md (${packageContents.length} arquivos)`);
+  fs.writeFileSync(PACKAGE_CONTENTS_PATH, contentsMarkdown, 'utf8');
+  console.log(`✅ Inventário do pacote gerado em artifacts/PACKAGE_CONTENTS.md (${packageContents.length} arquivos)`);
 }
 
 main();

@@ -37,11 +37,9 @@ The application lets people discover an item, inspect metadata and sources, save
 | **External content** | Metadata, availability and playback are shown with explicit limits; no player or source is fabricated |
 | **Version** | v1.0.0 published as a demo; external integrations and multi-user validation are tracked separately |
 
-## Current quality checks
+## Checks
 
-The `main` branch passes zero-warning linting, type checking, 138 unit tests, production/PWA build, desktop E2E regression and visual/accessibility checks on desktop, tablet and Android.
-
-Commands and reports are available in [TEST_EVIDENCE.md](TEST_EVIDENCE.md) and [RELEASE_READINESS_REPORT.md](RELEASE_READINESS_REPORT.md).
+GitHub Actions runs static checks, lint, type checking, tests, the production/PWA build and browser flows. See [recent runs](https://github.com/Mayconxzdev/Hubora/actions/workflows/ci.yml) for current results. [TEST_EVIDENCE.md](TEST_EVIDENCE.md) records an earlier run, including its commands and observed results.
 
 ## Try the application
 
@@ -172,7 +170,7 @@ npm run dev
 - [Provider matrix](PROVIDER_MATRIX.md)
 - [Environment variables](ENVIRONMENT_VARIABLES.md)
 - [Tests](TEST_EVIDENCE.md)
-- [Release status](RELEASE_READINESS_REPORT.md)
+- [Recent CI runs](https://github.com/Mayconxzdev/Hubora/actions/workflows/ci.yml)
 - [Deploy and rollback](DEPLOY_AND_ROLLBACK.md)
 - [Security policy](SECURITY.md)
 
