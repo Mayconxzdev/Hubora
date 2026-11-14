@@ -4,6 +4,7 @@ import { ExternalLink, LoaderCircle, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { SEO } from '@/components/ui/SEO';
 import { STREAM_EMBED_HOSTS } from '@/config/streamHosts';
+import { readPlaybackSession } from '@/services/playbackSession';
 
 export function safePlaybackUrl(value: string | null) {
   if (!value) return null;
@@ -30,12 +31,30 @@ function DirectVideo({ source, hls }: { source: string; hls: boolean }) {
   const [loading, setLoading] = useState(hls);
   const [error, setError] = useState('');
   const [speed, setSpeed] = useState(1);
-  const storageKey = `hubora-player:${source}`.slice(0, 500);
+  const [storageKey, setStorageKey] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    void crypto.subtle.digest('SHA-256', new TextEncoder().encode(source)).then((digest) => {
+      const hash = Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+      const nextKey = `hubora-player:v2:${hash}`;
+      const legacyKey = `hubora-player:${source}`.slice(0, 500);
+      try {
+        const legacyProgress = localStorage.getItem(legacyKey);
+        if (!localStorage.getItem(nextKey) && legacyProgress) localStorage.setItem(nextKey, legacyProgress);
+        localStorage.removeItem(legacyKey);
+      } catch { /* resume storage is optional */ }
+      if (active) setStorageKey(nextKey);
+    }).catch(() => {
+      if (active) setStorageKey('');
+    });
+    return () => { active = false; };
+  }, [source]);
 
   // Resume from saved position
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !storageKey) return;
     const handleLoaded = () => {
       try {
         const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
@@ -51,7 +70,7 @@ function DirectVideo({ source, hls }: { source: string; hls: boolean }) {
   // Save position every 5s and on pause
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !storageKey) return;
     const save = () => {
       if (video.currentTime > 0) {
         localStorage.setItem(storageKey, JSON.stringify({ time: video.currentTime, duration: video.duration, at: Date.now() }));
@@ -159,18 +178,21 @@ function DirectVideo({ source, hls }: { source: string; hls: boolean }) {
       ))}
       <button onClick={() => void togglePiP()} className="ml-auto px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--hub-surface-2)] text-[var(--hub-muted)] border border-[var(--hub-border)] hover:text-white transition-all">PiP</button>
     </div>
-    <p className="px-4 pb-3 pt-1 text-[0.65rem] text-[var(--hub-subtle)]">Atalhos: Espaço (play/pause) • ←/→ (±10s) • F (tela cheia) • M (mudo)</p>
+    <p className="px-4 pb-3 pt-1 text-xs text-[var(--hub-subtle)]">Atalhos: Espaço (play/pause) • ←/→ (±10s) • F (tela cheia) • M (mudo)</p>
   </div>;
 }
 
 export function Player() {
   const [params] = useSearchParams();
-  const source = safePlaybackUrl(params.get('url'));
-  const embed = safeEmbed(params.get('embed'));
+  const session = readPlaybackSession(params.get('session'));
+  const sessionEmbed = session?.kind === 'embed' ? session.source : null;
+  const sessionSource = session && session.kind !== 'embed' ? session.source : null;
+  const source = safePlaybackUrl(params.get('url') || sessionSource || null);
+  const embed = safeEmbed(params.get('embed') || sessionEmbed);
   const youtube = params.get('youtube');
-  const title = params.get('title') || 'Reprodução';
-  const kind = params.get('kind') || 'video';
-  const official = safePlaybackUrl(params.get('official')) || source || embed;
+  const title = params.get('title') || session?.title || 'Reprodução';
+  const kind = params.get('kind') || session?.kind || 'video';
+  const official = safePlaybackUrl(params.get('official')) || (params.get('session') ? null : source || embed);
   const player = useMemo(() => {
     if (youtube && /^[\w-]{6,20}$/.test(youtube)) return <iframe className="aspect-video w-full rounded-3xl border border-[var(--hub-border)] bg-black" src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(youtube)}?rel=0`} title={title} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen />;
     if (embed) return <iframe className="aspect-video w-full rounded-3xl border border-[var(--hub-border)] bg-black" src={embed} title={title} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="no-referrer" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation" />;
@@ -184,3 +206,4 @@ export function Player() {
     {player}
   </div>;
 }
+

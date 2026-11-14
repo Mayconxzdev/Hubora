@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, Play, Tv } from 'lucide-react';
+import { Check, ChevronDown, LoaderCircle, Play, Tv } from 'lucide-react';
 import { api } from '@/services/api';
 import { useStore } from '@/store/useStore';
 import { findLibraryEntry } from '@/services/identity';
 import type { MediaItem } from '@/types';
-import { accessDestination, verifiedAccessFor } from '@/services/mediaAccess';
+import { verifiedAccessFor } from '@/services/mediaAccess';
 import { toast } from 'sonner';
+import { loadProviderConfigsWithVault } from '@/services/providerVaultSync';
+import { prioritizeBrazilianPortuguese, resolveSafeStremioStreams } from '@/services/providerProtocol';
+import { createPlaybackPath } from '@/services/playbackSession';
 
 interface Episode {
   episode_number: number;
@@ -29,6 +32,8 @@ export function EpisodeList({ item, onRequestSources }: { item: MediaItem; onReq
 
   const navigate = useNavigate();
   const library = useStore((state) => state.library);
+  const user = useStore((state) => state.user);
+  const ownerId = user?.uid || 'guest';
   const updateLibraryItem = useStore((state) => state.updateLibraryItem);
   const entry = findLibraryEntry(library, item);
   const currentEp = entry?.progress?.currentEpisode || 0;
@@ -38,6 +43,7 @@ export function EpisodeList({ item, onRequestSources }: { item: MediaItem; onReq
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
+  const [playingEpisode, setPlayingEpisode] = useState<number | null>(null);
 
   const tmdbId = String(item.tmdbId || item.id).replace(/^(tmdb-tv-|tv-|series-)/, '');
   const malId = String(item.malId || item.sourceId || item.id).replace(/^(mal-anime-|anime-|jikan-anime-)/, '');
@@ -108,23 +114,40 @@ export function EpisodeList({ item, onRequestSources }: { item: MediaItem; onReq
     toast.success(`Episódio ${epNumber} marcado como assistido!`);
   };
 
-  const openEpisodeSource = (_epNumber: number) => {
-    if (!directAccess) {
-      onRequestSources?.();
-      toast.info('Nenhuma fonte verificada foi vinculada a este episódio. Confira a aba Fontes.');
-      return;
-    }
+  const openEpisodeSource = async (epNumber: number) => {
+    if (playingEpisode !== null) return;
+    setPlayingEpisode(epNumber);
+    const episodeTitle = `${item.title} — T${selectedSeason} E${epNumber}`;
+    try {
+      const baseId = item.externalIds?.imdb || String(item.sourceId || item.id);
+      const episodeId = `${baseId}:${selectedSeason}:${epNumber}`;
+      const providers = await loadProviderConfigsWithVault(ownerId);
+      const activeProviders = providers.filter((provider) => provider.enabled && provider.capabilities.includes('stream'));
+      const results = await Promise.allSettled(activeProviders.map((provider) => resolveSafeStremioStreams(provider, 'series', episodeId)));
+      const episodeSources = prioritizeBrazilianPortuguese(results.flatMap((result) => result.status === 'fulfilled' ? result.value : []));
+      const playable = episodeSources.find((source) => source.embedId || (source.url && ['video', 'hls', 'audio', 'embed'].includes(source.kind)));
 
-    const destination = accessDestination(directAccess, item);
-    if (destination.kind === 'internal') {
-      navigate(destination.path);
-      return;
+      if (playable?.embedId) {
+        navigate(`/player?youtube=${encodeURIComponent(playable.embedId)}&title=${encodeURIComponent(episodeTitle)}`);
+        return;
+      }
+      if (playable?.url) {
+        navigate(createPlaybackPath(playable, episodeTitle));
+        return;
+      }
+
+      if (directAccess && ['video', 'hls', 'audio', 'embed'].includes(directAccess.kind)) {
+        navigate(createPlaybackPath(directAccess, episodeTitle));
+        return;
+      }
+
+      onRequestSources?.();
+      toast.info('Nenhuma fonte direta compatível foi encontrada para este episódio. Confira os complementos configurados.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível consultar as fontes deste episódio.');
+    } finally {
+      setPlayingEpisode(null);
     }
-    if (destination.kind === 'external') {
-      window.open(destination.url, '_blank', 'noopener,noreferrer');
-      return;
-    }
-    toast.error(destination.reason);
   };
 
   if (!isAnime && !isTV) return null;
@@ -209,11 +232,12 @@ export function EpisodeList({ item, onRequestSources }: { item: MediaItem; onReq
                       </span>
                     </button>
                     <button
-                      onClick={() => openEpisodeSource(ep.episode_number)}
-                      className="mr-3 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--hub-brand)] text-[var(--hub-brand-contrast)] transition-transform hover:scale-110 focus-visible:outline-none"
-                      aria-label={directAccess ? `Abrir fonte do episódio ${ep.episode_number}` : `Ver fontes para o episódio ${ep.episode_number}`}
+                      onClick={() => void openEpisodeSource(ep.episode_number)}
+                      disabled={playingEpisode !== null}
+                      className="mr-3 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--hub-brand)] text-[var(--hub-brand-contrast)] transition-transform hover:scale-110 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+                      aria-label={playingEpisode === ep.episode_number ? `Buscando fontes para o episódio ${ep.episode_number}` : `Ver fontes para o episódio ${ep.episode_number}`}
                     >
-                      <Play aria-hidden="true" size={14} />
+                      {playingEpisode === ep.episode_number ? <LoaderCircle aria-hidden="true" size={14} className="animate-spin"/> : <Play aria-hidden="true" size={14} />}
                     </button>
                   </div>
                 );
@@ -225,3 +249,4 @@ export function EpisodeList({ item, onRequestSources }: { item: MediaItem; onReq
     </div>
   );
 }
+

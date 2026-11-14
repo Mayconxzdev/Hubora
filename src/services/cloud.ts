@@ -26,6 +26,7 @@ export const cloudService = {
     const operations = [
       supabase.from('notifications').delete().eq('user_id', userId),
       supabase.from('release_subscriptions').delete().eq('user_id', userId),
+      supabase.from('provider_config_vault').delete().eq('user_id', userId),
       supabase.from('consumption_events').delete().eq('user_id', userId),
       supabase.from('custom_lists').delete().eq('user_id', userId),
       supabase.from('library_entries').delete().eq('user_id', userId),
@@ -242,3 +243,4 @@ export const cloudService = {
   },
 
 };
+
