@@ -235,7 +235,7 @@ export function EpisodeList({ item, onRequestSources }: { item: MediaItem; onReq
                       onClick={() => void openEpisodeSource(ep.episode_number)}
                       disabled={playingEpisode !== null}
                       className="mr-3 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--hub-brand)] text-[var(--hub-brand-contrast)] transition-transform hover:scale-110 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
-                      aria-label={playingEpisode === ep.episode_number ? `Buscando fonte do episódio ${ep.episode_number}` : `Buscar fonte do episódio ${ep.episode_number}`}
+                      aria-label={playingEpisode === ep.episode_number ? `Buscando fontes para o episódio ${ep.episode_number}` : `Ver fontes para o episódio ${ep.episode_number}`}
                     >
                       {playingEpisode === ep.episode_number ? <LoaderCircle aria-hidden="true" size={14} className="animate-spin"/> : <Play aria-hidden="true" size={14} />}
                     </button>
