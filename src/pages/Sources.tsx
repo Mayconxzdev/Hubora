@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, CheckCircle2, ExternalLink, Film, Globe2, LibraryBig, Link2, Plus, Search, Server, ShieldCheck, Trash2 } from 'lucide-react';
+import { BookOpen, CheckCircle2, ExternalLink, Film, Globe2, LibraryBig, Link2, Plus, Search, Server, ShieldCheck, Trash2, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SEO } from '@/components/ui/SEO';
 import { BUILTIN_PROVIDERS, inspectStremioProvider, listProviderConfigs, removeProviderConfig, resolveSafeStremioStreams, saveProviderConfig, searchStremioCatalog } from '@/services/providerProtocol';
+import { clearProviderDeletion, getCachedProviderVaultPassphrase, hasRemoteProviderVault, lockProviderVault, markProviderDeleted, syncProviderVault, unlockProviderVault } from '@/services/providerVaultSync';
+import { cloudService } from '@/services/cloud';
+import { createPlaybackPath } from '@/services/playbackSession';
 import type { MediaAccess, MediaItem, ProviderConfig } from '@/types';
 import { useStore } from '@/store/useStore';
 
@@ -26,6 +29,8 @@ export function Sources() {
   const [searchParams] = useSearchParams();
   const autoSearchDone = useRef(false);
   const addToLibrary = useStore((state) => state.addToLibrary);
+  const user = useStore((state) => state.user);
+  const ownerId = user?.uid || 'guest';
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<FreeCatalogItem[]>([]);
@@ -35,9 +40,58 @@ export function Sources() {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [providerWarnings, setProviderWarnings] = useState<string[]>([]);
+  const [guestProviders, setGuestProviders] = useState<ProviderConfig[]>([]);
+  const [vaultPhrase, setVaultPhrase] = useState('');
+  const [vaultMessage, setVaultMessage] = useState('');
+  const [vaultBusy, setVaultBusy] = useState(false);
+  const [vaultAvailable, setVaultAvailable] = useState(false);
+  const [remoteVaultExists, setRemoteVaultExists] = useState(false);
+  const [vaultUnlocked, setVaultUnlocked] = useState(false);
 
-  const refresh = () => void listProviderConfigs().then(setProviders);
-  useEffect(refresh, []);
+  const refresh = async () => {
+    const next = await listProviderConfigs(ownerId);
+    setProviders(next);
+    return next;
+  };
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      setVaultAvailable(Boolean(user && cloudService.isConfigured));
+      try {
+        const [local, guest] = await Promise.all([
+          listProviderConfigs(ownerId),
+          ownerId === 'guest' ? Promise.resolve([]) : listProviderConfigs('guest'),
+        ]);
+        if (!active) return;
+        setProviders(local);
+        setGuestProviders(guest);
+        if (!user || !cloudService.isConfigured) return;
+
+        const hasRemote = await hasRemoteProviderVault(user.uid);
+        if (!active) return;
+        setRemoteVaultExists(hasRemote);
+        const cachedPhrase = await getCachedProviderVaultPassphrase(user.uid);
+        if (!cachedPhrase) return;
+        setVaultBusy(true);
+        try {
+          const merged = await syncProviderVault(user.uid, local);
+          if (!active) return;
+          setProviders(merged);
+          setRemoteVaultExists(true);
+          setVaultUnlocked(true);
+          setVaultMessage('Fontes locais e da conta sincronizadas neste navegador.');
+        } catch (error) {
+          if (active) setVaultMessage(error instanceof Error ? error.message : 'Não foi possível sincronizar o cofre.');
+        } finally {
+          if (active) setVaultBusy(false);
+        }
+      } catch (error) {
+        if (active) setVaultMessage(error instanceof Error ? error.message : 'Não foi possível carregar as fontes salvas.');
+      }
+    })();
+    return () => { active = false; };
+  }, [ownerId]);
 
   const runSearch = async (value: string) => {
     const normalized = value.trim();
@@ -81,13 +135,109 @@ export function Sources() {
 
   const addProvider = async () => {
     try {
-      const { config } = await inspectStremioProvider(manifestUrl.trim());
+      const { config } = await inspectStremioProvider(manifestUrl.trim(), ownerId);
       await saveProviderConfig(config);
+      clearProviderDeletion(ownerId, config.id);
       setManifestUrl('');
-      refresh();
+      let next = await refresh();
+      if (user && vaultUnlocked) {
+        try {
+          next = await syncProviderVault(user.uid, next);
+          setProviders(next);
+          setRemoteVaultExists(true);
+        } catch (error) {
+          setVaultMessage(error instanceof Error ? error.message : 'A fonte foi salva neste navegador, mas a sincronização falhou.');
+        }
+      }
       toast.success(`${config.name} adicionado.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Manifesto inválido.');
+    }
+  };
+
+  const saveVault = async () => {
+    if (!user || !vaultAvailable) return;
+    setVaultBusy(true);
+    setVaultMessage('');
+    try {
+      const local = await listProviderConfigs(user.uid);
+      const merged = await unlockProviderVault(user.uid, vaultPhrase, local);
+      setProviders(merged);
+      setRemoteVaultExists(true);
+      setVaultUnlocked(true);
+      setVaultMessage('Sincronização ativa. O Hubora criptografa as fontes antes de enviá-las à conta.');
+      setVaultPhrase('');
+    } catch (error) {
+      setVaultMessage(error instanceof Error ? error.message : 'Não foi possível abrir a sincronização.');
+    } finally {
+      setVaultBusy(false);
+    }
+  };
+
+  const syncNow = async () => {
+    if (!user) return;
+    setVaultBusy(true);
+    setVaultMessage('');
+    try {
+      const merged = await syncProviderVault(user.uid, await listProviderConfigs(user.uid));
+      setProviders(merged);
+      setRemoteVaultExists(true);
+      setVaultUnlocked(true);
+      setVaultMessage('Fontes sincronizadas.');
+    } catch (error) {
+      setVaultMessage(error instanceof Error ? error.message : 'Não foi possível sincronizar agora.');
+    } finally {
+      setVaultBusy(false);
+    }
+  };
+
+  const lockVault = () => {
+    if (!user) return;
+    lockProviderVault(user.uid);
+    setVaultUnlocked(false);
+    setVaultMessage('Este navegador foi desconectado do cofre. As fontes locais continuam disponíveis.');
+  };
+
+  const importGuestProviders = async () => {
+    if (!user || guestProviders.length === 0) return;
+    setVaultBusy(true);
+    try {
+      for (const provider of guestProviders) {
+        const id = provider.id.startsWith('guest:') ? `${user.uid}:${provider.id.slice('guest:'.length)}` : `${user.uid}:${provider.id}`;
+        await saveProviderConfig({ ...provider, id, ownerId: user.uid, updatedAt: Date.now() });
+        await removeProviderConfig(provider.id);
+      }
+      setGuestProviders([]);
+      let next = await listProviderConfigs(user.uid);
+      if (vaultUnlocked) {
+        try {
+          next = await syncProviderVault(user.uid, next);
+          setRemoteVaultExists(true);
+        } catch (error) {
+          setVaultMessage(error instanceof Error ? error.message : 'As fontes foram movidas para esta conta, mas a sincronização falhou.');
+        }
+      }
+      setProviders(next);
+      toast.success('Fontes deste navegador movidas para sua conta.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível importar as fontes locais.');
+    } finally {
+      setVaultBusy(false);
+    }
+  };
+
+  const deleteProvider = async (provider: ProviderConfig) => {
+    markProviderDeleted(ownerId, provider.id);
+    await removeProviderConfig(provider.id);
+    const next = await refresh();
+    if (user && vaultUnlocked) {
+      try {
+        const merged = await syncProviderVault(user.uid, next, provider.id);
+        setProviders(merged);
+        setRemoteVaultExists(true);
+      } catch (error) {
+        setVaultMessage(error instanceof Error ? error.message : 'A fonte foi removida daqui, mas falta sincronizar a remoção.');
+      }
     }
   };
 
@@ -97,8 +247,15 @@ export function Sources() {
       return;
     }
     if (access.kind === 'embed' && access.url) {
-      const destination = item.mediaType === 'movie' ? `/player?embed=${encodeURIComponent(access.url)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(access.url)}` : `/reader?kind=html&url=${encodeURIComponent(access.url)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(access.url)}`;
-      navigate(destination);
+      if (item.mediaType === 'movie') {
+        try {
+          navigate(createPlaybackPath({ id: `${item.id}:embed`, label: access.label, kind: 'embed', url: access.url, provider: item.source }, item.title));
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : 'Não foi possível abrir esta fonte.');
+        }
+      } else {
+        navigate(`/reader?kind=html&url=${encodeURIComponent(access.url)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(access.url)}`);
+      }
       return;
     }
     if (['epub', 'pdf', 'html'].includes(access.kind) && access.url) {
@@ -146,7 +303,7 @@ export function Sources() {
         const first = access[0];
         if (first.embedId) navigate(`/player?youtube=${encodeURIComponent(first.embedId)}&title=${encodeURIComponent(item.title)}`);
         else if (first.url && ['epub', 'pdf', 'html', 'book-preview'].includes(first.kind)) navigate(`/reader?kind=${encodeURIComponent(first.kind)}&url=${encodeURIComponent(first.url)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(item.providerUrl || first.url)}`);
-        else if (first.url && ['video', 'hls', 'audio'].includes(first.kind)) navigate(`/player?kind=${first.kind}&url=${encodeURIComponent(first.url)}&title=${encodeURIComponent(item.title)}&official=${encodeURIComponent(item.providerUrl || '')}`);
+        else if (first.url && ['video', 'hls', 'audio'].includes(first.kind)) navigate(createPlaybackPath(first, item.title));
         else if (first.url) window.open(first.url, '_blank', 'noopener,noreferrer');
         return;
       }
@@ -174,7 +331,7 @@ export function Sources() {
     {providerWarnings.length > 0 && <div role="status" aria-label="Status das fontes" className="hub-panel border-amber-400/25 bg-amber-400/8 p-4 text-sm text-amber-100"><strong>Resultados parciais, com transparência:</strong><ul className="mt-1 list-disc pl-5">{providerWarnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}
     {hasSearched && grouped.length === 0 && providerItems.length === 0 && !searchError && <div className="hub-empty-state"><div><Search className="mx-auto mb-3 text-[var(--hub-brand)]" size={28}/><p className="font-bold text-[var(--hub-text-strong)]">Nenhuma fonte aberta encontrada</p><p className="mt-1 text-sm">Tente outro título, autor ou uma grafia mais curta.</p></div></div>}
 
-    {grouped.map(([source, sourceItems]) => <section key={source} className="hub-section"><div className="hub-section-heading"><div><div className="hub-section-eyebrow"><LibraryBig size={14}/> {source}</div><h2 className="hub-section-title">{sourceItems.length} resultado(s)</h2></div></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{sourceItems.map((item) => <article key={item.id} className="hub-panel flex min-h-48 overflow-hidden"><div className="w-28 shrink-0 bg-[var(--hub-surface-3)] sm:w-36">{item.image ? <img src={item.image} alt="" className="h-full w-full object-cover" loading="lazy"/> : <div className="grid h-full place-items-center">{item.mediaType === 'movie' ? <Film size={30}/> : <BookOpen size={30}/>}</div>}</div><div className="min-w-0 flex-1 p-4"><p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[var(--hub-brand)]">{item.year || source}</p><h3 className="mt-1 line-clamp-2 font-black text-[var(--hub-text-strong)]">{item.title}</h3><p className="mt-1 line-clamp-1 text-xs text-[var(--hub-subtle)]">{item.authors.join(', ') || 'Autor não informado'}</p><p className="mt-3 line-clamp-2 text-xs leading-relaxed text-[var(--hub-muted)]">{item.description || 'Sem descrição.'}</p><div className="mt-4 flex flex-wrap gap-2">{item.access.slice(0, 2).map((access, index) => <Button key={`${access.kind}-${index}`} size="sm" variant={index === 0 ? 'default' : 'outline'} onClick={() => openAccess(item, access)}>{access.kind === 'official-link' ? <ExternalLink size={15}/> : item.mediaType === 'movie' ? <Film size={15}/> : <BookOpen size={15}/>} {access.label}</Button>)}<Button size="sm" variant="ghost" onClick={() => addFreeItem(item)}><Plus size={15}/> Biblioteca</Button></div></div></article>)}</div></section>)}
+    {grouped.map(([source, sourceItems]) => <section key={source} className="hub-section"><div className="hub-section-heading"><div><div className="hub-section-eyebrow"><LibraryBig size={14}/> {source}</div><h2 className="hub-section-title">{sourceItems.length} resultado(s)</h2></div></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{sourceItems.map((item) => <article key={item.id} className="hub-panel flex min-h-48 overflow-hidden"><div className="w-28 shrink-0 bg-[var(--hub-surface-3)] sm:w-36">{item.image ? <img src={item.image} alt="" className="h-full w-full object-cover" loading="lazy"/> : <div className="grid h-full place-items-center">{item.mediaType === 'movie' ? <Film size={30}/> : <BookOpen size={30}/>}</div>}</div><div className="min-w-0 flex-1 p-4"><p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--hub-brand)]">{item.year || source}</p><h3 className="mt-1 line-clamp-2 font-black text-[var(--hub-text-strong)]">{item.title}</h3><p className="mt-1 line-clamp-1 text-xs text-[var(--hub-subtle)]">{item.authors.join(', ') || 'Autor não informado'}</p><p className="mt-3 line-clamp-2 text-xs leading-relaxed text-[var(--hub-muted)]">{item.description || 'Sem descrição.'}</p><div className="mt-4 flex flex-wrap gap-2">{item.access.slice(0, 2).map((access, index) => <Button key={`${access.kind}-${index}`} size="sm" variant={index === 0 ? 'default' : 'outline'} onClick={() => openAccess(item, access)}>{access.kind === 'official-link' ? <ExternalLink size={15}/> : item.mediaType === 'movie' ? <Film size={15}/> : <BookOpen size={15}/>} {access.label}</Button>)}<Button size="sm" variant="ghost" onClick={() => addFreeItem(item)}><Plus size={15}/> Biblioteca</Button></div></div></article>)}</div></section>)}
 
     {providerItems.length > 0 && <section className="hub-section"><div className="hub-section-heading"><div><div className="hub-section-eyebrow"><Film size={14}/> Provedores adicionados</div><h2 className="hub-section-title">Resultados dos seus provedores</h2><p className="hub-section-description">Somente URLs HTTPS diretas, HLS ou YouTube são abertas dentro do Hubora.</p></div></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{providerItems.map(({ item, provider }) => <article key={`${provider.id}:${item.id}`} className="hub-panel flex overflow-hidden"><div className="w-28 shrink-0 bg-[var(--hub-surface-3)]">{item.posterPath ? <img src={item.posterPath} alt="" className="h-full w-full object-cover"/> : <div className="grid h-full place-items-center"><Film/></div>}</div><div className="min-w-0 flex-1 p-4"><p className="text-[0.68rem] font-black uppercase tracking-wider text-[var(--hub-brand)]">{provider.name}</p><h3 className="mt-1 line-clamp-2 font-black text-[var(--hub-text-strong)]">{item.title}</h3><p className="mt-2 line-clamp-2 text-xs text-[var(--hub-muted)]">{item.overview || 'Sem descrição.'}</p><div className="mt-4 flex flex-wrap gap-2"><Button size="sm" onClick={() => void openProviderItem(item, provider)}><Film size={15}/> Abrir fonte</Button><Button size="sm" variant="ghost" onClick={() => { addToLibrary(item, 'planning'); toast.success('Adicionado à biblioteca.'); }}><Plus size={15}/> Biblioteca</Button></div></div></article>)}</div></section>}
 
@@ -185,9 +342,23 @@ export function Sources() {
         <Plus size={18} className="transition-transform group-open:rotate-45"/>
       </summary>
       <div className="mt-6 border-t border-[var(--hub-border)] pt-6">
+        <section aria-labelledby="provider-vault-heading" className="border-b border-[var(--hub-border)] pb-6">
+          <div className="flex items-start gap-3"><LockKeyhole size={20} className="mt-0.5 shrink-0 text-[var(--hub-brand)]"/><div className="min-w-0 flex-1"><h2 id="provider-vault-heading" className="font-black text-[var(--hub-text-strong)]">Fontes neste navegador e na sua conta</h2><p className="mt-1 text-sm text-[var(--hub-muted)]">As URLs ficam criptografadas neste dispositivo. A sincronização envia uma cópia também criptografada; use a mesma frase nos outros dispositivos.</p></div></div>
+          {!user && <p className="mt-3 text-sm text-[var(--hub-muted)]">Entre na sua conta Hubora para sincronizar fontes. Por enquanto, elas ficam somente neste navegador.</p>}
+          {user && !vaultAvailable && <p className="mt-3 text-sm text-[var(--hub-muted)]">A sincronização da conta não está configurada neste ambiente. As fontes continuam salvas localmente.</p>}
+          {user && vaultAvailable && <>
+            {vaultUnlocked ? <div className="mt-3 flex flex-wrap items-center gap-2"><p role="status" className="mr-auto text-sm text-emerald-400">Cofre desbloqueado neste navegador.</p><Button size="sm" variant="outline" onClick={() => void syncNow()} disabled={vaultBusy}><RefreshCw size={15} className={vaultBusy ? 'animate-spin' : ''}/> Sincronizar</Button><Button size="sm" variant="ghost" onClick={lockVault}><LockKeyhole size={15}/> Bloquear</Button></div> : <>
+              <p className="mt-3 text-sm text-[var(--hub-muted)]">{remoteVaultExists ? 'Encontre suas fontes sincronizadas desbloqueando o cofre.' : 'Crie uma frase de sincronização para guardar uma cópia criptografada na conta.'}</p>
+              <div className="mt-3 flex flex-wrap gap-2"><label className="min-w-[16rem] flex-1"><span className="sr-only">Frase de sincronização, mínimo 16 caracteres</span><Input type="password" autoComplete="new-password" value={vaultPhrase} onChange={(event) => setVaultPhrase(event.target.value)} placeholder="Frase de sincronização (mínimo 16 caracteres)" /></label><Button onClick={() => void saveVault()} disabled={vaultBusy || vaultPhrase.trim().length < 16}><LockKeyhole size={15}/>{remoteVaultExists ? 'Desbloquear e sincronizar' : 'Criar cofre'}</Button></div>
+            </>}
+          </>}
+          {vaultMessage && <p role="status" className="mt-3 text-sm text-[var(--hub-muted)]">{vaultMessage}</p>}
+          {user && guestProviders.length > 0 && <div className="mt-4 flex flex-wrap items-center gap-2"><p className="mr-auto text-sm text-[var(--hub-muted)]">Há {guestProviders.length} fonte(s) antigas salvas neste navegador sem vínculo à conta.</p><Button size="sm" variant="outline" onClick={() => void importGuestProviders()} disabled={vaultBusy}>Mover para esta conta</Button></div>}
+        </section>
         <div className="flex items-start gap-3"><div className="rounded-xl bg-[var(--hub-brand-soft)] p-3 text-[var(--hub-brand)]"><Link2 size={20}/></div><div><h2 className="font-black text-[var(--hub-text-strong)]">Adicionar provedor confiável</h2><p className="mt-1 text-sm text-[var(--hub-muted)]">Aceita manifestos Hubora e compatíveis com Stremio, catálogos, capítulos, arquivos e streams diretos autorizados. Torrent, magnet e arquivo .torrent são recusados.</p></div></div>
-        <div className="mt-4 flex gap-2"><label className="flex-1"><span className="sr-only">URL do manifesto</span><Input value={manifestUrl} onChange={(event) => setManifestUrl(event.target.value)} placeholder="https://servidor/manifest.json"/></label><Button onClick={() => void addProvider()} disabled={!manifestUrl.trim()}>Adicionar</Button></div>
-        {providers.length > 0 && <div className="mt-4 grid gap-2">{providers.map((provider) => <div key={provider.id} className="flex items-center justify-between rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] p-3"><div><strong className="text-sm text-[var(--hub-text-strong)]">{provider.name}</strong><p className="mt-1 text-xs text-[var(--hub-muted)]">{provider.capabilities.join(' • ')}</p></div><Button size="sm" variant="ghost" onClick={() => void removeProviderConfig(provider.id).then(refresh)}><Trash2 size={16}/> Remover</Button></div>)}</div>}
+        <p className="mt-3 text-xs text-[var(--hub-muted)]">Adicione um manifesto por vez. Cole o endereço do manifesto do complemento; URLs com tokens ficam mascaradas e criptografadas no armazenamento local.</p>
+        <div className="mt-4 flex gap-2"><label className="flex-1"><span className="sr-only">URL privada do manifesto</span><Input type="password" autoComplete="off" value={manifestUrl} onChange={(event) => setManifestUrl(event.target.value)} placeholder="https://servidor/manifest.json"/></label><Button onClick={() => void addProvider()} disabled={!manifestUrl.trim()}>Adicionar</Button></div>
+        {providers.length > 0 && <div className="mt-4 grid gap-2">{providers.map((provider) => <div key={provider.id} className="flex items-center justify-between rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] p-3"><div><strong className="text-sm text-[var(--hub-text-strong)]">{provider.name}</strong><p className="mt-1 text-xs text-[var(--hub-muted)]">{provider.capabilities.join(' • ')}</p></div><Button size="sm" variant="ghost" onClick={() => void deleteProvider(provider).catch((error) => toast.error(error instanceof Error ? error.message : 'Não foi possível remover a fonte.'))}><Trash2 size={16}/> Remover</Button></div>)}</div>}
         <div className="mt-6"><p className="mb-3 text-xs font-black uppercase tracking-wider text-[var(--hub-subtle)]">Fontes de catálogo ativas</p><div className="grid gap-2 md:grid-cols-2">{BUILTIN_PROVIDERS.map((provider) => <div key={provider.id} className="flex items-start gap-3 rounded-xl border border-[var(--hub-border)] p-3"><CheckCircle2 className="mt-0.5 shrink-0 text-emerald-500" size={17}/><div><strong className="text-sm text-[var(--hub-text-strong)]">{provider.name}</strong><p className="mt-1 text-xs text-[var(--hub-muted)]">{provider.description}</p></div></div>)}</div></div>
       </div>
     </details>
@@ -195,3 +366,4 @@ export function Sources() {
     <section className="hub-section"><div className="grid gap-3 md:grid-cols-2"><article className="hub-panel p-5"><Film className="text-[var(--hub-brand)]"/><h3 className="mt-3 font-black text-[var(--hub-text-strong)]">Filmes, séries, doramas e animes</h3><p className="mt-2 text-sm leading-relaxed text-[var(--hub-muted)]">O Hubora reproduz URLs diretas autorizadas, HLS, vídeos oficiais e mídia dos seus próprios servidores. Serviços comerciais sem incorporação continuam abrindo a fonte oficial.</p></article><article className="hub-panel p-5"><Server className="text-[var(--hub-brand)]"/><h3 className="mt-3 font-black text-[var(--hub-text-strong)]">Jellyfin, Komga, Kavita e OPDS</h3><p className="mt-2 text-sm leading-relaxed text-[var(--hub-muted)]">Esses conectores ficam opcionais. O Netlify hospeda a interface; os arquivos continuam no servidor de origem.</p></article></div></section>
   </div>;
 }
+

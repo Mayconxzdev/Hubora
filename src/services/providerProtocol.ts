@@ -1,5 +1,6 @@
 import { huboraDb } from '@/lib/db';
 import type { MediaAccess, MediaItem, MediaType, ProviderCapability, ProviderConfig, ProviderManifest } from '@/types';
+import { decryptLocalSecret, encryptLocalSecret } from '@/services/secretStorage';
 
 interface StremioManifest {
   id: string;
@@ -108,11 +109,39 @@ function toMediaType(type: string): MediaType | undefined {
   return MEDIA_MAP[type.toLowerCase()];
 }
 
-export async function inspectStremioProvider(manifestUrl: string): Promise<{ config: ProviderConfig; manifest: StremioManifest }> {
+function safeManifestLabel(value: string): string {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return 'Origem configurada';
+  }
+}
+
+function detectExplicitLanguage(stream: Record<string, unknown>): string | undefined {
+  const explicit = typeof stream.language === 'string' ? stream.language.trim() : '';
+  const description = [stream.name, stream.title, stream.description, stream.filename]
+    .filter((value): value is string => typeof value === 'string')
+    .join(' ');
+  if (/(?:\bpt[-_. ]?br\b|portugu[eê]s(?:a)?\s*(?:do\s*)?brasil|brazilian\s+portuguese)/i.test(`${explicit} ${description}`)) return 'pt-BR';
+  if (explicit) return explicit;
+  return undefined;
+}
+
+function isBrazilianPortuguese(language: string | undefined): boolean {
+  return Boolean(language && ['pt-br', 'pt_br', 'ptbr', 'português brasileiro', 'portugues brasileiro'].includes(language.toLowerCase().trim()));
+}
+
+export function prioritizeBrazilianPortuguese(access: MediaAccess[]): MediaAccess[] {
+  return [...access].sort((left, right) => Number(isBrazilianPortuguese(right.language)) - Number(isBrazilianPortuguese(left.language)));
+}
+
+export async function inspectStremioProvider(manifestUrl: string, ownerId = 'guest'): Promise<{ config: ProviderConfig; manifest: StremioManifest }> {
   const url = new URL(manifestUrl);
-  if (url.protocol !== 'https:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+  if (url.username || url.password) throw new Error('Remova usuário e senha da URL do manifesto.');
+  if (url.protocol !== 'https:' && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) {
     throw new Error('Use um manifesto HTTPS ou um servidor local confiável.');
   }
+  url.hash = '';
   const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error(`Manifesto respondeu ${response.status}.`);
   const rawManifest = await response.json() as StremioManifest | HuboraManifest;
@@ -121,12 +150,13 @@ export async function inspectStremioProvider(manifestUrl: string): Promise<{ con
     const allowedCapabilities = rawManifest.capabilities.filter((item): item is ProviderCapability => ['catalog', 'search', 'details', 'stream', 'reader', 'subtitles', 'availability', 'progress', 'download', 'chapters', 'health'].includes(item));
     const now = Date.now();
     const config: ProviderConfig = {
-      id: `hubora:${rawManifest.id}`,
+      id: `${ownerId}:hubora:${rawManifest.id}`,
+      ownerId,
       protocol: 'hubora',
       manifestUrl: url.toString(),
       name: rawManifest.name,
       enabled: true,
-      officialOnly: true,
+      officialOnly: false,
       capabilities: Array.from(new Set(allowedCapabilities)),
       mediaTypes: Array.from(new Set((rawManifest.mediaTypes || []).map(toMediaType).filter((item): item is MediaType => Boolean(item)))),
       createdAt: now,
@@ -138,12 +168,13 @@ export async function inspectStremioProvider(manifestUrl: string): Promise<{ con
   if (!manifest.id || !manifest.name || !manifest.version) throw new Error('Manifesto incompatível.');
   const now = Date.now();
   const config: ProviderConfig = {
-    id: `stremio:${manifest.id}`,
+    id: `${ownerId}:stremio:${manifest.id}`,
+    ownerId,
     protocol: 'stremio',
     manifestUrl: url.toString(),
     name: manifest.name,
     enabled: true,
-    officialOnly: true,
+    officialOnly: false,
     capabilities: toCapabilities(manifest),
     mediaTypes: Array.from(new Set((manifest.types || []).map(toMediaType).filter((item): item is MediaType => Boolean(item)))),
     createdAt: now,
@@ -170,11 +201,39 @@ async function loadHuboraManifest(config: ProviderConfig) {
 }
 
 export async function saveProviderConfig(config: ProviderConfig) {
-  await huboraDb.providerConfigs.put(config);
+  const ownerId = config.ownerId || 'guest';
+  const encryptedManifestUrl = await encryptLocalSecret(config.manifestUrl);
+  await huboraDb.providerConfigs.put({
+    ...config,
+    ownerId,
+    manifestUrl: safeManifestLabel(config.manifestUrl),
+    encryptedManifestUrl,
+  });
 }
 
-export async function listProviderConfigs(): Promise<ProviderConfig[]> {
-  return huboraDb.providerConfigs.orderBy('updatedAt').reverse().toArray();
+export async function listProviderConfigs(ownerId = 'guest'): Promise<ProviderConfig[]> {
+  const stored = await huboraDb.providerConfigs.orderBy('updatedAt').reverse().toArray();
+  const configs: ProviderConfig[] = [];
+  for (const record of stored) {
+    const effectiveOwner = record.ownerId || 'guest';
+    if (effectiveOwner !== ownerId) continue;
+    if (record.encryptedManifestUrl) {
+      try {
+        const manifestUrl = await decryptLocalSecret(record.encryptedManifestUrl);
+        if (!manifestUrl) throw new Error('URL ausente');
+        configs.push({ ...record, manifestUrl });
+      } catch {
+        throw new Error(`Não foi possível abrir a URL protegida de "${record.name}" neste navegador. Readicione o manifesto para continuar.`);
+      }
+      continue;
+    }
+
+    // Migrate older local records that persisted the manifest URL in plaintext.
+    const legacy = { ...record, ownerId: effectiveOwner, manifestUrl: record.manifestUrl };
+    await saveProviderConfig(legacy);
+    configs.push(legacy);
+  }
+  return configs;
 }
 
 export async function removeProviderConfig(id: string) {
@@ -251,7 +310,7 @@ export async function resolveSafeStremioStreams(config: ProviderConfig, type: st
     const response = await fetch(endpointUrl(config.manifestUrl, manifest.endpoints.access, { type, id }));
     if (!response.ok) return [];
     const data = await response.json() as { access?: Array<Record<string, unknown>> };
-  return (data.access || []).flatMap((access, index): MediaAccess[] => {
+  return prioritizeBrazilianPortuguese((data.access || []).flatMap((access, index): MediaAccess[] => {
     const rawUrl = typeof access.url === 'string' ? access.url : undefined;
     const embedId = typeof access.youtubeId === 'string' ? access.youtubeId : undefined;
     if (embedId && /^[\w-]{6,20}$/.test(embedId)) return [{ id: `${config.id}:yt:${index}`, label: String(access.label || 'YouTube'), kind: 'embed', embedId, provider: config.name, free: access.free === true, mode: 'embedded-player', health: 'available' }];
@@ -266,16 +325,16 @@ export async function resolveSafeStremioStreams(config: ProviderConfig, type: st
       const safeKinds: MediaAccess['kind'][] = ['official-link', 'video', 'hls', 'dash', 'audio', 'book-preview', 'epub', 'pdf', 'html'];
       const kind = safeKinds.includes(declared as MediaAccess['kind']) ? declared as MediaAccess['kind'] : 'official-link';
       if (/\.torrent(?:$|\?)/i.test(url.pathname + url.search)) return [];
-      return [{ id: `${config.id}:access:${index}`, label: String(access.label || 'Abrir'), kind, url: rawUrl, provider: config.name, quality: typeof access.quality === 'string' ? access.quality : undefined, language: typeof access.language === 'string' ? access.language : undefined, free: access.free === true, legalNote: 'Recurso fornecido pelo provedor configurado.', health: 'available' }];
+      return [{ id: `${config.id}:access:${index}`, label: String(access.label || 'Abrir'), kind, url: rawUrl, provider: config.name, quality: typeof access.quality === 'string' ? access.quality : undefined, language: detectExplicitLanguage(access), free: access.free === true, legalNote: 'Recurso fornecido pelo provedor configurado.', health: 'available' }];
     } catch { return []; }
-  });
+  }));
   }
   if (!config.capabilities.includes('stream')) return [];
   const base = normalizeBase(config.manifestUrl);
   const response = await fetch(`${base}/stream/${encodeURIComponent(type)}/${encodeURIComponent(id)}.json`);
   if (!response.ok) return [];
   const data = await response.json() as { streams?: Array<Record<string, unknown>> };
-  return (data.streams || []).flatMap((stream, index): MediaAccess[] => {
+  return prioritizeBrazilianPortuguese((data.streams || []).flatMap((stream, index): MediaAccess[] => {
     const rawUrl = typeof stream.url === 'string' ? stream.url : undefined;
     const ytId = typeof stream.ytId === 'string' ? stream.ytId : undefined;
     const infoHash = typeof stream.infoHash === 'string' ? stream.infoHash : undefined;
@@ -294,9 +353,10 @@ export async function resolveSafeStremioStreams(config: ProviderConfig, type: st
       if (url.protocol !== 'https:') return [];
       if (/\.torrent(?:$|\?)/i.test(url.pathname + url.search)) return [];
       const kind: MediaAccess['kind'] = /\.m3u8(?:$|\?)/i.test(url.pathname + url.search) ? 'hls' : 'video';
-      return [{ id: `${config.id}:stream:${index}`, label: String(stream.title || stream.name || 'Reproduzir'), kind, url: rawUrl, provider: config.name, quality: typeof stream.description === 'string' ? stream.description : undefined, legalNote: 'Recurso fornecido pelo provedor configurado.' }];
+      return [{ id: `${config.id}:stream:${index}`, label: String(stream.title || stream.name || 'Reproduzir'), kind, url: rawUrl, provider: config.name, quality: typeof stream.description === 'string' ? stream.description : undefined, language: detectExplicitLanguage(stream), legalNote: 'Origem fornecida pelo provedor configurado.' }];
     } catch {
       return [];
     }
-  });
+  }));
 }
+

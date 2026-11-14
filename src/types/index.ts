@@ -420,8 +420,12 @@ export interface ProviderManifest {
 
 export interface ProviderConfig {
   id: string;
+  /** Local source configurations belong to a single Hubora account or guest profile. */
+  ownerId?: string;
   protocol?: 'stremio' | 'hubora';
   manifestUrl: string;
+  /** AES-GCM encrypted with a non-exportable device key when persisted locally. */
+  encryptedManifestUrl?: { version: 1; iv: string; ciphertext: string };
   name: string;
   enabled: boolean;
   officialOnly: boolean;
@@ -454,3 +458,4 @@ export interface CaptureInboxItem {
   imageBlob?: Blob;
   processed: boolean;
 }
+

@@ -33,6 +33,7 @@ import {
 import { MediaCard } from '@/components/ui/MediaCard';
 import { cn } from '@/lib/utils';
 import { accessDestination, verifiedAccessFor } from '@/services/mediaAccess';
+import { createPlaybackPath } from '@/services/playbackSession';
 import { SEO } from '@/components/ui/SEO';
 
 type DetailTab = 'overview' | 'videos' | 'episodes' | 'sources' | 'activity' | 'details';
@@ -366,6 +367,22 @@ export function Details() {
   ];
 
   const openAccess = (source: MediaAccess) => {
+    if (source.url && ['video', 'hls', 'audio'].includes(source.kind)) {
+      try {
+        navigate(createPlaybackPath(source, item.title));
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Não foi possível abrir esta fonte.');
+      }
+      return;
+    }
+    if (source.kind === 'embed' && source.url && ['movie', 'tv', 'series', 'drama', 'anime'].includes(item.mediaType)) {
+      try {
+        navigate(createPlaybackPath(source, item.title));
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Não foi possível abrir esta fonte.');
+      }
+      return;
+    }
     const destination = accessDestination(source, item);
     if (destination.kind === 'internal') navigate(destination.path);
     else if (destination.kind === 'external') window.open(destination.url, '_blank', 'noopener,noreferrer');
@@ -568,7 +585,7 @@ export function Details() {
                     style={{ width: `${summary.percentage}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[0.7rem] font-bold text-[var(--hub-muted)] mt-1.5">
+                <div className="flex items-center justify-between text-xs font-bold text-[var(--hub-muted)] mt-1.5">
                   <span>{summary.label}</span>
                   <span>{Math.round(summary.percentage)}%</span>
                 </div>
@@ -609,7 +626,7 @@ export function Details() {
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {facts.map((fact) => (
                     <div key={fact.label} className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-surface-1)] p-4">
-                      <span className="text-[0.68rem] font-black uppercase tracking-wider text-[var(--hub-muted)]">{fact.label}</span>
+                      <span className="text-xs font-black uppercase tracking-wider text-[var(--hub-muted)]">{fact.label}</span>
                       <strong className="mt-1 block text-sm text-white">{fact.value}</strong>
                     </div>
                   ))}
@@ -686,7 +703,7 @@ export function Details() {
                       className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-surface-2)] px-4 py-3 text-left hover:border-[var(--hub-brand)]"
                     >
                       <strong className="block text-xs text-white">Capítulo {chapter.chapter}</strong>
-                      <span className="mt-1 block truncate text-[0.7rem] text-[var(--hub-muted)]">{chapter.title} · {chapter.language}</span>
+                      <span className="mt-1 block truncate text-xs text-[var(--hub-muted)]">{chapter.title} · {chapter.language}</span>
                     </button>
                   ))}
                 </div>
@@ -725,7 +742,7 @@ export function Details() {
                 <Server size={14} className="text-[var(--hub-brand)]" />
                 Fontes verificáveis
               </h2>
-              <span className="text-[0.7rem] font-bold text-[var(--hub-brand)]">{access.length}</span>
+              <span className="text-xs font-bold text-[var(--hub-brand)]">{access.length}</span>
             </div>
 
             {access.length > 0 ? (
@@ -739,7 +756,7 @@ export function Details() {
                   >
                     <span className="min-w-0">
                       <strong className="block truncate text-xs text-white group-hover:text-[var(--hub-brand)]">{source.label}</strong>
-                      <span className="mt-0.5 block truncate text-[0.68rem] text-[var(--hub-muted)]">
+                      <span className="mt-0.5 block truncate text-xs text-[var(--hub-muted)]">
                         {source.provider}{source.quality ? ` · ${source.quality}` : ''}{source.language ? ` · ${source.language}` : ''}
                       </span>
                     </span>
@@ -785,3 +802,4 @@ export function Details() {
     </>
   );
 }
+
