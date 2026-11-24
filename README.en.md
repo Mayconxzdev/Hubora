@@ -2,6 +2,8 @@
 
 # Hubora
 
+[Portfolio case](https://mayconxzdev.github.io/projetos/hubora/)
+
 ### One personal hub to discover, organize and track a pop-culture universe.
 
 [Português](README.md) · [Tests](TEST_EVIDENCE.md) · [Providers](PROVIDER_MATRIX.md)
