@@ -4,7 +4,7 @@
 
 ### Uma central pessoal para descobrir, organizar e acompanhar o universo da cultura pop.
 
-[English](README.en.md) · [Testes](TEST_EVIDENCE.md) · [Provedores](PROVIDER_MATRIX.md)
+[Case no portfólio](https://mayconxzdev.github.io/projetos/hubora/) · [English](README.en.md) · [Testes](TEST_EVIDENCE.md) · [Provedores](PROVIDER_MATRIX.md)
 
 [![Abrir demonstração pública](https://img.shields.io/badge/ABRIR_DEMO_PÚBLICA-6D4AFF?style=for-the-badge&logo=netlify&logoColor=white)](https://hubora.netlify.app/)
 [![Código-fonte](https://img.shields.io/badge/CÓDIGO_FONTE-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Mayconxzdev/Hubora)
