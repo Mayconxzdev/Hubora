@@ -17,6 +17,7 @@ import { createAutomaticBackup, listAutomaticBackups, readAutomaticBackup } from
 import { huboraDb, type LocalBackupSnapshot } from '@/lib/db';
 import type { HuboraBackup } from '@/services/backup';
 import { cloudService } from '@/services/cloud';
+import { clearLocalProviderVaultState } from '@/services/providerVaultSync';
 import { findOfficialGameByTitle } from '@/services/officialGameCatalog';
 import type { MediaItem } from '@/types';
 
@@ -300,6 +301,8 @@ export function Settings() {
         toast.error('A limpeza remota não foi concluída. Nenhum dado local foi apagado; verifique a conexão e as migrations do Supabase.');
         return;
       }
+
+      clearLocalProviderVaultState(user.uid);
 
       const baseline = createDefaultProfile({ uid: user.uid, email: user.email, displayName: user.name, photoURL: user.avatar });
       await Promise.all([
@@ -833,3 +836,4 @@ export function Settings() {
     </div>
   );
 }
+

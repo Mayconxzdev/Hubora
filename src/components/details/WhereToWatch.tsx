@@ -3,13 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, ExternalLink, Gamepad2, MonitorPlay, Play, Search, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import type { MediaAccess, MediaItem } from '@/types';
-import { listProviderConfigs, resolveSafeStremioStreams } from '@/services/providerProtocol';
+import { prioritizeBrazilianPortuguese, resolveSafeStremioStreams } from '@/services/providerProtocol';
 import { fetchMangaChapters, resolveMangaDexId, type MangaChapter } from '@/services/mangaService';
 import { toast } from 'sonner';
 import { accessDestination, verifiedAccessFor } from '@/services/mediaAccess';
+import { createPlaybackPath } from '@/services/playbackSession';
+import { loadProviderConfigsWithVault } from '@/services/providerVaultSync';
+import { useStore } from '@/store/useStore';
 
 export function WhereToWatch({ item }: { item: MediaItem }) {
   const navigate = useNavigate();
+  const user = useStore((state) => state.user);
+  const ownerId = user?.uid || 'guest';
   const readable = ['book', 'novel', 'comic', 'manga'].includes(item.mediaType);
   const video = ['movie', 'tv', 'series', 'drama', 'anime'].includes(item.mediaType);
   const title = readable ? 'Ler ou obter' : item.mediaType === 'game' ? 'Jogar ou obter' : 'Assistir';
@@ -34,7 +39,7 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
 
       // Somente add-ons instalados e habilitados explicitamente pelo usuário.
       try {
-        const providers = await listProviderConfigs();
+        const providers = await loadProviderConfigsWithVault(ownerId);
         const activeProviders = providers.filter((p) => p.enabled && p.capabilities.includes('stream'));
 
         const stremioType = item.mediaType === 'movie' ? 'movie' : 'series';
@@ -67,7 +72,7 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
 
     void loadStreams();
     return () => { active = false; };
-  }, [item, video]);
+  }, [item, video, ownerId]);
 
   // Busca de capítulos do mangá no MangaDex
   useEffect(() => {
@@ -96,6 +101,22 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
   }, [item]);
 
   const openAccess = (access: MediaAccess) => {
+    if (access.url && ['video', 'hls', 'audio'].includes(access.kind)) {
+      try {
+        navigate(createPlaybackPath(access, item.title));
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Não foi possível abrir esta fonte.');
+      }
+      return;
+    }
+    if (access.kind === 'embed' && access.url && !readable) {
+      try {
+        navigate(createPlaybackPath(access, item.title));
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Não foi possível abrir esta fonte.');
+      }
+      return;
+    }
     const destination = accessDestination(access, item);
     if (destination.kind === 'internal') {
       navigate(destination.path);
@@ -108,9 +129,9 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
     toast.error(destination.reason);
   };
 
-  const direct = Array.from(
+  const direct = prioritizeBrazilianPortuguese(Array.from(
     new Map([...verifiedAccessFor(item), ...dynamicStreams].filter((entry) => entry.health !== 'offline').map((entry) => [entry.id, entry])).values(),
-  );
+  ));
 
   return (
     <div className="flex flex-col gap-4">
@@ -139,7 +160,7 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
               <span className="min-w-0">
                 <strong className="block truncate text-sm text-[var(--hub-text-strong)]">{entry.label}</strong>
                 <small className="block truncate text-xs text-[var(--hub-subtle)]">
-                  {entry.provider}{entry.free ? ' • gratuito' : ''} {entry.quality ? `[${entry.quality}]` : ''}
+                  {entry.provider}{entry.language ? ` • ${entry.language.toLowerCase().replace('_', '-') === 'pt-br' ? 'PT-BR' : entry.language}` : ''}{entry.free ? ' • gratuito' : ''} {entry.quality ? `[${entry.quality}]` : ''}
                 </small>
               </span>
             </button>
@@ -190,7 +211,7 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
               </a>
             ))}
           </div>
-          <p className="mt-2 text-[0.68rem] text-[var(--hub-subtle)]">
+          <p className="mt-2 text-xs text-[var(--hub-subtle)]">
             Disponibilidade no Brasil fornecida pelo JustWatch via TMDB. Pode mudar conforme assinatura e região.
           </p>
         </div>
@@ -209,7 +230,7 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
             .map(([provider, id]) => (
               <span
                 key={provider}
-                className="rounded-md border border-[var(--hub-border)] bg-[var(--hub-surface-2)] px-2 py-1 text-[.62rem] text-[var(--hub-subtle)]"
+                className="rounded-md border border-[var(--hub-border)] bg-[var(--hub-surface-2)] px-2 py-1 text-xs text-[var(--hub-subtle)]"
               >
                 <strong className="uppercase text-[var(--hub-muted)]">{provider}</strong> {id}
               </span>
@@ -364,3 +385,4 @@ export function WhereToWatch({ item }: { item: MediaItem }) {
     </div>
   );
 }
+
